@@ -210,7 +210,11 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useCallback } = React;
+const { useState, useEffect, useCallback } = React;
+
+// ── Translation code map for bible-api.com ──
+const API_CODE = { KJV:"kjv", BSB:"web", ESV:"kjv", NLT:"web", MSG:"web" };
+
 
 // ── Passage data (BSB + KJV embedded for demo) ──
 const PASSAGES = {
@@ -275,7 +279,7 @@ const STEP_META = {
   E2:{ label:"Embrace", color:"#614880", sub:"How will this shape me?",     icon:"✦" },
 };
 
-const FLOW = ["home","passage","version","reader","E1","D","G","E2","done"];
+const FLOW = ["welcome","home","passage","version","reader","E1","D","G","E2","done"];
 
 function progressPct(screen) {
   const idx = FLOW.indexOf(screen);
@@ -307,15 +311,57 @@ function Field({ label, value, onChange, placeholder, rows=3, color, hint }) {
   );
 }
 
+// ── Welcome / Name Screen ────────────────────────────────────
+function WelcomeScreen({ onDone }) {
+  const [name, setName] = useState("");
+  const save = () => {
+    if (!name.trim()) return;
+    localStorage.setItem("edge_name", name.trim());
+    onDone(name.trim());
+  };
+  return (
+    <>
+      <div className="screen-header">
+        <div style={{fontSize:40,marginBottom:16}}>✦</div>
+        <h1 style={{fontSize:26,fontWeight:"normal",lineHeight:1.25,color:"#1A1814",marginBottom:10}}>
+          Welcome to EDGE Bible Study
+        </h1>
+        <p style={{fontSize:14,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif",lineHeight:1.6}}>
+          A guided method for going deeper into scripture — one passage at a time.
+        </p>
+      </div>
+      <div className="screen-body">
+        <span className="label">What's your first name?</span>
+        <input type="text" placeholder="Enter your name"
+          value={name} onChange={e=>setName(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&save()}
+          style={{marginBottom:16}}/>
+        <button className="btn" style={{background: name.trim()?"#2D6A4F":"#C0B8AC",color:"#fff",marginBottom:24}}
+          onClick={save} disabled={!name.trim()}>
+          Get Started →
+        </button>
+        <div className="card-accent" style={{background:"#1F508010",border:"1px solid #1F508025"}}>
+          <p style={{fontSize:13,color:"#1F5080",fontFamily:"'DM Sans',sans-serif",lineHeight:1.7}}>
+            🔒 <strong>Privacy:</strong> Your name and all study notes are stored only on this device. Nothing you write is sent to a server or seen by anyone else.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── Home Screen ──────────────────────────────────────────────
-function HomeScreen({ onStart, journal }) {
+function HomeScreen({ onStart, journal, name }) {
   const date = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night";
+  const greeting = name ? `Good ${timeOfDay}, ${name}.` : `Good ${timeOfDay}.`;
   return (
     <>
       <div className="screen-header">
         <p className="date-text">{date}</p>
         <h1 style={{fontSize:27,fontWeight:"normal",lineHeight:1.25,color:"#1A1814",marginBottom:8}}>
-          Good morning, David.
+          {greeting}
         </h1>
         <p style={{fontSize:14,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>
           Ready to open the Word?
@@ -341,10 +387,15 @@ function HomeScreen({ onStart, journal }) {
           <div style={{height:12}}/>
         </>}
 
-        <div className="card-accent" style={{background:"#B8832A12",border:"1px solid #B8832A30"}}>
+        <div className="card-accent" style={{background:"#B8832A12",border:"1px solid #B8832A30",marginBottom:10}}>
           <p style={{fontSize:13,color:"#B8832A",fontFamily:"'DM Sans',sans-serif",lineHeight:1.7}}>
             <strong>EDGE</strong> — a four-step method for going deeper into any passage of scripture.<br/>
             <span style={{color:"#8A7F6E"}}>Explore · Dig · Gather · Embrace</span>
+          </p>
+        </div>
+        <div className="card-accent" style={{background:"#1F508010",border:"1px solid #1F508025"}}>
+          <p style={{fontSize:12,color:"#1F5080",fontFamily:"'DM Sans',sans-serif",lineHeight:1.6}}>
+            🔒 Your notes are saved only on this device and are never seen by anyone else.
           </p>
         </div>
       </div>
@@ -611,19 +662,51 @@ function DoneScreen({ passage, translation, data, onSave, onHome }) {
 // ══════════════════════════════════════════════════════════════
 function App() {
   const [screen, setScreen]     = useState("home");
+  const [name, setName]         = useState("");
   const [passage, setPassage]   = useState("");
   const [translation, setTrans] = useState("BSB");
+  const [verseText, setVerse]   = useState("");
+  const [loading, setLoading]   = useState(false);
   const [stepData, setStepData] = useState({E1:{},D:{},G:{},E2:{}});
   const [journal, setJournal]   = useState([]);
 
-  const verseText = (PASSAGES[passage]?.[translation])
-    || (PASSAGES[passage]?.["BSB"])
-    || "Passage text will load from the Bible API in the live version.";
+  // Load name from localStorage on first render
+  useEffect(() => {
+    const saved = localStorage.getItem("edge_name");
+    if (saved) setName(saved);
+    else setScreen("welcome");
+  }, []);
+
+  const fetchVerse = useCallback(async (ref, trans) => {
+    // Check embedded passages first
+    if (PASSAGES[ref]?.[trans]) { setVerse(PASSAGES[ref][trans]); return; }
+    if (PASSAGES[ref]?.["BSB"]) { setVerse(PASSAGES[ref]["BSB"]); return; }
+    // Live API fetch
+    setLoading(true);
+    setVerse("");
+    try {
+      const code = API_CODE[trans] || "web";
+      const encoded = encodeURIComponent(ref.toLowerCase().replace(/\s+/g,"+"));
+      const res = await fetch(`https://bible-api.com/${encoded}?translation=${code}`);
+      const json = await res.json();
+      if (json.verses && json.verses.length > 0) {
+        const text = json.verses.map(v=>`${v.verse}. ${v.text.trim()}`).join(" ");
+        setVerse(text);
+      } else if (json.text) {
+        setVerse(json.text.trim());
+      } else {
+        setVerse("Passage not found. Try a reference like 'John 3:16' or 'Romans 8:1-4'.");
+      }
+    } catch(e) {
+      setVerse("Could not load passage. Please check your connection and try again.");
+    }
+    setLoading(false);
+  }, []);
 
   const go = (s) => setScreen(s);
   const back = () => {
     const i = FLOW.indexOf(screen);
-    if (i > 0) go(FLOW[i-1]);
+    if (i > 1) go(FLOW[i-1]); // don't go back to welcome
   };
 
   const updateStep = (step, field, val) =>
@@ -635,8 +718,23 @@ function App() {
     go("home");
   };
 
-  const pct = progressPct(screen);
-  const canBack = !["home","passage"].includes(screen);
+  const handleVersion = (trans) => {
+    setTrans(trans);
+    fetchVerse(passage, trans);
+    go("reader");
+  };
+
+  const pct = (() => {
+    const idx = FLOW.indexOf(screen);
+    if (idx <= 2) return 0;
+    return Math.round(((idx-3)/5)*100);
+  })();
+
+  const canBack = !["welcome","home","passage"].includes(screen);
+
+  const displayVerse = loading
+    ? "Loading passage..."
+    : verseText || "Passage text will appear here.";
 
   return (
     <div className="phone">
@@ -645,22 +743,23 @@ function App() {
       </div>
       {canBack && <button className="back-btn" onClick={back}>←</button>}
 
-      {screen==="home"    && <HomeScreen onStart={()=>go("passage")} journal={journal}/>}
+      {screen==="welcome" && <WelcomeScreen onDone={n=>{setName(n);go("home");}}/>}
+      {screen==="home"    && <HomeScreen onStart={()=>go("passage")} journal={journal} name={name}/>}
       {screen==="passage" && <PassageScreen onNext={p=>{setPassage(p);go("version");}}/>}
-      {screen==="version" && <VersionScreen passage={passage} onNext={t=>{setTrans(t);go("reader");}}/>}
+      {screen==="version" && <VersionScreen passage={passage} onNext={handleVersion}/>}
       {screen==="reader"  && <ReaderScreen passage={passage} translation={translation}
-        verseText={verseText} onReady={()=>go("E1")}/>}
+        verseText={displayVerse} onReady={()=>go("E1")}/>}
       {screen==="E1" && <StepScreen stepKey="E1" passage={passage} translation={translation}
-        verseText={verseText} data={stepData.E1}
+        verseText={displayVerse} data={stepData.E1}
         onChange={(f,v)=>updateStep("E1",f,v)} onNext={()=>go("D")} nextLabel="Next: Dig →"/>}
       {screen==="D"  && <StepScreen stepKey="D"  passage={passage} translation={translation}
-        verseText={verseText} data={stepData.D}
+        verseText={displayVerse} data={stepData.D}
         onChange={(f,v)=>updateStep("D",f,v)}  onNext={()=>go("G")} nextLabel="Next: Gather →"/>}
       {screen==="G"  && <StepScreen stepKey="G"  passage={passage} translation={translation}
-        verseText={verseText} data={stepData.G}
+        verseText={displayVerse} data={stepData.G}
         onChange={(f,v)=>updateStep("G",f,v)}  onNext={()=>go("E2")} nextLabel="Next: Embrace →"/>}
       {screen==="E2" && <StepScreen stepKey="E2" passage={passage} translation={translation}
-        verseText={verseText} data={stepData.E2}
+        verseText={displayVerse} data={stepData.E2}
         onChange={(f,v)=>updateStep("E2",f,v)} onNext={()=>go("done")} nextLabel="Finish Study ✦"/>}
       {screen==="done" && <DoneScreen passage={passage} translation={translation}
         data={stepData} onSave={save} onHome={()=>go("home")}/>}
