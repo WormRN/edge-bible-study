@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDGE Bible Study — Formed For More</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body {
+      background: linear-gradient(150deg, #DDD6C8, #C8BFB0);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      font-family: 'Lora', 'Georgia', serif;
+    }
+    .phone {
+      width: 100%;
+      max-width: 400px;
+      min-height: 680px;
+      max-height: 860px;
+      background: #F7F4EF;
+      border-radius: 40px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .progress-bar { height: 3px; background: #E4DDD2; flex-shrink: 0; }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2D6A4F, #614880);
+      transition: width 0.4s ease;
+    }
+    .screen-header {
+      padding: 48px 24px 16px;
+      flex-shrink: 0;
+    }
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 24px 40px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen-body::-webkit-scrollbar { width: 0; }
+    .label {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8A7F6E;
+      margin-bottom: 8px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px 24px;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Lora', serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      text-align: center;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #1A1814;
+      color: #1A1814;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #E4DDD2;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .card-accent {
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      border: 1.5px solid #E4DDD2;
+      border-radius: 12px;
+      padding: 13px 15px;
+      font-size: 15px;
+      font-family: 'Lora', serif;
+      color: #1A1814;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    textarea:focus, input[type="text"]:focus { border-color: #2D6A4F; }
+    textarea { resize: vertical; line-height: 1.6; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .chip {
+      background: #fff;
+      border: 1.5px solid #E4DDD2;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #1A1814;
+    }
+    .chip.active { background: #2D6A4F; color: #fff; border-color: #2D6A4F; }
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 10;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      color: #8A7F6E;
+      padding: 4px;
+      line-height: 1;
+      font-family: sans-serif;
+    }
+    .verse-text { line-height: 1.95; font-size: 15.5px; color: #1A1814; }
+    details summary {
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      margin-bottom: 8px;
+      list-style: none;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    .version-row {
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1.5px solid #E4DDD2;
+      background: #fff;
+    }
+    .version-row.selected { background: #1A1814; border-color: #1A1814; }
+    .version-row.unavailable { opacity: 0.5; cursor: default; }
+    .date-text {
+      font-size: 12px;
+      color: #8A7F6E;
+      font-family: 'DM Sans', sans-serif;
+      margin-bottom: 6px;
+    }
+    .hint-box {
+      background: #FFF8ED;
+      border: 1px solid #E8C87A;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: #7A5C1E;
+      line-height: 1.6;
+      display: none;
+    }
+    .hint-box.visible { display: block; }
+    .hint-toggle {
+      background: transparent;
+      border: 1.5px solid #B8832A;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      color: #B8832A;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 440px) {
+      body { padding: 0; align-items: stretch; }
+      .phone { max-width: 100%; border-radius: 0; min-height: 100vh; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+// ── Passage data (BSB + KJV embedded for demo) ──
+const PASSAGES = {
+  "Romans 8:1-4": {
+    BSB: "Therefore, there is now no condemnation for those who are in Christ Jesus. For in Christ Jesus the law of the Spirit of life has set you free from the law of sin and death. For what the law was powerless to do in that it was weakened by the flesh, God did by sending His own Son in the likeness of sinful man, as an offering for sin. He thus condemned sin in the flesh, so that the righteous standard of the law might be fulfilled in us, who do not walk according to the flesh but according to the Spirit.",
+    KJV:  "There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit. For the law of the Spirit of life in Christ Jesus hath made me free from the law of sin and death. For what the law could not do, in that it was weak through the flesh, God sending his own Son in the likeness of sinful flesh, and for sin, condemned sin in the flesh: That the righteousness of the law might be fulfilled in us, who walk not after the flesh, but after the Spirit.",
+  },
+  "Psalm 23": {
+    BSB: "The LORD is my shepherd; I shall not want. He makes me lie down in green pastures; He leads me beside quiet waters. He restores my soul; He guides me in the paths of righteousness for the sake of His name. Even though I walk through the valley of the shadow of death, I will fear no evil, for You are with me; Your rod and Your staff, they comfort me. You prepare a table before me in the presence of my enemies. You anoint my head with oil; my cup overflows. Surely goodness and mercy will follow me all the days of my life, and I will dwell in the house of the LORD forever.",
+    KJV:  "The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures: he leadeth me beside the still waters. He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake. Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me. Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over. Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever.",
+  },
+  "John 3:16-17": {
+    BSB: "For God so loved the world that He gave His one and only Son, that everyone who believes in Him shall not perish but have eternal life. For God did not send His Son into the world to condemn the world, but to save the world through Him.",
+    KJV:  "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life. For God sent not his Son into the world to condemn the world; but that the world through him might be saved.",
+  },
+  "Hebrews 11:1-3": {
+    BSB: "Now faith is the assurance of what we hope for and the certainty of what we do not see. This is why the ancients were commended. By faith we understand that the universe was formed by God's command, so that what is seen was not made out of what was visible.",
+    KJV:  "Now faith is the substance of things hoped for, the evidence of things not seen. For by it the elders obtained a good report. Through faith we understand that the worlds were framed by the word of God, so that things which are seen were not made of things which do appear.",
+  },
+  "Jeremiah 31:31-34": {
+    BSB: "Behold, the days are coming, declares the LORD, when I will make a new covenant with the house of Israel and with the house of Judah. It will not be like the covenant I made with their fathers when I took them by the hand to lead them out of the land of Egypt—a covenant they broke, though I was a husband to them, declares the LORD. But this is the covenant I will make with the house of Israel after those days, declares the LORD. I will put My law in their minds and inscribe it on their hearts. And I will be their God, and they will be My people. No longer will each man teach his neighbor or his brother, saying, 'Know the LORD,' because they will all know Me, from the least of them to the greatest, declares the LORD. For I will forgive their iniquity and will remember their sins no more.",
+    KJV:  "Behold, the days come, saith the LORD, that I will make a new covenant with the house of Israel, and with the house of Judah: Not according to the covenant that I made with their fathers in the day that I took them by the hand to bring them out of the land of Egypt; which my covenant they brake, although I was an husband unto them, saith the LORD: But this shall be the covenant that I will make with the house of Israel; After those days, saith the LORD, I will put my law in their inward parts, and write it in their hearts; and will be their God, and they shall be my people. And they shall teach no more every man his neighbour, and every man his brother, saying, Know the LORD: for they shall all know me, from the least of them unto the greatest of them, saith the LORD: for I will forgive their iniquity, and I will remember their sin no more.",
+  },
+};
+
+// Contextual hints for the Dig step
+const HINTS = {
+  "Romans 8:1-4": {
+    whoWhat: "This letter was written by the Apostle Paul to Christians living in Rome. He's writing to both Jewish and Gentile (non-Jewish) believers who are wrestling with what it means to live under grace rather than law.",
+    context: "In chapters 6 and 7, Paul wrestled honestly with the struggle against sin — even as a believer. He described the frustration of wanting to do right but failing. Chapter 8 opens as his answer to that struggle.",
+  },
+  "Psalm 23": {
+    whoWhat: "This psalm was written by David, likely reflecting on his years as a shepherd before becoming king of Israel. He's writing to anyone who needs reassurance of God's care.",
+    context: "The psalms around this one deal with themes of trust in God during difficulty. David often wrote from personal crisis — being pursued by enemies, feeling abandoned — and found his way back to trust.",
+  },
+  "John 3:16-17": {
+    whoWhat: "John the Apostle wrote this gospel. These verses come from a private nighttime conversation Jesus had with Nicodemus, a Jewish religious leader who came to him with questions.",
+    context: "Nicodemus opens the conversation by acknowledging Jesus as a teacher from God. Jesus responds by saying no one can see God's kingdom without being 'born again' — which confuses Nicodemus completely. These verses are Jesus explaining the reason God sent Him.",
+  },
+  "Hebrews 11:1-3": {
+    whoWhat: "The author of Hebrews is unknown — it's one of the mysteries of the New Testament. The letter was written to Jewish Christians who were under pressure and considering returning to Judaism.",
+    context: "The previous chapter (Hebrews 10) urges the readers not to give up or shrink back. Chapter 11 follows by giving a long list of Old Testament figures who kept trusting God even when it cost them everything.",
+  },
+  "Jeremiah 31:31-34": {
+    whoWhat: "Jeremiah was a prophet in Judah, writing just before and during the Babylonian conquest and exile (around 600 BC). He's delivering a message from God to a nation that is about to lose everything.",
+    context: "Jeremiah had been delivering painful messages of judgment for decades. This passage comes in a rare section sometimes called the 'Book of Consolation' — a burst of hope in the middle of heartbreak. God promises something completely new is coming.",
+  },
+};
+
+const TRANSLATIONS = [
+  { id:"KJV", label:"KJV", full:"King James Version",       pos:0,   available:true,  tag:"What it says" },
+  { id:"ESV", label:"ESV", full:"English Standard Version", pos:28,  available:false, tag:"Coming soon" },
+  { id:"BSB", label:"BSB", full:"Berean Standard Bible",    pos:50,  available:true,  tag:"Default" },
+  { id:"NLT", label:"NLT", full:"New Living Translation",   pos:75,  available:false, tag:"Goal" },
+  { id:"MSG", label:"MSG", full:"The Message",              pos:100, available:false, tag:"What it means" },
+];
+
+const STEP_META = {
+  E1:{ label:"Explore", color:"#2D6A4F", sub:"What is it saying?",          icon:"◎" },
+  D: { label:"Dig",     color:"#B5481E", sub:"What's beneath the surface?", icon:"⬡" },
+  G: { label:"Gather",  color:"#1F5080", sub:"What does it mean?",          icon:"❋" },
+  E2:{ label:"Embrace", color:"#614880", sub:"How will this shape me?",     icon:"✦" },
+};
+
+const FLOW = ["home","passage","version","reader","E1","D","G","E2","done"];
+
+function progressPct(screen) {
+  const idx = FLOW.indexOf(screen);
+  if (idx <= 2) return 0;
+  return Math.round(((idx-3)/5)*100);
+}
+
+// ── Field component ──────────────────────────────────────────
+function Field({ label, value, onChange, placeholder, rows=3, color, hint }) {
+  const [showHint, setShowHint] = useState(false);
+  return (
+    <div style={{marginBottom:20}}>
+      <span className="label" style={{color: color||"#8A7F6E"}}>{label}</span>
+      {hint && (
+        <>
+          <button className="hint-toggle" onClick={()=>setShowHint(h=>!h)}>
+            {showHint ? "▲ Hide hint" : "💡 Need a nudge?"}
+          </button>
+          <div className={`hint-box ${showHint?"visible":""}`}>{hint}</div>
+        </>
+      )}
+      <textarea
+        rows={rows}
+        value={value}
+        onChange={e=>onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+// ── Home Screen ──────────────────────────────────────────────
+function HomeScreen({ onStart, journal }) {
+  const date = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  return (
+    <>
+      <div className="screen-header">
+        <p className="date-text">{date}</p>
+        <h1 style={{fontSize:27,fontWeight:"normal",lineHeight:1.25,color:"#1A1814",marginBottom:8}}>
+          Good morning, David.
+        </h1>
+        <p style={{fontSize:14,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>
+          Ready to open the Word?
+        </p>
+      </div>
+      <div className="screen-body">
+        <button className="btn" style={{background:"#2D6A4F",color:"#fff",marginBottom:28}}
+          onClick={onStart}>+ Start a New Study</button>
+
+        {journal.length > 0 && <>
+          <span className="label">Recent Studies</span>
+          {journal.map((r,i)=>(
+            <div className="card" key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <p style={{fontWeight:600,fontSize:15}}>{r.passage}</p>
+                <p style={{fontSize:12,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif",marginTop:3}}>
+                  {r.translation} · Completed
+                </p>
+              </div>
+              <span style={{color:"#2D6A4F",fontSize:18}}>✓</span>
+            </div>
+          ))}
+          <div style={{height:12}}/>
+        </>}
+
+        <div className="card-accent" style={{background:"#B8832A12",border:"1px solid #B8832A30"}}>
+          <p style={{fontSize:13,color:"#B8832A",fontFamily:"'DM Sans',sans-serif",lineHeight:1.7}}>
+            <strong>EDGE</strong> — a four-step method for going deeper into any passage of scripture.<br/>
+            <span style={{color:"#8A7F6E"}}>Explore · Dig · Gather · Embrace</span>
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Passage Screen ───────────────────────────────────────────
+function PassageScreen({ onNext }) {
+  const [passage, setPassage] = useState("");
+  const suggestions = Object.keys(PASSAGES);
+  return (
+    <>
+      <div className="screen-header">
+        <h2 style={{fontSize:22,fontWeight:"normal",color:"#1A1814",lineHeight:1.3}}>
+          What passage are we studying?
+        </h2>
+        <p style={{fontSize:13,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif",marginTop:6}}>
+          Type a reference or choose from the suggestions below.
+        </p>
+      </div>
+      <div className="screen-body">
+        <input type="text" placeholder="e.g. Romans 8:1-4"
+          value={passage} onChange={e=>setPassage(e.target.value)}
+          style={{marginBottom:14}}/>
+        <span className="label">Suggested passages</span>
+        <div className="chip-row">
+          {suggestions.map(s=>(
+            <button key={s} className={`chip ${passage===s?"active":""}`}
+              onClick={()=>setPassage(s)}>{s}</button>
+          ))}
+        </div>
+        <button className="btn"
+          style={{background:passage?"#2D6A4F":"#C0B8AC",color:"#fff"}}
+          onClick={()=>passage&&onNext(passage)}
+          disabled={!passage}>
+          Continue →
+        </button>
+        {passage && !PASSAGES[passage] && (
+          <p style={{fontSize:12,color:"#B5481E",fontFamily:"'DM Sans',sans-serif",
+            textAlign:"center",marginTop:10}}>
+            ⚠ In the live version, any valid Bible reference will load automatically.
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── Version Screen ───────────────────────────────────────────
+function VersionScreen({ passage, onNext }) {
+  const [selected, setSelected] = useState("BSB");
+  const sel = TRANSLATIONS.find(t=>t.id===selected);
+  return (
+    <>
+      <div className="screen-header" style={{borderBottom:"1px solid #E4DDD2",paddingBottom:16}}>
+        <span className="label">Translation</span>
+        <h2 style={{fontSize:21,fontWeight:"normal",color:"#1A1814",marginBottom:4}}>
+          Choose your version
+        </h2>
+        <p style={{fontSize:13,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>{passage}</p>
+      </div>
+      <div className="screen-body">
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontSize:11,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>← What it says</span>
+          <span style={{fontSize:11,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>What it means →</span>
+        </div>
+        <div style={{position:"relative",height:4,background:"#E4DDD2",borderRadius:4,marginBottom:20}}>
+          <div style={{position:"absolute",inset:0,
+            background:"linear-gradient(90deg,#1F5080,#B8832A)",borderRadius:4,opacity:0.35}}/>
+          {TRANSLATIONS.map(t=>(
+            <div key={t.id} onClick={()=>t.available&&setSelected(t.id)}
+              style={{position:"absolute",top:"50%",left:`${t.pos}%`,
+                transform:"translate(-50%,-50%)",
+                width:10,height:10,borderRadius:"50%",
+                background:t.available?(selected===t.id?"#1A1814":"#8A7F6E"):"#E4DDD2",
+                border:selected===t.id?"2px solid #1A1814":"2px solid transparent",
+                cursor:t.available?"pointer":"default",transition:"all 0.15s"}}/>
+          ))}
+        </div>
+
+        {TRANSLATIONS.map(t=>(
+          <div key={t.id}
+            className={`version-row ${selected===t.id?"selected":""} ${!t.available?"unavailable":""}`}
+            onClick={()=>t.available&&setSelected(t.id)}>
+            <div>
+              <p style={{fontWeight:600,fontSize:15,
+                color:selected===t.id?"#fff":t.available?"#1A1814":"#8A7F6E"}}>
+                {t.label}
+                {t.id==="BSB"&&<span style={{fontSize:11,marginLeft:8,
+                  color:selected===t.id?"rgba(255,255,255,0.55)":"#B8832A"}}> default</span>}
+                {t.id==="NLT"&&<span style={{fontSize:11,marginLeft:8,
+                  color:selected===t.id?"rgba(255,255,255,0.55)":"#614880"}}> goal</span>}
+              </p>
+              <p style={{fontSize:12,fontFamily:"'DM Sans',sans-serif",marginTop:2,
+                color:selected===t.id?"rgba(255,255,255,0.6)":"#8A7F6E"}}>{t.full}</p>
+            </div>
+            <span style={{fontSize:12,fontFamily:"'DM Sans',sans-serif",
+              color:selected===t.id?"rgba(255,255,255,0.5)":"#8A7F6E"}}>
+              {t.available?(selected===t.id?"✓":t.tag):t.tag}
+            </span>
+          </div>
+        ))}
+        <div style={{height:8}}/>
+        <button className="btn" style={{background:"#2D6A4F",color:"#fff"}}
+          onClick={()=>onNext(selected)}>
+          Begin with {sel?.label} →
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ── Reader Screen ────────────────────────────────────────────
+function ReaderScreen({ passage, translation, verseText, onReady }) {
+  return (
+    <>
+      <div className="screen-header" style={{borderBottom:"1px solid #E4DDD2",paddingBottom:16}}>
+        <span className="label">{translation}</span>
+        <h2 style={{fontSize:21,fontWeight:"normal",color:"#1A1814"}}>{passage}</h2>
+      </div>
+      <div className="screen-body">
+        <div className="card" style={{background:"#FDFAF6",marginTop:8}}>
+          <p className="verse-text">{verseText}</p>
+        </div>
+        <div className="card-accent" style={{background:"#2D6A4F0D",border:"1px solid #2D6A4F25",marginTop:4}}>
+          <p style={{fontSize:13,color:"#2D6A4F",fontFamily:"'DM Sans',sans-serif",textAlign:"center"}}>
+            📖 Read this passage at least twice. Take your time.
+          </p>
+        </div>
+        <div style={{height:8}}/>
+        <button className="btn" style={{background:"#2D6A4F",color:"#fff"}} onClick={onReady}>
+          I'm Ready to Explore →
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ── Step Screen ──────────────────────────────────────────────
+function StepScreen({ stepKey, passage, translation, verseText, data, onChange, onNext, nextLabel }) {
+  const m = STEP_META[stepKey];
+  const hints = HINTS[passage] || {};
+
+  return (
+    <>
+      <div className="screen-header" style={{borderBottom:"1px solid #E4DDD2",paddingBottom:14}}>
+        <div className="step-badge" style={{background:m.color+"18",color:m.color}}>
+          <span>{m.icon}</span><span>{m.label}</span>
+        </div>
+        <h2 style={{fontSize:20,fontWeight:"normal",color:"#1A1814",marginBottom:2}}>{m.sub}</h2>
+        <p style={{fontSize:12,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif"}}>
+          {passage} · {translation}
+        </p>
+      </div>
+      <div className="screen-body">
+        <details style={{marginBottom:20}}>
+          <summary style={{color:m.color}}>▶ Show passage text</summary>
+          <div className="card" style={{background:"#FDFAF6",fontSize:14,lineHeight:1.85,marginTop:8}}>
+            {verseText}
+          </div>
+        </details>
+
+        {stepKey==="E1" && <>
+          <Field label="What words or phrases repeat?"
+            value={data.repeats||""} onChange={v=>onChange("repeats",v)}
+            placeholder="List anything that stands out..." rows={3} color={m.color}/>
+          <Field label="What seems important, surprising, or unclear?"
+            value={data.notable||""} onChange={v=>onChange("notable",v)}
+            placeholder="Observations, questions, anything that catches your attention..." rows={4} color={m.color}/>
+        </>}
+
+        {stepKey==="D" && <>
+          <Field label="Who is speaking? Who is being addressed?"
+            value={data.whoWhat||""} onChange={v=>onChange("whoWhat",v)}
+            placeholder="Author, audience, context..."
+            rows={2} color={m.color} hint={hints.whoWhat}/>
+          <Field label="What's happening right before this passage?"
+            value={data.context||""} onChange={v=>onChange("context",v)}
+            placeholder="Think about the surrounding chapters..."
+            rows={3} color={m.color} hint={hints.context}/>
+          <Field label="Rewrite this passage in your own words."
+            value={data.paraphrase||""} onChange={v=>onChange("paraphrase",v)}
+            placeholder="Don't just rephrase word-for-word — what is it actually saying?"
+            rows={5} color={m.color}/>
+        </>}
+
+        {stepKey==="G" && <>
+          <Field label="The main point seems to be..."
+            value={data.mainPoint||""} onChange={v=>onChange("mainPoint",v)}
+            placeholder="Complete the sentence..." rows={3} color={m.color}/>
+          <Field label="This passage shows that God is..."
+            value={data.godIs||""} onChange={v=>onChange("godIs",v)}
+            placeholder="What does this reveal about His character?" rows={3} color={m.color}/>
+          <Field label="This teaches people to..."
+            value={data.teaches||""} onChange={v=>onChange("teaches",v)}
+            placeholder="What's the principle or call to action?" rows={3} color={m.color}/>
+        </>}
+
+        {stepKey==="E2" && <>
+          <Field label="What is God saying to me here?"
+            value={data.godSaying||""} onChange={v=>onChange("godSaying",v)}
+            placeholder="Be honest and personal..." rows={4} color={m.color}/>
+          <Field label="One specific action I will take today."
+            value={data.action||""} onChange={v=>onChange("action",v)}
+            placeholder="I will..." rows={3} color={m.color}/>
+        </>}
+
+        <button className="btn" style={{background:m.color,color:"#fff"}} onClick={onNext}>
+          {nextLabel}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ── Done Screen ──────────────────────────────────────────────
+function DoneScreen({ passage, translation, data, onSave, onHome }) {
+  return (
+    <>
+      <div className="screen-header" style={{textAlign:"center"}}>
+        <div style={{fontSize:44,marginBottom:12}}>✦</div>
+        <h2 style={{fontSize:22,fontWeight:"normal",color:"#1A1814"}}>Study Complete</h2>
+        <p style={{fontSize:13,color:"#8A7F6E",fontFamily:"'DM Sans',sans-serif",marginTop:5}}>
+          {passage} · {translation}
+        </p>
+      </div>
+      <div className="screen-body">
+        {data.D?.paraphrase && (
+          <div className="card">
+            <span className="label">Your Paraphrase</span>
+            <p style={{fontSize:15,lineHeight:1.75,fontStyle:"italic",color:"#1A1814"}}>
+              "{data.D.paraphrase}"
+            </p>
+          </div>
+        )}
+        {data.G?.mainPoint && (
+          <div className="card">
+            <span className="label">Main Takeaway</span>
+            <p style={{fontSize:15,lineHeight:1.75}}>
+              The main point seems to be... {data.G.mainPoint}
+            </p>
+          </div>
+        )}
+        {data.E2?.action && (
+          <div className="card-accent" style={{background:"#61488012",border:"1px solid #61488030"}}>
+            <span className="label" style={{color:"#614880"}}>Your Action Step</span>
+            <p style={{fontSize:15,fontWeight:600,color:"#614880"}}>
+              I will... {data.E2.action}
+            </p>
+          </div>
+        )}
+        <div style={{height:12}}/>
+        <button className="btn" style={{background:"#2D6A4F",color:"#fff",marginBottom:10}}
+          onClick={onSave}>✓ Save to Journal</button>
+        <button className="btn btn-outline" onClick={onHome}>Return Home</button>
+      </div>
+    </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// ROOT APP
+// ══════════════════════════════════════════════════════════════
+function App() {
+  const [screen, setScreen]     = useState("home");
+  const [passage, setPassage]   = useState("");
+  const [translation, setTrans] = useState("BSB");
+  const [stepData, setStepData] = useState({E1:{},D:{},G:{},E2:{}});
+  const [journal, setJournal]   = useState([]);
+
+  const verseText = (PASSAGES[passage]?.[translation])
+    || (PASSAGES[passage]?.["BSB"])
+    || "Passage text will load from the Bible API in the live version.";
+
+  const go = (s) => setScreen(s);
+  const back = () => {
+    const i = FLOW.indexOf(screen);
+    if (i > 0) go(FLOW[i-1]);
+  };
+
+  const updateStep = (step, field, val) =>
+    setStepData(p => ({...p, [step]: {...p[step], [field]: val}}));
+
+  const save = () => {
+    setJournal(p => [...p, {passage, translation, data: stepData}]);
+    setStepData({E1:{},D:{},G:{},E2:{}});
+    go("home");
+  };
+
+  const pct = progressPct(screen);
+  const canBack = !["home","passage"].includes(screen);
+
+  return (
+    <div className="phone">
+      <div className="progress-bar">
+        <div className="progress-fill" style={{width:`${pct}%`}}/>
+      </div>
+      {canBack && <button className="back-btn" onClick={back}>←</button>}
+
+      {screen==="home"    && <HomeScreen onStart={()=>go("passage")} journal={journal}/>}
+      {screen==="passage" && <PassageScreen onNext={p=>{setPassage(p);go("version");}}/>}
+      {screen==="version" && <VersionScreen passage={passage} onNext={t=>{setTrans(t);go("reader");}}/>}
+      {screen==="reader"  && <ReaderScreen passage={passage} translation={translation}
+        verseText={verseText} onReady={()=>go("E1")}/>}
+      {screen==="E1" && <StepScreen stepKey="E1" passage={passage} translation={translation}
+        verseText={verseText} data={stepData.E1}
+        onChange={(f,v)=>updateStep("E1",f,v)} onNext={()=>go("D")} nextLabel="Next: Dig →"/>}
+      {screen==="D"  && <StepScreen stepKey="D"  passage={passage} translation={translation}
+        verseText={verseText} data={stepData.D}
+        onChange={(f,v)=>updateStep("D",f,v)}  onNext={()=>go("G")} nextLabel="Next: Gather →"/>}
+      {screen==="G"  && <StepScreen stepKey="G"  passage={passage} translation={translation}
+        verseText={verseText} data={stepData.G}
+        onChange={(f,v)=>updateStep("G",f,v)}  onNext={()=>go("E2")} nextLabel="Next: Embrace →"/>}
+      {screen==="E2" && <StepScreen stepKey="E2" passage={passage} translation={translation}
+        verseText={verseText} data={stepData.E2}
+        onChange={(f,v)=>updateStep("E2",f,v)} onNext={()=>go("done")} nextLabel="Finish Study ✦"/>}
+      {screen==="done" && <DoneScreen passage={passage} translation={translation}
+        data={stepData} onSave={save} onHome={()=>go("home")}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
