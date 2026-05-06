@@ -577,6 +577,49 @@ select.translation-select {
   vertical-align: middle;
 }
 
+/* ─── Lookup link (Explore: "Define a difficult word") ──── */
+.lookup-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 14px 50px 14px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  font-family: var(--sans);
+  position: relative;
+  transition: all 0.15s ease;
+}
+.lookup-link:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.lookup-link-h {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.lookup-link-d {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.lookup-link-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+}
+
 /* ─── Hint box ───────────────────────────────────────────── */
 .hint-box {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
@@ -1034,6 +1077,12 @@ select.translation-select {
       <div class="home-tile-d">Look up a Greek word by Strong's number, transliteration, or meaning.</div>
     </button>
 
+    <button class="home-tile" onclick="showScreen('readBible')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">Read the Bible</div>
+      <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
+    </button>
+
     <div class="privacy" style="margin-top: 24px;">
       <strong>Your notes stay here.</strong> EDGE saves your study answers in your browser.
       No accounts, no servers, no sharing.
@@ -1115,6 +1164,12 @@ select.translation-select {
         <div class="passage-ref" id="explorePassageRef"></div>
         <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
       </div>
+
+      <button class="lookup-link" onclick="openLookupFromStudy()">
+        <span class="lookup-link-h">Define a difficult word</span>
+        <span class="lookup-link-d">Look up an unfamiliar Greek term — your notes here will be saved.</span>
+        <span class="lookup-link-arrow">→</span>
+      </button>
 
       <div class="hint-box" id="exploreHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('exploreHint')">Need a nudge? <span class="caret">›</span></button>
@@ -1260,6 +1315,32 @@ select.translation-select {
 
       <div id="lexResults"></div>
     </div>
+  </section>
+
+  <!-- ─── READ THE BIBLE (no study flow) ───────────────────── -->
+  <section class="screen" id="screen-readBible">
+    <div class="card">
+      <div class="h-step gather">JUST READ</div>
+      <h2 class="h-question">Read a passage</h2>
+      <p class="lead">No study flow. Just the text — slowly, prayerfully, however you'd like.</p>
+
+      <div class="translation-row">
+        <label for="readBibleTranslation">Translation:</label>
+        <select id="readBibleTranslation" class="translation-select">
+          <option value="bsb">BSB · Berean Standard Bible</option>
+          <option value="kjv">KJV · King James Version</option>
+          <option value="web">WEB · World English Bible</option>
+        </select>
+      </div>
+
+      <label class="field-label" for="readBibleInput" style="margin-top: 18px;">Reference</label>
+      <div class="passage-input-row">
+        <input type="text" id="readBibleInput" placeholder="e.g. Romans 8:28-39" autocomplete="off">
+        <button class="btn btn-primary" onclick="onReadBibleSubmit()">Go</button>
+      </div>
+    </div>
+
+    <div id="readBibleDisplay"></div>
   </section>
 
 </main>
@@ -1432,6 +1513,7 @@ function showScreen(name, opts = {}) {
   if (name === 'embrace')      mountEmbrace();
   if (name === 'done')         renderDone();
   if (name === 'wordStudy')    mountWordStudy();
+  if (name === 'readBible')    mountReadBible();
 
   window.scrollTo(0, 0);
 }
@@ -1549,10 +1631,13 @@ function onPassageSubmit() {
    PASSAGE FETCH
    ============================================================ */
 async function fetchPassage(ref, translation) {
-  const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(translation)}`;
+  // bible-api.com accepts unencoded colons; just normalize whitespace to '+'
+  const encodedRef = ref.trim().replace(/\s+/g, '+');
+  const url = `https://bible-api.com/${encodedRef}?translation=${translation || 'web'}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error('Passage not found.');
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
   const data = await res.json();
+  if (data.error) throw new Error(data.error);
   if (!data.verses || !data.verses.length) throw new Error('No verses returned.');
   return data;
 }
@@ -1584,9 +1669,10 @@ async function fetchPassageForReader() {
     saveStudy();
     renderPassageInto('readerPassage', data);
   } catch (err) {
+    console.error('Bible API error:', err);
     display.innerHTML = `
       <div class="passage-error">
-        Couldn't load "${escapeHtml(state.study.passage)}". Check the reference and try again.
+        Couldn't load "${escapeHtml(state.study.passage)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
       </div>
       <div style="text-align:center; margin-top:14px;">
         <button class="btn btn-secondary" onclick="showScreen('pickPassage', { skipHistory: true })">← Edit reference</button>
@@ -1962,6 +2048,73 @@ function renderLexResults(query) {
       <div class="lr-gloss">${escapeHtml(e.gloss)}</div>
     </button>
   `).join('');
+}
+
+/* ============================================================
+   LOOKUP FROM STUDY (Explore → Word Study)
+   ============================================================ */
+function openLookupFromStudy() {
+  // Save current Explore draft so it survives the round-trip
+  captureCurrentInputs();
+  showScreen('wordStudy');
+}
+
+/* ============================================================
+   READ THE BIBLE (no study flow)
+   ============================================================ */
+function mountReadBible() {
+  const input = document.getElementById('readBibleInput');
+  const display = document.getElementById('readBibleDisplay');
+
+  // Clear display on mount unless we have a recent fetch
+  if (!display.dataset.populated) {
+    display.innerHTML = '';
+  }
+
+  // Allow Enter key to submit
+  if (!input._enterWired) {
+    input._enterWired = true;
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') onReadBibleSubmit();
+    });
+  }
+}
+
+async function onReadBibleSubmit() {
+  const ref = document.getElementById('readBibleInput').value.trim();
+  const translation = document.getElementById('readBibleTranslation').value || 'bsb';
+  const display = document.getElementById('readBibleDisplay');
+
+  if (!ref) {
+    document.getElementById('readBibleInput').focus();
+    return;
+  }
+
+  display.innerHTML = '<div class="passage-display"><div class="passage-loading">Loading passage…</div></div>';
+
+  try {
+    const data = await fetchPassage(ref, translation);
+    display.dataset.populated = '1';
+    const versesHtml = data.verses.map(v => {
+      return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
+    }).join('');
+    const transBadge = `<span class="translation-badge">${(data.translation_id || translation).toUpperCase()}</span>`;
+    display.innerHTML = `
+      <div class="passage-display">
+        <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
+        <div class="passage-text">${versesHtml}</div>
+      </div>
+    `;
+  } catch (err) {
+    console.error('Bible API error:', err);
+    display.innerHTML = `
+      <div class="passage-display">
+        <div class="passage-error">
+          Couldn't load "${escapeHtml(ref)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
+        </div>
+      </div>
+    `;
+  }
 }
 
 /* ============================================================
