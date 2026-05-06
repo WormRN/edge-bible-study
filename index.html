@@ -1,121 +1,2000 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>EDGE Bible Study</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --navy: #0E2A52; --navy-deep: #081A35; --accent: #2A7BD4; --accent-soft: #E8F1FB;
-      --ink: #0F172A; --ink-soft: #334155; --muted: #64748B; --rule: #E2E8F0;
-      --paper: #FFFFFF; --canvas: #F8FAFC;
-      --edge-explore: #4A9D4A; --edge-dig: #E08833; --edge-gather: #2A7BD4; --edge-embrace: #8E54B5;
-      --serif: 'Lora', 'EB Garamond', serif; --sans: 'Atkinson Hyperlegible', sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: #DDD6C8; font-family: var(--sans); color: var(--ink); display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
-    .phone {
-      width: 100%; max-width: 600px; height: 90vh; max-height: 900px;
-      background: var(--paper); border-radius: 20px; box-shadow: 0 40px 100px rgba(0,0,0,0.2);
-      display: flex; flex-direction: column; overflow: hidden; position: relative;
-    }
-    .progress-bar { height: 6px; background: var(--rule); display: flex; flex-shrink: 0; }
-    .progress-fill { height: 100%; transition: width 0.4s ease; background: var(--navy); }
-    .header { background: var(--navy); color: white; padding: 40px 20px 15px; position: relative; flex-shrink: 0; }
-    .header::after {
-        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
-        background: linear-gradient(90deg, var(--edge-explore) 25%, var(--edge-dig) 50%, var(--edge-gather) 75%, var(--edge-embrace) 100%);
-    }
-    .body { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; }
-    .label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
-    .btn { background: var(--navy); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-    .input { width: 100%; padding: 14px; border: 2px solid var(--rule); border-radius: 12px; margin-bottom: 20px; font-size: 17px; font-family: var(--serif); outline: none; }
-    .hint-box { background: #FFF8ED; border: 1px solid #E8C87A; border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 14px; color: #7A5C1E; }
-    .tappable-word { color: var(--accent); cursor: pointer; }
-    .quick-banner { background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%); color: white; border-radius: 12px; padding: 16px; margin-bottom: 20px; cursor: pointer; }
-    @media (max-width: 600px) { body { padding: 0; } .phone { max-width: 100%; height: 100vh; border-radius: 0; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E2A52">
+<title>EDGE · Bible Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   EDGE · Bible Study
+   Single-file HTML/CSS/JS app
+   ============================================================ */
+
+:root {
+  --navy:        #0E2A52;
+  --navy-deep:   #081A35;
+  --navy-soft:   #1A3A6B;
+  --accent:      #2A7BD4;
+  --accent-soft: #E8F1FB;
+  --accent-pale: #F4F8FD;
+  --ink:         #0F172A;
+  --ink-soft:    #334155;
+  --muted:       #64748B;
+  --rule:        #E2E8F0;
+  --paper:       #FFFFFF;
+  --canvas:      #F8FAFC;
+
+  --edge-explore: #4A9D4A;
+  --edge-dig:     #E08833;
+  --edge-gather:  #2A7BD4;
+  --edge-embrace: #8E54B5;
+
+  --shadow:       0 1px 3px rgba(15,42,82,0.08), 0 4px 16px rgba(15,42,82,0.06);
+  --shadow-elev:  0 4px 24px rgba(15,42,82,0.14);
+  --shadow-modal: 0 20px 60px rgba(8,26,53,0.35);
+
+  --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --sans:  'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.app-header {
+  background: var(--navy);
+  color: white;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.logo {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 22px;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+.logo::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 6px; right: 6px;
+  height: 3px;
+  background: linear-gradient(90deg,
+    var(--edge-explore) 0%, var(--edge-explore) 25%,
+    var(--edge-dig)     25%, var(--edge-dig)     50%,
+    var(--edge-gather)  50%, var(--edge-gather)  75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+  border-radius: 2px;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  flex: 1;
+}
+
+.back-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: white;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+.back-btn:hover { background: rgba(255,255,255,0.22); }
+.back-btn::before { content: '←'; font-size: 16px; }
+.back-btn.is-visible { display: inline-flex; }
+
+/* ─── Progress dots ──────────────────────────────────────── */
+.progress {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding: 14px 20px;
+  display: none;
+}
+.progress.is-visible { display: block; }
+.progress-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.progress-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--rule);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  font-family: var(--serif);
+  transition: all 0.2s ease;
+}
+.progress-step.is-active .progress-dot {
+  color: white;
+  transform: scale(1.1);
+}
+.progress-step.is-done .progress-dot {
+  color: white;
+}
+.progress-step[data-step="explore"].is-active .progress-dot,
+.progress-step[data-step="explore"].is-done .progress-dot { background: var(--edge-explore); }
+.progress-step[data-step="dig"].is-active .progress-dot,
+.progress-step[data-step="dig"].is-done .progress-dot { background: var(--edge-dig); }
+.progress-step[data-step="gather"].is-active .progress-dot,
+.progress-step[data-step="gather"].is-done .progress-dot { background: var(--edge-gather); }
+.progress-step[data-step="embrace"].is-active .progress-dot,
+.progress-step[data-step="embrace"].is-done .progress-dot { background: var(--edge-embrace); }
+.progress-line {
+  width: 22px;
+  height: 2px;
+  background: var(--rule);
+}
+
+/* ─── Main / Screens ─────────────────────────────────────── */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 100px;
+}
+
+.screen { display: none; animation: fadeIn 0.2s ease; }
+.screen.is-active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Common UI ──────────────────────────────────────────── */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.card.tinted-explore { border-top: 4px solid var(--edge-explore); }
+.card.tinted-dig     { border-top: 4px solid var(--edge-dig); }
+.card.tinted-gather  { border-top: 4px solid var(--edge-gather); }
+.card.tinted-embrace { border-top: 4px solid var(--edge-embrace); }
+
+.h-display {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--navy);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.h-step {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.h-step.explore { color: var(--edge-explore); }
+.h-step.dig     { color: var(--edge-dig); }
+.h-step.gather  { color: var(--edge-gather); }
+.h-step.embrace { color: var(--edge-embrace); }
+
+.h-question {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.lead {
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  line-height: 1.55;
+}
+
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  margin-top: 18px;
+}
+.field-label:first-child { margin-top: 0; }
+.field-help {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: -4px;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+input[type="text"], textarea, select {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 17px;
+  padding: 12px 14px;
+  border: 2px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+input[type="text"]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+select.translation-select {
+  padding-right: 40px;
+  background: var(--paper) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5L6 6.5L11 1.5' stroke='%230E2A52' stroke-width='2' fill='none' stroke-linecap='round'/></svg>") no-repeat right 14px center;
+  cursor: pointer;
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 24px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  min-height: 50px;
+}
+.btn-primary {
+  background: var(--navy);
+  color: white;
+}
+.btn-primary:hover { background: var(--navy-deep); }
+.btn-secondary {
+  background: var(--paper);
+  color: var(--navy);
+  border-color: var(--rule);
+}
+.btn-secondary:hover { border-color: var(--navy); }
+.btn-accent {
+  background: var(--accent);
+  color: white;
+}
+.btn-accent:hover { background: #1F62B0; }
+.btn-block { display: flex; width: 100%; }
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.btn-row .btn { flex: 1; min-width: 140px; }
+
+/* ─── Privacy notice ─────────────────────────────────────── */
+.privacy {
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 20px;
+}
+.privacy strong { color: var(--navy); }
+.privacy::before {
+  content: '🔒  ';
+  font-size: 14px;
+}
+
+/* ─── Welcome ────────────────────────────────────────────── */
+.welcome-hero {
+  text-align: center;
+  padding: 32px 0 16px;
+}
+.welcome-hero .logo-large {
+  width: 84px; height: 84px;
+  border-radius: 20px;
+  background: var(--navy);
+  margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  box-shadow: var(--shadow-elev);
+}
+.welcome-hero .logo-large-letter {
+  font-family: var(--serif);
+  color: white;
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 1;
+}
+.welcome-hero .logo-large::after {
+  content: '';
+  position: absolute;
+  bottom: 14px; left: 18px; right: 18px;
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--edge-explore) 0%, var(--edge-explore) 25%,
+    var(--edge-dig)     25%, var(--edge-dig)     50%,
+    var(--edge-gather)  50%, var(--edge-gather)  75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+  border-radius: 3px;
+}
+.welcome-hero h1 {
+  font-family: var(--sans);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.welcome-hero .tag {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.welcome-hero .tag span:nth-child(1) { color: var(--edge-explore); font-weight: 700; }
+.welcome-hero .tag span:nth-child(3) { color: var(--edge-dig);     font-weight: 700; }
+.welcome-hero .tag span:nth-child(5) { color: var(--edge-gather);  font-weight: 700; }
+
+/* ─── Home screen ────────────────────────────────────────── */
+.greeting {
+  margin-bottom: 24px;
+}
+.greeting .salute {
+  font-family: var(--sans);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.greeting h2 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+.home-tile {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 22px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.15s ease;
+  font-family: var(--sans);
+  color: inherit;
+  box-shadow: var(--shadow);
+}
+.home-tile:hover {
+  border-color: var(--navy);
+  transform: translateY(-1px);
+}
+.home-tile-h {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.home-tile-d {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.home-tile-arrow {
+  float: right;
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+  margin-left: 12px;
+}
+
+/* ─── Translation selector ──────────────────────────────── */
+.translation-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.translation-row label {
+  font-size: 13px; font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.3px;
+}
+.translation-row select {
+  flex: 1;
+  font-size: 16px;
+  padding: 10px 36px 10px 12px;
+}
+.translation-scale {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  display: flex; justify-content: space-between;
+  font-style: italic;
+}
+.translation-scale.is-hidden { display: none; }
+
+/* ─── Passage entry ──────────────────────────────────────── */
+.passage-input-row {
+  display: flex; gap: 8px;
+}
+.passage-input-row input { flex: 1; }
+.passage-input-row .btn { padding: 12px 16px; min-height: 48px; }
+
+.preset-list { margin-top: 18px; }
+.preset-h {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 10px;
+}
+.preset {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  font-family: var(--sans);
+  transition: all 0.15s ease;
+}
+.preset:hover { border-color: var(--accent); background: var(--accent-pale); }
+.preset .ref {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--navy);
+}
+.preset .topic {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ─── Reader / passage display ───────────────────────────── */
+.passage-display {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 24px 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.passage-ref {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.passage-text {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.passage-text .verse-num {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  vertical-align: super;
+  margin-right: 4px;
+  letter-spacing: 0.5px;
+}
+.passage-loading, .passage-error {
+  font-style: italic; color: var(--muted);
+  text-align: center; padding: 20px;
+}
+.passage-error { color: #B91C1C; }
+
+.translation-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: var(--canvas);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ─── Hint box ───────────────────────────────────────────── */
+.hint-box {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
+  border-left: 3px solid var(--accent);
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--navy);
+}
+.hint-toggle {
+  background: none; border: none;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+.hint-content { display: none; }
+.hint-content.is-open { display: block; margin-top: 10px; }
+
+/* ─── Done screen ─────────────────────────────────────────── */
+.done-summary { margin-top: 16px; }
+.done-summary .item {
+  border-top: 1px solid var(--rule);
+  padding: 16px 0;
+}
+.done-summary .item:first-child { border-top: none; padding-top: 8px; }
+.done-summary .item-h {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.done-summary .item-h.explore { color: var(--edge-explore); }
+.done-summary .item-h.dig     { color: var(--edge-dig); }
+.done-summary .item-h.gather  { color: var(--edge-gather); }
+.done-summary .item-h.embrace { color: var(--edge-embrace); }
+.done-summary .item-q {
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--navy);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.done-summary .item-a {
+  font-size: 16px;
+  color: var(--ink);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+.done-summary .item-a.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.done-celebrate {
+  text-align: center;
+  padding: 32px 16px 8px;
+}
+.done-celebrate .check {
+  width: 64px; height: 64px;
+  background: var(--edge-explore);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+}
+.done-celebrate h2 {
+  font-family: var(--serif);
+  font-size: 30px;
+  color: var(--navy);
+  margin-bottom: 8px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.done-celebrate p {
+  font-size: 16px; color: var(--ink-soft);
+  max-width: 380px; margin: 0 auto;
+}
+
+/* ─── Word Study (lexicon search) ────────────────────────── */
+.search-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.search-box input {
+  flex: 1;
+}
+
+.lex-result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all 0.15s ease;
+}
+.lex-result:hover { border-color: var(--accent); background: var(--accent-pale); }
+.lex-result .lr-greek {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--navy);
+}
+.lex-result .lr-translit {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--muted);
+  margin-left: 6px;
+  font-size: 17px;
+}
+.lex-result .lr-gloss {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.lex-result .lr-id {
+  float: right;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: var(--canvas);
+  padding: 3px 7px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ─── Lexicon: Modal (Full analysis) ─────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 26, 53, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  animation: backdropFade 0.2s ease;
+}
+.modal-backdrop.is-open { display: flex; }
+@keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-content {
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--paper);
+  border-radius: 18px 18px 0 0;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.28s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+@media (min-width: 720px) {
+  .modal-backdrop { align-items: center; padding: 24px; }
+  .modal-content { border-radius: 16px; max-height: 86vh; }
+}
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0.6; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.full-card { background: var(--paper); }
+.full-header {
+  background: var(--navy);
+  color: white;
+  padding: 24px 24px 22px;
+  position: relative;
+  border-radius: 18px 18px 0 0;
+}
+@media (min-width: 720px) { .full-header { border-radius: 16px 16px 0 0; } }
+.full-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    var(--edge-explore) 0%, var(--edge-explore) 25%,
+    var(--edge-dig)     25%, var(--edge-dig)     50%,
+    var(--edge-gather)  50%, var(--edge-gather)  75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+  opacity: 0.85;
+}
+.full-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(255,255,255,0.13);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.full-close:hover { background: rgba(255,255,255,0.22); }
+
+.full-header .lemma {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.full-header .lemma-meta {
+  font-style: italic;
+  opacity: 0.85;
+  margin-left: 8px;
+  font-family: var(--serif);
+  font-size: 22px;
+}
+.full-header .gloss { font-size: 19px; font-weight: 700; margin-top: 4px; padding-right: 40px; }
+.full-header .grammar { font-size: 13px; opacity: 0.78; margin-top: 6px; letter-spacing: 0.3px; }
+.full-header .strongs {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px; letter-spacing: 1.2px; font-weight: 700;
+  background: rgba(255,255,255,0.13);
+  padding: 4px 9px;
+  border-radius: 5px;
+}
+.full-body { padding: 22px 24px; }
+
+.pastoral-note {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
+  border-left: 3px solid var(--accent);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  border-radius: 6px;
+  color: var(--navy);
+}
+.pastoral-note .pn-label {
+  display: block;
+  font-size: 11px; letter-spacing: 1.2px; font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.pastoral-note .pn-content {
+  font-family: var(--serif);
+  font-size: 17.5px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.section-h {
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: var(--ink-soft);
+  margin: 0 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.etymology { font-size: 14px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+.etymology em { font-style: italic; }
+.brief-gloss { font-size: 17px; margin-bottom: 18px; line-height: 1.55; }
+.brief-gloss strong { color: var(--navy); font-weight: 700; }
+.brief-gloss em     { font-style: italic; }
+.brief-gloss .ref, .sense .content .ref, .accord-body .ref {
+  color: var(--accent); text-decoration: none;
+  font-weight: 700; white-space: nowrap;
+}
+
+.sense-list { list-style: none; padding: 0; margin: 0; }
+.sense {
+  display: flex; gap: 10px;
+  padding: 11px 0;
+  border-top: 1px solid var(--rule);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.sense:first-child { border-top: none; padding-top: 4px; }
+.sense .marker {
+  flex-shrink: 0;
+  font-family: var(--serif);
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 30px;
+  text-align: right;
+  font-size: 17px;
+}
+.sense.subsense { padding-left: 32px; font-size: 15.5px; }
+.sense.subsense .marker { color: var(--ink-soft); min-width: 26px; font-size: 15px; }
+.sense .content strong { color: var(--navy); font-weight: 700; }
+.sense .content em     { font-style: italic; }
+
+.accord {
+  margin-top: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.accord summary {
+  padding: 14px 16px; cursor: pointer;
+  font-weight: 700; font-size: 15px;
+  color: var(--navy);
+  list-style: none;
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--canvas);
+  user-select: none;
+}
+.accord summary::-webkit-details-marker { display: none; }
+.accord summary::after {
+  content: '+';
+  font-size: 22px; font-weight: 400;
+  color: var(--muted);
+}
+.accord[open] summary::after { content: '−'; }
+.accord-body {
+  padding: 16px;
+  font-size: 15px; line-height: 1.6;
+  border-top: 1px solid var(--rule);
+}
+.accord-body em     { font-style: italic; }
+.accord-body strong { color: var(--navy); font-weight: 700; }
+.accord-body.placeholder { color: var(--muted); font-style: italic; }
+
+.full-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--rule);
+  background: var(--canvas);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap;
+}
+.full-footer a { color: var(--accent); text-decoration: none; font-weight: 700; }
+
+/* ─── App footer ─────────────────────────────────────────── */
+.app-footer {
+  padding: 16px 20px;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.app-footer strong { color: var(--ink-soft); }
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  html, body { font-size: 16px; }
+  .app-header { padding: 12px 16px; gap: 10px; }
+  .logo { width: 32px; height: 32px; font-size: 19px; }
+  .app-title { font-size: 16px; letter-spacing: 1.2px; }
+  main { padding: 18px 14px 80px; }
+  .card { padding: 18px; }
+  .h-display { font-size: 26px; }
+  .h-question { font-size: 22px; }
+  .welcome-hero h1 { font-size: 30px; letter-spacing: 5px; }
+  .welcome-hero .logo-large { width: 72px; height: 72px; }
+  .welcome-hero .logo-large-letter { font-size: 48px; }
+  .greeting h2 { font-size: 26px; }
+  .passage-text { font-size: 18px; }
+  .full-header { padding: 20px 20px 18px; }
+  .full-header .lemma { font-size: 28px; }
+  .full-body { padding: 18px; }
+  .progress-line { width: 14px; }
+  .progress-dot { width: 26px; height: 26px; font-size: 12px; }
+}
+</style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState } = React;
 
-    const EDGE_FLOW = [
-      { id: 'E', title: 'Explore', subSteps: ['Read', 'Examine', 'Analyze', 'Define'], color: '#4A9D4A' },
-      { id: 'D', title: 'Dig', subSteps: ['Details', 'Investigate', 'Grasp'], color: '#E08833' },
-      { id: 'G', title: 'Gather', subSteps: ['Key Message', 'Nature of God', 'Outcome'], color: '#2A7BD4' },
-      { id: 'E2', title: 'Embrace', subSteps: ['Apply', 'Commit', 'Take Action'], color: '#8E54B5' }
-    ];
+<header class="app-header">
+  <div class="logo" onclick="goHome()" title="Home">E</div>
+  <div class="app-title">EDGE</div>
+  <button class="back-btn" id="backBtn" onclick="goBack()">Back</button>
+</header>
 
-    const HINTS = {
-      'Read': 'Read the passage twice slowly. Let the words sink in. What do you hear God saying?',
-      'W': 'Identify the English word that stands out. Why did you pick it?',
-      'Details': 'Who is speaking? Who is being addressed? Where are they?'
-    };
+<div class="progress" id="progress">
+  <div class="progress-track">
+    <div class="progress-step" data-step="explore"><div class="progress-dot">E</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-step="dig"><div class="progress-dot">D</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-step="gather"><div class="progress-dot">G</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-step="embrace"><div class="progress-dot">E</div></div>
+  </div>
+</div>
 
-    const App = () => {
-      const [screen, setScreen] = useState('welcome');
-      const [name, setName] = useState('');
-      const [mainIdx, setMainIdx] = useState(0);
-      const [subIdx, setSubIdx] = useState(0);
-      const [showHint, setShowHint] = useState(false);
+<main>
 
-      const next = () => {
-        const currentMain = EDGE_FLOW[mainIdx];
-        if (subIdx < currentMain.subSteps.length - 1) {
-          setSubIdx(subIdx + 1);
-        } else if (mainIdx < EDGE_FLOW.length - 1) {
-          setMainIdx(mainIdx + 1);
-          setSubIdx(0);
-        } else {
-          setScreen('done');
-        }
-        setShowHint(false);
-      };
+  <!-- ─── WELCOME ──────────────────────────────────────────── -->
+  <section class="screen" id="screen-welcome">
+    <div class="welcome-hero">
+      <div class="logo-large">
+        <span class="logo-large-letter">E</span>
+      </div>
+      <h1>EDGE</h1>
+      <div class="tag">
+        READ. <span>UNDERSTAND.</span> <span>RESPOND.</span>
+      </div>
+    </div>
 
-      if (screen === 'welcome') return (
-        <div className="phone"><div className="header">EDGE</div><div className="body">
-          <h1>Welcome</h1><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Enter name" />
-          <button className="btn" onClick={() => setScreen('home')}>Start</button>
-        </div></div>
-      );
+    <div class="card">
+      <h2 class="h-display">Welcome.</h2>
+      <p class="lead">
+        EDGE is a guided way to read, understand, and respond to Scripture — one passage at a time.
+        Let's start with your name.
+      </p>
 
-      if (screen === 'home') return (
-        <div className="phone"><div className="header">EDGE</div><div className="body">
-          <h1>Hello, {name}</h1><button className="btn" onClick={() => setScreen('study')}>New Study</button>
-        </div></div>
-      );
+      <label class="field-label" for="nameInput">What should I call you?</label>
+      <input type="text" id="nameInput" placeholder="Your first name" autocomplete="given-name">
 
-      const currentMain = EDGE_FLOW[mainIdx];
-      const currentSub = currentMain.subSteps[subIdx];
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="completeWelcome()">Get started</button>
+      </div>
 
-      return (
-        <div className="phone">
-          <div className="progress-bar"><div className="progress-fill" style={{width: `${((mainIdx * 4 + subIdx) / 16) * 100}%`}}></div></div>
-          <div className="header" style={{background: currentMain.color}}>
-            <span style={{fontSize: '12px'}}>{currentMain.title}</span>
-            <h2>{currentSub}</h2>
-          </div>
-          <div className="body">
-            <button className="btn" style={{background: 'transparent', border: '1px solid #ccc', color: '#666', marginBottom: '10px'}} onClick={() => setShowHint(!showHint)}>
-              {showHint ? 'Hide Hint' : '💡 Need a nudge?'}
-            </button>
-            {showHint && <div className="hint-box">{HINTS[currentSub] || "Meditate on this step..."}</div>}
-            <textarea className="input" rows="8" placeholder={`Reflections for ${currentSub}...`} style={{flex: 1}}></textarea>
-            <button className="btn" style={{background: currentMain.color}} onClick={next}>Continue →</button>
-          </div>
-        </div>
-      );
-    };
+      <div class="privacy">
+        <strong>A note on privacy:</strong> Your name and study notes stay on this device only.
+        Nothing you write is sent to a server, shared with your group, or visible to anyone but you.
+      </div>
+    </div>
+  </section>
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
+  <!-- ─── HOME ─────────────────────────────────────────────── -->
+  <section class="screen" id="screen-home">
+    <div class="greeting">
+      <div class="salute" id="greetingSalute">Good morning</div>
+      <h2 id="greetingName">Friend.</h2>
+    </div>
+
+    <button class="home-tile" onclick="showScreen('pickPassage')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">Start a study</div>
+      <div class="home-tile-d">Walk through a passage with the EDGE method.</div>
+    </button>
+
+    <button class="home-tile" onclick="showScreen('wordStudy')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">Word study</div>
+      <div class="home-tile-d">Look up a Greek word by Strong's number, transliteration, or meaning.</div>
+    </button>
+
+    <div class="privacy" style="margin-top: 24px;">
+      <strong>Your notes stay here.</strong> EDGE saves your study answers in your browser.
+      No accounts, no servers, no sharing.
+    </div>
+  </section>
+
+  <!-- ─── PICK PASSAGE ─────────────────────────────────────── -->
+  <section class="screen" id="screen-pickPassage">
+    <div class="card">
+      <div class="h-step gather">CHOOSE A PASSAGE</div>
+      <h2 class="h-question">What will you read today?</h2>
+      <p class="lead">Type a reference or pick a starter passage below.</p>
+
+      <div class="translation-row">
+        <label for="translationSelect">Translation:</label>
+        <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
+          <option value="bsb">BSB · Berean Standard Bible</option>
+          <option value="kjv">KJV · King James Version</option>
+          <option value="" disabled>──────────</option>
+          <option value="" disabled>NLT · coming soon</option>
+          <option value="" disabled>NIV · coming soon</option>
+          <option value="" disabled>ESV · coming soon</option>
+          <option value="" disabled>NASB · coming soon</option>
+        </select>
+      </div>
+
+      <div class="translation-scale">
+        <span>← word-for-word</span>
+        <span>thought-for-thought →</span>
+      </div>
+
+      <label class="field-label" for="passageInput" style="margin-top: 22px;">Reference</label>
+      <div class="passage-input-row">
+        <input type="text" id="passageInput" placeholder="e.g. John 3:16-21" autocomplete="off">
+        <button class="btn btn-primary" onclick="onPassageSubmit()">Go</button>
+      </div>
+
+      <div class="preset-list">
+        <div class="preset-h">Or start with one of these</div>
+        <!-- Filled by JS -->
+        <div id="presetSlots"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── READER (E0 — passage shown before EDGE flow) ────── -->
+  <section class="screen" id="screen-reader">
+    <div class="card">
+      <div class="h-step explore">READ</div>
+      <h2 class="h-question">Slow down. Read it twice.</h2>
+      <p class="lead">
+        Bible study isn't about finishing fast. Read the passage through once. Then read it again, slower.
+      </p>
+    </div>
+
+    <div class="passage-display" id="readerPassage">
+      <div class="passage-loading">Loading passage…</div>
+    </div>
+
+    <div class="hint-box" id="readerHint" style="display:none;">
+      <button class="hint-toggle" onclick="toggleHint('readerHint')">Need a nudge? <span class="caret">›</span></button>
+      <div class="hint-content"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" onclick="startEdge()">Begin EDGE →</button>
+    </div>
+  </section>
+
+  <!-- ─── EXPLORE ──────────────────────────────────────────── -->
+  <section class="screen" id="screen-explore">
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE</div>
+      <h2 class="h-question">What is it saying?</h2>
+      <p class="lead">Notice what's actually on the page. Don't interpret yet — just observe.</p>
+
+      <div class="passage-display" style="box-shadow:none; border-color:var(--rule); margin-bottom: 16px; padding: 16px 18px;">
+        <div class="passage-ref" id="explorePassageRef"></div>
+        <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
+      </div>
+
+      <div class="hint-box" id="exploreHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('exploreHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="exploreInput">What did you notice?</label>
+      <p class="field-help">Words that repeat, names of people, what's happening, what stands out.</p>
+      <textarea id="exploreInput" rows="5" placeholder="e.g., God's love is mentioned twice; Nicodemus comes at night; Jesus uses 'born again' in two ways…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromExplore()">Continue to Dig →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DIG ──────────────────────────────────────────────── -->
+  <section class="screen" id="screen-dig">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG</div>
+      <h2 class="h-question">What's beneath the surface?</h2>
+      <p class="lead">Look at the context — who's speaking, who they're speaking to, what's happening around it.</p>
+
+      <div class="hint-box" id="digHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digWho">Who is speaking, and to whom?</label>
+      <textarea id="digWho" rows="2" placeholder="e.g., Jesus is speaking with Nicodemus, a Jewish leader who came at night…"></textarea>
+
+      <label class="field-label" for="digContext">What's happening before this passage?</label>
+      <textarea id="digContext" rows="2" placeholder="e.g., Jesus has just cleared the temple and started his public ministry…"></textarea>
+
+      <label class="field-label" for="digParaphrase">Now say it in your own words.</label>
+      <p class="field-help">Don't worry about getting it perfect — this is just to be sure you understand it.</p>
+      <textarea id="digParaphrase" rows="4" placeholder="Rewrite the passage as if you were explaining it to a friend…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDig()">Continue to Gather →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GATHER ──────────────────────────────────────────── -->
+  <section class="screen" id="screen-gather">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER</div>
+      <h2 class="h-question">What does it mean?</h2>
+      <p class="lead"><em>Look for what this says about God before what it says about you.</em></p>
+
+      <div class="hint-box" id="gatherHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('gatherHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="gatherKey">What's the main message?</label>
+      <textarea id="gatherKey" rows="2" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
+
+      <label class="field-label" for="gatherGod">What does this say about God?</label>
+      <textarea id="gatherGod" rows="2" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
+
+      <label class="field-label" for="gatherPeople">What does this say about people?</label>
+      <textarea id="gatherPeople" rows="2" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
+
+      <label class="field-label" for="gatherMe">What does this mean for me?</label>
+      <textarea id="gatherMe" rows="3" placeholder="e.g., I'm reminded that the gospel isn't about my performance — it's about God's gift. I can rest in that…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGather()">Continue to Embrace →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── EMBRACE ─────────────────────────────────────────── -->
+  <section class="screen" id="screen-embrace">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE</div>
+      <h2 class="h-question">How will this shape me?</h2>
+      <p class="lead"><em>You're not earning anything here. Just receiving, then responding.</em></p>
+
+      <div class="hint-box" id="embraceHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('embraceHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="embraceApply">Where in your life does this apply?</label>
+      <textarea id="embraceApply" rows="2" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
+
+      <label class="field-label" for="embraceCommit">What will you commit to today?</label>
+      <textarea id="embraceCommit" rows="2" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
+
+      <label class="field-label" for="embraceAction">One specific thing you'll do.</label>
+      <p class="field-help">Make it concrete and small. A single action you can take this week.</p>
+      <textarea id="embraceAction" rows="2" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbrace()">Complete study →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DONE ────────────────────────────────────────────── -->
+  <section class="screen" id="screen-done">
+    <div class="done-celebrate">
+      <div class="check">✓</div>
+      <h2 id="doneHeading">Well done.</h2>
+      <p id="donePraise">You slowed down, listened, and responded to God's Word. That's the whole point.</p>
+    </div>
+
+    <div class="card">
+      <div class="h-step gather">YOUR STUDY</div>
+      <h2 class="h-question" id="donePassageRef">—</h2>
+
+      <div class="done-summary" id="doneSummary">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goHome()">← Home</button>
+        <button class="btn btn-primary" onclick="newStudy()">Start another →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── WORD STUDY (Lexicon Search) ─────────────────────── -->
+  <section class="screen" id="screen-wordStudy">
+    <div class="card">
+      <div class="h-step gather">WORD STUDY</div>
+      <h2 class="h-question">Look up a Greek word</h2>
+      <p class="lead">
+        Search by Strong's number (e.g. <em>G0025</em>), transliteration (<em>agapao</em>),
+        or English meaning (<em>love</em>).
+      </p>
+
+      <div class="search-box">
+        <input type="text" id="lexSearch" placeholder="Type a number, word, or meaning…" autocomplete="off">
+      </div>
+
+      <div id="lexResults"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── FULL ANALYSIS MODAL (used by Word Study) ─────────── -->
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<footer class="app-footer">
+  <strong>EDGE · Bible Study</strong> · Lexicon: STEPBible / Tyndale House Cambridge · CC BY 4.0<br>
+  Bible text via bible-api.com · Your notes stay on your device.
+</footer>
+
+<script>
+'use strict';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  screen: 'welcome',
+  history: [],
+  user: { name: null },
+  study: emptyStudy()
+};
+
+function emptyStudy() {
+  return {
+    passage: null,
+    translation: 'bsb',
+    text: null,
+    explore: '',
+    digWho: '', digContext: '', digParaphrase: '',
+    gatherKey: '', gatherGod: '', gatherPeople: '', gatherMe: '',
+    embraceApply: '', embraceCommit: '', embraceAction: ''
+  };
+}
+
+const STORAGE_KEY_NAME  = 'edge.user.name';
+const STORAGE_KEY_STUDY = 'edge.study.draft';
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+function loadName() {
+  try { return localStorage.getItem(STORAGE_KEY_NAME); }
+  catch { return null; }
+}
+function saveName(n) {
+  try { localStorage.setItem(STORAGE_KEY_NAME, n); } catch {}
+}
+function loadStudy() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_STUDY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveStudy() {
+  try { localStorage.setItem(STORAGE_KEY_STUDY, JSON.stringify(state.study)); } catch {}
+}
+function clearStudy() {
+  try { localStorage.removeItem(STORAGE_KEY_STUDY); } catch {}
+}
+
+/* ============================================================
+   PRESETS — passages with pastoral hints
+   ============================================================ */
+const PRESETS = [
+  {
+    ref: 'John 3:16-21',
+    topic: 'God\'s initiating love',
+    hints: {
+      reader:  'Watch for the contrast between condemnation and salvation. Both words appear here, more than once.',
+      explore: 'Look for the verbs that describe what God does. Then look for what people do.',
+      dig:     'This passage comes right after a private conversation with Nicodemus, a Jewish leader who came to Jesus at night. The night/light imagery is intentional.',
+      gather:  'The phrase "for God so loved the world" gets quoted alone — but verses 17–21 unpack what that love looks like and what it requires.',
+      embrace: 'This passage is often used to push people to "decide for Jesus." But notice — it starts with what God does, not what we do.'
+    }
+  },
+  {
+    ref: 'Psalm 23',
+    topic: 'God\'s care in dark places',
+    hints: {
+      reader:  'Notice the shift from "he" (verses 1–3) to "you" (verses 4–6). The Psalmist gets more personal as the imagery gets darker.',
+      explore: 'Track the verbs: leads, restores, guides, prepares, anoints. What kind of God is being described?',
+      dig:     'David wrote this — a king who knew both the safety of green pastures and the danger of being hunted in valleys.',
+      gather:  'The "valley of the shadow of death" isn\'t the destination — it\'s a place we pass *through*. That matters.',
+      embrace: 'Where in your life are you in a "valley" right now? What would it mean to know God is *with* you there, not just waiting at the end?'
+    }
+  },
+  {
+    ref: 'Philippians 4:4-9',
+    topic: 'Anxiety and peace',
+    hints: {
+      reader:  'Paul uses three commands: rejoice, don\'t be anxious, think on these things. They\'re connected.',
+      explore: 'The promise of "peace that surpasses understanding" sits between two instructions. Notice what they are.',
+      dig:     'Paul is in prison when he writes this. Knowing that changes how "rejoice always" lands.',
+      gather:  'This passage isn\'t saying "don\'t feel anxious." It\'s saying "when you feel anxious, do this instead — and ask."',
+      embrace: 'What do you tend to do when anxious? What does Paul invite you to do?'
+    }
+  },
+  {
+    ref: '1 John 4:7-12',
+    topic: 'Love as identity',
+    hints: {
+      reader:  'Count how many times "love" appears as a noun vs. as a verb.',
+      explore: 'John says "God is love" — not "God loves." Why might that distinction matter?',
+      dig:     'John is writing to a church facing teachers who claimed special knowledge of God. His test: do you love?',
+      gather:  'Verse 10 is the heart: love is *defined by* God\'s action toward us, not our performance toward him.',
+      embrace: 'Who in your life is hard to love? What does this passage say is true about that love?'
+    }
+  },
+  {
+    ref: 'Romans 8:28-39',
+    topic: 'Assurance in suffering',
+    hints: {
+      reader:  'Paul asks five rhetorical questions in this passage. Find them.',
+      explore: 'The list at the end (verses 38–39) is exhaustive on purpose. Notice the categories.',
+      dig:     'Paul is writing to a mixed Jewish-Gentile church facing real persecution. "Things present" and "things to come" had specific edge for them.',
+      gather:  'The question isn\'t whether suffering happens — Paul assumes it does. The question is what it means.',
+      embrace: 'What "thing" in your life feels like it could separate you from God\'s love? What does Paul say?'
+    }
+  }
+];
+
+/* ============================================================
+   GREETING
+   ============================================================ */
+function getTimeGreeting() {
+  const h = new Date().getHours();
+  if (h < 5)  return 'Late night';
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  if (h < 21) return 'Good evening';
+  return 'Good night';
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function showScreen(name, opts = {}) {
+  // Hide all
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+  const target = document.getElementById('screen-' + name);
+  if (!target) return;
+  target.classList.add('is-active');
+
+  if (!opts.skipHistory && state.screen !== name) {
+    state.history.push(state.screen);
+  }
+  state.screen = name;
+
+  // Header back button
+  const showBack = !['welcome', 'home', 'done'].includes(name);
+  document.getElementById('backBtn').classList.toggle('is-visible', showBack);
+
+  // Progress bar (only during EDGE flow)
+  const showProgress = ['explore', 'dig', 'gather', 'embrace'].includes(name);
+  document.getElementById('progress').classList.toggle('is-visible', showProgress);
+  if (showProgress) updateProgress(name);
+
+  // Per-screen mounting
+  if (name === 'home')         renderHome();
+  if (name === 'pickPassage')  renderPresets();
+  if (name === 'reader')       fetchPassageForReader();
+  if (name === 'explore')      mountExplore();
+  if (name === 'dig')          mountDig();
+  if (name === 'gather')       mountGather();
+  if (name === 'embrace')      mountEmbrace();
+  if (name === 'done')         renderDone();
+  if (name === 'wordStudy')    mountWordStudy();
+
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  // Save anything in current screen first
+  captureCurrentInputs();
+
+  if (state.history.length > 0) {
+    const prev = state.history.pop();
+    showScreen(prev, { skipHistory: true });
+  } else {
+    showScreen('home', { skipHistory: true });
+  }
+}
+
+function goHome() {
+  state.history = [];
+  showScreen('home', { skipHistory: true });
+}
+
+function updateProgress(currentStep) {
+  const order = ['explore', 'dig', 'gather', 'embrace'];
+  const idx   = order.indexOf(currentStep);
+  document.querySelectorAll('.progress-step').forEach(el => {
+    el.classList.remove('is-active', 'is-done');
+    const stepIdx = order.indexOf(el.dataset.step);
+    if (stepIdx < idx)  el.classList.add('is-done');
+    if (stepIdx === idx) el.classList.add('is-active');
+  });
+}
+
+function captureCurrentInputs() {
+  const map = {
+    explore:  ['exploreInput'],
+    dig:      ['digWho', 'digContext', 'digParaphrase'],
+    gather:   ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'],
+    embrace:  ['embraceApply', 'embraceCommit', 'embraceAction']
+  };
+  const ids = map[state.screen];
+  if (!ids) return;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      // Map input id → study key
+      const key = (id === 'exploreInput') ? 'explore' : id;
+      state.study[key] = el.value;
+    }
+  });
+  saveStudy();
+}
+
+/* ============================================================
+   WELCOME / NAME
+   ============================================================ */
+function completeWelcome() {
+  const v = document.getElementById('nameInput').value.trim();
+  if (!v) {
+    document.getElementById('nameInput').focus();
+    return;
+  }
+  state.user.name = v;
+  saveName(v);
+  showScreen('home');
+}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+function renderHome() {
+  document.getElementById('greetingSalute').textContent = getTimeGreeting();
+  const name = state.user.name || 'Friend';
+  document.getElementById('greetingName').textContent = name + '.';
+}
+
+/* ============================================================
+   PICK PASSAGE
+   ============================================================ */
+function renderPresets() {
+  const slot = document.getElementById('presetSlots');
+  slot.innerHTML = PRESETS.map((p, i) => `
+    <button class="preset" onclick="pickPreset(${i})">
+      <div class="ref">${p.ref}</div>
+      <div class="topic">${p.topic}</div>
+    </button>
+  `).join('');
+  document.getElementById('translationSelect').value = state.study.translation || 'bsb';
+}
+
+function onTranslationChange() {
+  state.study.translation = document.getElementById('translationSelect').value || 'bsb';
+  saveStudy();
+}
+
+function pickPreset(i) {
+  const p = PRESETS[i];
+  state.study = { ...emptyStudy(), passage: p.ref, translation: state.study.translation || 'bsb' };
+  state.study._presetIdx = i;
+  saveStudy();
+  showScreen('reader');
+}
+
+function onPassageSubmit() {
+  const v = document.getElementById('passageInput').value.trim();
+  if (!v) {
+    document.getElementById('passageInput').focus();
+    return;
+  }
+  state.study = { ...emptyStudy(), passage: v, translation: state.study.translation || 'bsb' };
+  saveStudy();
+  showScreen('reader');
+}
+
+/* ============================================================
+   PASSAGE FETCH
+   ============================================================ */
+async function fetchPassage(ref, translation) {
+  const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(translation)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Passage not found.');
+  const data = await res.json();
+  if (!data.verses || !data.verses.length) throw new Error('No verses returned.');
+  return data;
+}
+
+function renderPassageInto(elementId, data) {
+  const el = document.getElementById(elementId);
+  if (!data) {
+    el.innerHTML = '<div class="passage-loading">No passage loaded.</div>';
+    return;
+  }
+  const ref = data.reference;
+  const transBadge = `<span class="translation-badge">${(data.translation_id || state.study.translation || '').toUpperCase()}</span>`;
+  const versesHtml = data.verses.map(v => {
+    return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
+  }).join('');
+  el.innerHTML = `
+    <div class="passage-ref">${escapeHtml(ref)}${transBadge}</div>
+    <div class="passage-text">${versesHtml}</div>
+  `;
+}
+
+async function fetchPassageForReader() {
+  const display = document.getElementById('readerPassage');
+  display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
+
+  try {
+    const data = await fetchPassage(state.study.passage, state.study.translation);
+    state.study.text = data;
+    saveStudy();
+    renderPassageInto('readerPassage', data);
+  } catch (err) {
+    display.innerHTML = `
+      <div class="passage-error">
+        Couldn't load "${escapeHtml(state.study.passage)}". Check the reference and try again.
+      </div>
+      <div style="text-align:center; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="showScreen('pickPassage', { skipHistory: true })">← Edit reference</button>
+      </div>
+    `;
+  }
+
+  // Hint
+  const presetIdx = state.study._presetIdx;
+  if (presetIdx != null && PRESETS[presetIdx]?.hints?.reader) {
+    const h = document.getElementById('readerHint');
+    h.style.display = 'block';
+    h.querySelector('.hint-content').innerHTML = PRESETS[presetIdx].hints.reader;
+  } else {
+    document.getElementById('readerHint').style.display = 'none';
+  }
+}
+
+function startEdge() {
+  showScreen('explore');
+}
+
+/* ============================================================
+   EDGE STEP MOUNTING
+   ============================================================ */
+function mountExplore() {
+  if (state.study.text) {
+    document.getElementById('explorePassageRef').textContent  = state.study.text.reference;
+    document.getElementById('explorePassageText').innerHTML   = state.study.text.verses.map(v => {
+      return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
+    }).join('');
+  }
+  document.getElementById('exploreInput').value = state.study.explore || '';
+  attachAutosave('exploreInput', 'explore');
+  populateHint('exploreHint', 'explore');
+}
+
+function mountDig() {
+  document.getElementById('digWho').value        = state.study.digWho || '';
+  document.getElementById('digContext').value    = state.study.digContext || '';
+  document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
+  attachAutosave('digWho', 'digWho');
+  attachAutosave('digContext', 'digContext');
+  attachAutosave('digParaphrase', 'digParaphrase');
+  populateHint('digHint', 'dig');
+}
+
+function mountGather() {
+  document.getElementById('gatherKey').value    = state.study.gatherKey || '';
+  document.getElementById('gatherGod').value    = state.study.gatherGod || '';
+  document.getElementById('gatherPeople').value = state.study.gatherPeople || '';
+  document.getElementById('gatherMe').value     = state.study.gatherMe || '';
+  ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'].forEach(id => attachAutosave(id, id));
+  populateHint('gatherHint', 'gather');
+}
+
+function mountEmbrace() {
+  document.getElementById('embraceApply').value   = state.study.embraceApply || '';
+  document.getElementById('embraceCommit').value  = state.study.embraceCommit || '';
+  document.getElementById('embraceAction').value  = state.study.embraceAction || '';
+  ['embraceApply', 'embraceCommit', 'embraceAction'].forEach(id => attachAutosave(id, id));
+  populateHint('embraceHint', 'embrace');
+}
+
+function attachAutosave(id, key) {
+  const el = document.getElementById(id);
+  if (!el || el._autosaveAttached) return;
+  el._autosaveAttached = true;
+  el.addEventListener('input', () => {
+    state.study[key] = el.value;
+    saveStudy();
+  });
+}
+
+function populateHint(boxId, key) {
+  const box = document.getElementById(boxId);
+  const presetIdx = state.study._presetIdx;
+  const text = (presetIdx != null && PRESETS[presetIdx]?.hints?.[key]) || null;
+  if (text) {
+    box.style.display = 'block';
+    box.querySelector('.hint-content').innerHTML = text;
+    box.querySelector('.hint-content').classList.remove('is-open');
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function toggleHint(boxId) {
+  const content = document.querySelector(`#${boxId} .hint-content`);
+  content.classList.toggle('is-open');
+}
+
+function advanceFromExplore() { captureCurrentInputs(); showScreen('dig'); }
+function advanceFromDig()      { captureCurrentInputs(); showScreen('gather'); }
+function advanceFromGather()   { captureCurrentInputs(); showScreen('embrace'); }
+function advanceFromEmbrace()  { captureCurrentInputs(); showScreen('done'); }
+
+/* ============================================================
+   DONE
+   ============================================================ */
+function renderDone() {
+  const name = state.user.name ? state.user.name : 'Friend';
+  document.getElementById('doneHeading').textContent = `Well done, ${name}.`;
+  document.getElementById('donePassageRef').textContent = state.study.passage || '—';
+
+  const items = [
+    { step: 'explore', label: 'Explore', q: 'What did you notice?',                a: state.study.explore },
+    { step: 'dig',     label: 'Dig',     q: 'Who is speaking, and to whom?',       a: state.study.digWho },
+    { step: 'dig',     label: 'Dig',     q: 'What\'s happening before this?',      a: state.study.digContext },
+    { step: 'dig',     label: 'Dig',     q: 'In your own words.',                  a: state.study.digParaphrase },
+    { step: 'gather',  label: 'Gather',  q: 'What\'s the main message?',           a: state.study.gatherKey },
+    { step: 'gather',  label: 'Gather',  q: 'What does this say about God?',      a: state.study.gatherGod },
+    { step: 'gather',  label: 'Gather',  q: 'What does this say about people?',   a: state.study.gatherPeople },
+    { step: 'gather',  label: 'Gather',  q: 'What does this mean for me?',        a: state.study.gatherMe },
+    { step: 'embrace', label: 'Embrace', q: 'Where in my life does this apply?',  a: state.study.embraceApply },
+    { step: 'embrace', label: 'Embrace', q: 'What will I commit to today?',      a: state.study.embraceCommit },
+    { step: 'embrace', label: 'Embrace', q: 'One specific thing I\'ll do.',       a: state.study.embraceAction }
+  ];
+
+  document.getElementById('doneSummary').innerHTML = items.map(i => `
+    <div class="item">
+      <div class="item-h ${i.step}">${i.label}</div>
+      <div class="item-q">${i.q}</div>
+      <div class="item-a ${(i.a || '').trim() ? '' : 'empty'}">${escapeHtml((i.a || '').trim()) || '(skipped)'}</div>
+    </div>
+  `).join('');
+}
+
+function newStudy() {
+  state.study = emptyStudy();
+  clearStudy();
+  state.history = [];
+  showScreen('pickPassage', { skipHistory: true });
+}
+
+/* ============================================================
+   LEXICON DATA  (TBESG sample · 14 entries)
+   ============================================================ */
+const LEXICON = [
+  { id: 'G0020', lemma: 'ἀγαλλίασις', translit: 'agalliasis', pos: 'G:N-F', gloss: 'joy',
+    raw: `<b>ἀγαλλίασις</b>, -εως, ἡ <BR /> (ἀγαλλιάω), [in LXX (most frequently in Pss. and often coupled with εὐφροσύνη, as <ref='Psa.45.15'>Ps 44(45):15</ref>) chiefly for גִּיל ;] <BR /><b>exultation, exuberant joy</b>: <ref='Luk.1.44'>Luk.1:44</ref>, <ref='Act.2.46'>Act.2:46</ref>, <ref='Heb.1.9'>Heb.1:9</ref>, <ref='Jude.24'>Ju 24</ref>; χαρὰ καὶ ἀ., <ref='Luk.1.14'>Luk.1:14</ref> (Cremer, 592).†<BR /> (AS)` },
+  { id: 'G0021', lemma: 'ἀγαλλιάω', translit: 'agalliaō', pos: 'G:V', gloss: 'to rejoice',
+    raw: `<b>ἀγαλλιάω</b>, -ῶ, Hellenistic form of cl. ἀγάλλω, <b>to glorify</b>, mid. -ομαι, <b>to exult in</b>; <BR /> [in LXX (most frequently in Pss.) chiefly for גיל, רנן pi. ;] <BR /><b>to exult, rejoice greatly</b>: before ἐπί, with dative, <ref='Luk.1.47'>Luk.1:47;</ref> with dative mod., <ref='1Pe.1.8'>1Pe.1:8</ref>, <ref='Rev.19.7'>Rev.19:7</ref>. Mid., with same sense: <ref='Mat.5.12'>Mat.5:12</ref>, <ref='Luk.10.21'>Luk.10:21</ref>, <ref='Act.2.26; 16.34'>Act.2:26, 16:34</ref>, <ref='1Pe.4.13'>1Pe.4:13</ref>; before ἵνα, <ref='Jhn.8.56'>Jhn.8:56;</ref> ἐν, <ref='Jhn.5.35'>Jhn.5:35</ref> (1 aor. pass. perh. as mid.; but see Mozley, <i>Psalter</i>, 5), <ref='1Pe.1.6'>1Pe.1:6</ref> (Cremer, 590).†<BR /> (AS)` },
+  { id: 'G0022', lemma: 'ἄγαμος', translit: 'agamos', pos: 'G:N-M/F', gloss: 'unmarried',
+    raw: `<b>ἄ-γαμος</b>, -ον <BR /> [in LXX: <ref='4Ma.16.9'>4Ma.16:9</ref> * ;] <BR /><b>unmarried</b>: <ref='1Co.7.8, 32'>1Co.7:8, 32</ref>; fem. (= cl. ἄνανδρος), ib. 11, 34.†<BR /> (AS)` },
+  { id: 'G0023', lemma: 'ἀγανακτέω', translit: 'aganakteō', pos: 'G:V', gloss: 'be indignant',
+    raw: `<b>ἀγανακτέω</b>, -ῶ (ἄγαν, <b>much</b>, ἄχομαι, <b>to grieve</b>), <BR /> [in LXX: <ref='Wis.5.22; 12.27'>Wis.5:22, 12:27</ref>, Da TH Bel 28, <ref='4Ma.4.21'>4Ma.4:21</ref> * ;] <BR /><b>to be indignant</b>: <ref='Mat.21.15; 26.8'>Mat.21:15, 26:8</ref>, <ref='Mrk.10.14; 14.4'>Mrk.10:14, 14:4</ref>; before περί, <ref='Mat.20.24'>Mat.20:24</ref>, <ref='Mrk.10.41'>Mrk.10:41</ref>; before ὅτι, <ref='Luk.13.14'>Luk.13:14</ref> (see MM, <i>VGT</i>, see word).†<BR /> (AS)` },
+  { id: 'G0024', lemma: 'ἀγανάκτησις', translit: 'aganaktēsis', pos: 'G:N-F', gloss: 'indignation',
+    raw: `<b>ἀγανάκτησις</b>, -εως, ἡ <BR /> (ἀγανακτέω), [in LXX: <ref='Est.18.3'>Est.18:3</ref> א 1 * ;] <BR /><b>indignation</b>: <ref='2Co.7.11'>2Co.7:11</ref> (see MM, <i>VGT</i>, see word).†<BR /> (AS)` },
+  { id: 'G0025', lemma: 'ἀγαπάω', translit: 'agapaō', pos: 'G:V', gloss: 'to love',
+    pastoral: 'A decision to act in the best interest of another. Not a feeling that comes and goes, but a settled commitment of the will.',
+    raw: `<b>ἀγαπάω</b>, -ῶ, <BR /> [in LXX chiefly for אהב ;] <BR /><b>to love</b>, to feel and exhibit esteem and goodwill to a person, to prize and delight in a thing. <BR />__1. <b>Of human affection, to men</b>: τ. πλησίον, <ref='Mat.5.43'>Mat.5:43;</ref> τ. ἐχθρούς, ib. 44; to Christ, <ref='Jhn.8.42'>Jhn.8:42;</ref> to God, <ref='Mat.22.37'>Mat.22:37;</ref> with accusative of thing(s), <ref='Luk.11.43'>Luk.11:43</ref>, <ref='Jhn.12.43'>Jhn.12:43</ref>.<BR /> __2. <b>Of divine love</b>; <BR />__(a) <b>God's love</b>: to men, <ref='Rom.8.37'>Rom.8:37;</ref> to Christ, <ref='Jhn.3.35'>Jhn.3:35;</ref> <BR /> __(b) <b>Christ's love</b>: to men, <ref='Mrk.10.21'>Mrk.10:21;</ref> to God, <ref='Jhn.14.31'>Jhn.14:31;</ref> with cogn. accusative, <ref='Jhn.17.26'>Jhn.17:26</ref>, <ref='Eph.2.4'>Eph.2:4</ref>.<BR /> <re><i>SYN.</i>: φιλέω. From its supposed etymology ἀ. is commonly understood properly to denote love based on esteem (diligo), as distinct from that expressed by φιλέω (amo), spontaneous natural affection, emotional and unreasoning. If this distinction holds, ἀ. is fitly used in NT of Christian love to God and man, the spiritual affection which follows the direction of the will, and which, therefore, unlike that feeling which is instinctive and unreasoned, can be commanded as a duty.</re> (AS)` },
+  { id: 'G0026', lemma: 'ἀγάπη', translit: 'agapē', pos: 'G:N-F', gloss: 'love',
+    pastoral: 'The settled choice to seek another\'s good. The love that holds even when feelings don\'t — God\'s love for his people, and the love his people grow to have for God and one another.',
+    raw: `<b>ἀγάπη</b>, -ης, ἡ <BR /> [in LXX for אַהֲבָה, which is also rendered by ἀγάπησις and φιλία ;] <BR /> <b>love, goodwill, esteem</b>. In NT, like ἀγαπάω, -ῶ, <BR />__1. <b>Of men's love</b>: <BR />__(a) to one another, <ref='Jhn.13.35'>Jhn.13:35;</ref> <BR /> __(b) to God, <ref='1Jn.2.5'>1Jn.2:5.</ref><BR /> __2. <b>Of divine love</b>; <BR />__(a) <b>God's love</b>: to men, <ref='Rom.5.8'>Rom.5:8;</ref> to Christ, <ref='Jhn.17.26'>Jhn.17:26;</ref> <BR /> __(b) <b>Christ's love to men</b>: <ref='Rom.8.35'>Rom.8:35.</ref> <BR /> __3. In pl., <b>love feasts</b>: <ref='Jude.12'>Ju 12</ref>.<BR /> <re><i>SYN.</i>: φιλία. ἀ., signifying properly love which chooses its object, is taken over from LXX into NT, and there used exclusively to express that spiritual bond of love between God and man and between man and man, in Christ.</re> (AS)` },
+  { id: 'G0027', lemma: 'ἀγαπητός', translit: 'agapētos', pos: 'G:A', gloss: 'beloved',
+    pastoral: 'Not earned, just received. To be "beloved" is to be chosen, treasured, and claimed — first by God, and then by his family in turn.',
+    raw: `<b>ἀγαπητός</b>, -ή, -όν <BR /> (ἀγαπάω), [in LXX chiefly for יָתִיד, יָדִיד ;] <BR /><b>beloved</b>; <BR />__(a) <b>by God</b>: of Christ, <ref='Mat.3.17'>Mat.3:17;</ref> of men, <ref='Rom.1.7'>Rom.1:7;</ref> <BR /> __(b) <b>by Christians, of one another</b>: <ref='1Co.4.14'>1Co.4:14;</ref> frequently as form of address, <ref='1Co.10.14'>ib. 10:14</ref>; opposite to ἐχθρός, <ref='Rom.11.28'>Rom.11:28</ref>.<BR /> (AS)` },
+  { id: 'G0028', lemma: 'Ἅγαρ', translit: 'Agar', pos: 'N:N-F-P', gloss: 'Hagar',
+    raw: `<b>Ἅγαρ</b> (Rec. Ἄ-), ἡ, indecl. (in FlJ, Ἀγάρα, -ης, Heb. הָגָר), <BR /> <b>Hagar</b> (Gen.16): <ref='Gal.4.24,25'>Gal.4:24,25</ref>.†<BR /> (AS)` },
+  { id: 'G0029', lemma: 'ἀγγαρεύω', translit: 'angareuō', pos: 'G:V', gloss: 'to force',
+    raw: `<b>ἀγγαρεύω</b> (from the Persian; cf. Vg. angiare, and the Heb. אִגֶרֶת), <BR /> <b>to impress</b> into public service, employ a courier; hence, <b>to compel</b> to perform a service: <ref='Mat.5.41; 27.32'>Mat.5:41, 27:32</ref>, <ref='Mrk.15.21'>Mrk.15:21</ref>.†<BR /> (AS)` },
+  { id: 'G0030', lemma: 'ἀγγεῖον', translit: 'angeion', pos: 'G:N-N', gloss: 'jar',
+    raw: `<b>ἀγγεῖον</b>, -ου, τό <BR /> (ἄγγος), [in LXX chiefly for כְּלִי ;] <BR /><b>a vessel</b>: <ref='Mat.25.4'>Mat.25:4.</ref>†<BR /> (AS)` },
+  { id: 'G0031', lemma: 'ἀγγελία', translit: 'angelia', pos: 'G:N-F', gloss: 'message',
+    raw: `<b>ἀγγελία</b>, -ας, ἡ <BR /> (ἄγγελος), [in LXX chiefly for שְׁמוּעָה ;] <BR /><b>a message</b>: <ref='1Jn.1.5'>1Jn.1:5</ref>, <ref='1Jn.3.11'>3:11</ref>.†<BR /> (AS)` },
+  { id: 'G0032G', lemma: 'ἄγγελος', translit: 'angelos', pos: 'G:N-M', gloss: 'angel',
+    raw: `<b>ἄγγελος</b>, -ου, ὁ, <BR /> [in LXX chiefly for מַלְאָךְ ;] <BR /> __1. <b>a messenger</b>, <b>one sent</b>: <ref='Mat.11.10'>Mat.11:10</ref>, <ref='Jas.2.25'>Jas.2:25</ref>.<BR /> __2. As in LXX, in the special sense of <b>angel</b>, a spiritual, heavenly being, attendant upon God and employed as his messenger to men, to make known his purposes, as <ref='Luk.1.11'>Luk.1:11</ref>, or to execute them, as <ref='Mat.4.6'>Mat.4:6.</ref><BR /> (AS)` },
+  { id: 'G0032H', lemma: 'ἄγγελος', translit: 'angelos', pos: 'G:N-M', gloss: 'angel: messenger',
+    raw: `<b>ἄγγελος</b>, -ου, ὁ, <BR /> [in LXX chiefly for מַלְאָךְ ;] <BR /> __1. <b>a messenger</b>, <b>one sent</b>: <ref='Mat.11.10'>Mat.11:10</ref>, <ref='Jas.2.25'>Jas.2:25</ref>.<BR /> __2. As in LXX, in the special sense of <b>angel</b>, a spiritual, heavenly being, attendant upon God and employed as his messenger to men.<BR /> (AS)` }
+];
+
+/* ============================================================
+   LEXICON RENDERER  (parser + renderers)
+   ============================================================ */
+function parseTbesg(raw) {
+  let working = raw;
+
+  let synonyms = '';
+  working = working.replace(/<re>([\s\S]*?)<\/re>/g, (_, inner) => {
+    synonyms = inner.trim();
+    return '';
+  });
+
+  let attribution = '';
+  working = working.replace(/\(([A-Z]{1,3})\)\s*$/, (_, code) => {
+    attribution = code;
+    return '';
+  });
+
+  let prev;
+  do {
+    prev = working;
+    working = working.replace(
+      /<ref='([^']+)'>([^<]*)<\/ref>/g,
+      (_, target, label) => `<span class="ref" data-ref="${escapeAttr(target)}">${label}</span>`
+    );
+  } while (prev !== working);
+  working = working.replace(
+    /<ref='([^']+)'>([\s\S]*?)<\/ref>/g,
+    (_, target, label) => `<span class="ref" data-ref="${escapeAttr(target)}">${label}</span>`
+  );
+  working = working.replace(/<\/?ref[^>]*>/g, '');
+
+  working = working.replace(/<b>/g, '<strong>').replace(/<\/b>/g, '</strong>');
+  working = working.replace(/<i>/g, '<em>').replace(/<\/i>/g, '</em>');
+
+  const chunks = working.split(/<BR\s*\/?\s*>/i)
+    .map(c => c.trim())
+    .filter(Boolean);
+
+  const sections = [];
+  let foundHeader = false;
+  for (const chunk of chunks) {
+    const numbered = chunk.match(/^__(\d+)\.\s*([\s\S]*)/);
+    const lettered = chunk.match(/^__\(([a-z0-9]+)\)\s*([\s\S]*)/);
+
+    if (numbered) { sections.push({ type: 'sense', marker: numbered[1] + '.', content: numbered[2].trim() }); continue; }
+    if (lettered) { sections.push({ type: 'subsense', marker: '(' + lettered[1] + ')', content: lettered[2].trim() }); continue; }
+    if (/^\[in /i.test(chunk)) { sections.push({ type: 'etymology', content: chunk }); continue; }
+    if (!foundHeader) { sections.push({ type: 'header', content: chunk }); foundHeader = true; continue; }
+    sections.push({ type: 'paragraph', content: chunk });
+  }
+
+  return { sections, synonyms, attribution };
+}
+
+function renderFull(entry) {
+  const parsed = parseTbesg(entry.raw);
+  const etymology  = parsed.sections.find(s => s.type === 'etymology');
+  const briefGloss = parsed.sections.find(s => s.type === 'paragraph');
+  const senses     = parsed.sections.filter(s => s.type === 'sense' || s.type === 'subsense');
+
+  const pastoralHtml = entry.pastoral
+    ? `<div class="pastoral-note">
+         <span class="pn-label">What this means</span>
+         <div class="pn-content">${escapeHtml(entry.pastoral)}</div>
+       </div>` : '';
+
+  const etymologyHtml = etymology ? `<p class="etymology">${etymology.content}</p>` : '';
+  const briefGlossHtml = briefGloss ? `<p class="brief-gloss">${briefGloss.content}</p>` : '';
+
+  const sensesHtml = senses.length
+    ? `<h3 class="section-h">Meaning</h3>
+       <ul class="sense-list">
+         ${senses.map(s => `
+           <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
+             <span class="marker">${escapeHtml(s.marker)}</span>
+             <span class="content">${s.content}</span>
+           </li>`).join('')}
+       </ul>` : '';
+
+  const synonymsHtml = parsed.synonyms
+    ? `<details class="accord">
+         <summary>Word relationships</summary>
+         <div class="accord-body">${parsed.synonyms}</div>
+       </details>` : '';
+
+  const lsjPlaceholder = `
+    <details class="accord">
+      <summary>LSJ dictionary</summary>
+      <div class="accord-body placeholder">Full LSJ entry will appear here in v2 (TFLSJ data).</div>
+    </details>`;
+
+  return `
+    <div class="full-card">
+      <div class="full-header">
+        <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
+        <span class="lemma">${escapeHtml(entry.lemma)}</span><span class="lemma-meta">(${escapeHtml(entry.translit)})</span>
+        <div class="gloss">${escapeHtml(entry.gloss)}</div>
+        <div class="grammar">${formatPos(entry.pos)}</div>
+        <div><span class="strongs">${entry.id}</span></div>
+      </div>
+      <div class="full-body">
+        ${pastoralHtml}
+        ${etymologyHtml}
+        ${briefGlossHtml}
+        ${sensesHtml}
+        ${synonymsHtml}
+        ${lsjPlaceholder}
+      </div>
+      <div class="full-footer">
+        <span>STEPBible · CC BY 4.0 · src: ${parsed.attribution || 'Abbott-Smith'}</span>
+        <a href="#" onclick="event.preventDefault();">Report lexicon issue</a>
+      </div>
+    </div>`;
+}
+
+function formatPos(pos) {
+  if (!pos) return '';
+  const [lang, rest = ''] = pos.split(':');
+  const langName = lang === 'G' ? 'Greek' : lang === 'H' ? 'Hebrew' : lang === 'N' ? '' : lang;
+  const map = {
+    'V': 'Verb', 'N': 'Noun',
+    'N-F': 'Noun (feminine)', 'N-M': 'Noun (masculine)', 'N-N': 'Noun (neuter)',
+    'N-M/F': 'Noun (masc./fem.)',
+    'N-F-P': 'Proper noun (feminine)', 'N-M-P': 'Proper noun (masculine)',
+    'A': 'Adjective'
+  };
+  const restName = map[rest] || rest;
+  return [langName, restName].filter(Boolean).join(' ');
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openLexicon(strongsId) {
+  const entry = LEXICON.find(e => e.id === strongsId);
+  if (!entry) return;
+  const backdrop = document.getElementById('modalBackdrop');
+  const content  = document.getElementById('modalContent');
+  content.innerHTML = renderFull(entry);
+  backdrop.classList.add('is-open');
+  backdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  const backdrop = document.getElementById('modalBackdrop');
+  backdrop.classList.remove('is-open');
+  backdrop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modalBackdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('modalBackdrop').classList.contains('is-open')) {
+    closeModal();
+  }
+});
+
+/* ============================================================
+   WORD STUDY (lexicon search)
+   ============================================================ */
+function mountWordStudy() {
+  const input = document.getElementById('lexSearch');
+  input.value = '';
+  renderLexResults('');
+  if (!input._wired) {
+    input._wired = true;
+    input.addEventListener('input', () => renderLexResults(input.value));
+  }
+}
+
+function renderLexResults(query) {
+  const out = document.getElementById('lexResults');
+  const q = (query || '').trim().toLowerCase();
+
+  let matches = LEXICON;
+  if (q) {
+    matches = LEXICON.filter(e => {
+      return e.id.toLowerCase().includes(q) ||
+             e.lemma.toLowerCase().includes(q) ||
+             e.translit.toLowerCase().includes(q) ||
+             e.gloss.toLowerCase().includes(q);
+    });
+  }
+
+  if (!matches.length) {
+    out.innerHTML = `<div class="no-results">No matches for "${escapeHtml(query)}".<br>Try a Strong's number, transliteration, or English meaning.</div>`;
+    return;
+  }
+
+  out.innerHTML = matches.map(e => `
+    <button class="lex-result" onclick="openLexicon('${e.id}')">
+      <span class="lr-id">${e.id}</span>
+      <div>
+        <span class="lr-greek">${escapeHtml(e.lemma)}</span>
+        <span class="lr-translit">${escapeHtml(e.translit)}</span>
+      </div>
+      <div class="lr-gloss">${escapeHtml(e.gloss)}</div>
+    </button>
+  `).join('');
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+function escapeAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  // Load name from localStorage
+  const savedName = loadName();
+  if (savedName) state.user.name = savedName;
+
+  // Load any in-progress study
+  const savedStudy = loadStudy();
+  if (savedStudy) state.study = { ...emptyStudy(), ...savedStudy };
+
+  // Decide starting screen
+  if (!state.user.name) {
+    showScreen('welcome', { skipHistory: true });
+  } else {
+    showScreen('home', { skipHistory: true });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
