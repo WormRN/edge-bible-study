@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <style>
     :root {
       --navy:        #0E2A52;
@@ -26,67 +26,60 @@
       --edge-dig:     #E08833;
       --edge-gather:  #2A7BD4;
       --edge-embrace: #8E54B5;
-      --serif:        'EB Garamond', serif;
+      --serif:        'Lora', 'EB Garamond', serif;
       --sans:         'Atkinson Hyperlegible', sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--canvas);
-      font-family: var(--sans);
-      color: var(--ink);
-      -webkit-font-smoothing: antialiased;
-      display: flex; justify-content: center; align-items: center; min-height: 100vh;
-    }
+    body { background-color: #DDD6C8; font-family: var(--sans); color: var(--ink); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
 
     .phone {
-      width: 100%; max-width: 420px; height: 100vh; max-height: 900px;
-      background: var(--paper); box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+      width: 100%; max-width: 420px; height: 90vh; max-height: 850px;
+      background: var(--paper); border-radius: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.2);
       display: flex; flex-direction: column; overflow: hidden; position: relative;
     }
 
-    /* Progress Bar with Edge Colors */
-    .progress-bar { height: 4px; background: var(--rule); display: flex; }
-    .progress-segment { height: 100%; flex: 1; transition: opacity 0.3s; opacity: 0.2; }
-    .progress-segment.active { opacity: 1; }
+    .progress-bar { height: 4px; background: var(--rule); display: flex; flex-shrink: 0; }
+    .progress-fill { height: 100%; transition: width 0.4s ease; background: var(--navy); }
 
-    .header { background: var(--navy); color: white; padding: 20px; position: relative; }
+    .header { background: var(--navy); color: white; padding: 40px 20px 15px; position: relative; flex-shrink: 0; }
     .header::after {
         content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(90deg, var(--edge-explore) 25%, var(--edge-dig) 50%, var(--edge-gather) 75%, var(--edge-embrace) 100%);
     }
 
-    .body { flex: 1; overflow-y: auto; padding: 24px; }
-    
-    /* Bible Reader Text */
-    .verse-card { background: var(--canvas); border-radius: 12px; padding: 20px; margin-bottom: 20px; line-height: 1.6; font-family: var(--serif); font-size: 20px; }
-    .tappable-word { color: var(--accent); cursor: pointer; transition: background 0.2s; border-radius: 4px; padding: 0 2px; }
-    .tappable-word:hover { background: var(--accent-soft); }
-    .tappable-word.is-active { background: var(--accent); color: white; }
+    .body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; }
+    .body::-webkit-scrollbar { width: 0; }
 
-    /* Lexicon Quick Banner */
+    .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+    .btn { background: var(--navy); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: opacity 0.2s; }
+    .btn:disabled { opacity: 0.5; }
+    .input { width: 100%; padding: 14px; border: 2px solid var(--rule); border-radius: 12px; margin-bottom: 20px; font-size: 16px; font-family: var(--serif); outline: none; }
+    .input:focus { border-color: var(--accent); }
+    
+    .card { background: var(--canvas); border: 1px solid var(--rule); border-radius: 16px; padding: 18px; margin-bottom: 12px; }
+    .verse-text { font-family: var(--serif); font-size: 19px; line-height: 1.7; color: var(--ink); }
+    .tappable-word { color: var(--accent); cursor: pointer; padding: 0 2px; border-radius: 4px; }
+    .tappable-word.active { background: var(--accent); color: white; }
+
+    /* Lexicon UI */
     .quick-banner {
       background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
-      color: white; border-radius: 12px; padding: 16px; margin-bottom: 20px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: slideIn 0.3s ease;
+      color: white; border-radius: 12px; padding: 16px; margin-top: 10px; margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; cursor: pointer;
     }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .quick-title { font-weight: bold; font-size: 18px; margin-bottom: 8px; display: flex; justify-content: space-between; }
-    .quick-body { font-family: var(--serif); font-style: italic; font-size: 17px; opacity: 0.9; }
-    .dig-hint { font-size: 12px; margin-top: 10px; color: #BCDDFF; text-align: right; }
+    .quick-body { font-family: var(--serif); font-style: italic; font-size: 16px; margin-top: 5px; color: #E8F1FB; }
 
-    /* Modal Styling */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; z-index: 100; }
-    .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; max-height: 85vh; overflow-y: auto; padding: 24px; position: relative; }
-    .modal-header { border-bottom: 1px solid var(--rule); padding-bottom: 15px; margin-bottom: 15px; }
-    .close-btn { position: absolute; top: 15px; right: 15px; background: var(--rule); border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(8, 26, 53, 0.7); display: flex; align-items: flex-end; z-index: 100; }
+    .modal-content { background: white; width: 100%; border-radius: 24px 24px 0 0; max-height: 85vh; overflow-y: auto; padding: 30px 24px; position: relative; }
+    .close-btn { position: absolute; top: 20px; right: 20px; background: var(--rule); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 20px; }
 
-    .btn { background: var(--navy); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; margin-top: 10px; }
-    .input { width: 100%; padding: 12px; border: 1px solid var(--rule); border-radius: 8px; margin-bottom: 15px; font-size: 16px; }
-    
-    /* "What this means" Note */
-    .pastoral-note { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 12px; border-radius: 4px; margin-bottom: 15px; }
-    .pastoral-label { font-weight: bold; font-size: 12px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .pastoral-note { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 15px; border-radius: 8px; margin: 20px 0; }
+    .pastoral-label { font-weight: bold; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+
+    @media (max-width: 440px) { body { padding: 0; } .phone { max-width: 100%; height: 100vh; max-height: none; border-radius: 0; } }
   </style>
 </head>
 <body>
@@ -95,97 +88,128 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // --- Mock Data ---
+    const FLOW = ["welcome", "home", "passage", "version", "reader", "E1", "D", "G", "E2", "done"];
+    const STEP_COLORS = { E1: "#4A9D4A", D: "#E08833", G: "#2A7BD4", E2: "#8E54B5" };
+
     const LEXICON = {
       "G0025": {
-        id: "G0025", lemma: "ἀγαπάω", translit: "agapaō", gloss: "to love",
+        lemma: "ἀγαπάω", translit: "agapaō", gloss: "to love",
         pastoral: "A decision to act in the best interest of another. Not a feeling that comes and goes, but a settled commitment of the will.",
-        definition: "to love, to feel and exhibit esteem and goodwill to a person, to prize and delight in a thing."
-      },
-      "G0026": {
-          id: "G0026", lemma: "ἀγάπη", translit: "agapē", gloss: "love",
-          pastoral: "The settled choice to seek another's good. The love that holds even when feelings don't.",
-          definition: "love, goodwill, esteem. The spiritual bond characteristic of Christianity."
+        definition: "To prize, delight in, and seek the welfare of another."
       }
     };
 
+    // --- Sub-Components (Defined Outside App to fix focus bug) ---
+    const Welcome = ({ name, setName, onNext }) => (
+      <div className="body">
+        <h1 style={{fontSize: '28px', marginBottom: '10px'}}>Welcome to EDGE</h1>
+        <p style={{color: 'var(--muted)', marginBottom: '30px'}}>Every Detail God Expressed</p>
+        <label className="label">What's your name?</label>
+        <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Type your name..." />
+        <button className="btn" disabled={!name} onClick={onNext}>Start Your Journey →</button>
+      </div>
+    );
+
+    const Home = ({ name, onStart }) => (
+      <div className="body">
+        <h1 style={{fontSize: '24px', marginBottom: '10px'}}>Hello, {name}</h1>
+        <p style={{color: 'var(--muted)', marginBottom: '30px'}}>Ready to dig into the Word today?</p>
+        <button className="btn" onClick={onStart}>+ New Study Session</button>
+      </div>
+    );
+
+    const Reader = ({ selectedWord, onWordTap, onNext }) => (
+      <div className="body">
+        <label className="label">John 3:16 · BSB</label>
+        <div className="card verse-text">
+          For God so <span className={`tappable-word ${selectedWord === 'G0025' ? 'active' : ''}`} onClick={() => onWordTap('G0025')}>loved</span> the world that He gave His one and only Son...
+        </div>
+        
+        {selectedWord && (
+          <div className="quick-banner" onClick={() => onWordTap(selectedWord, true)}>
+            <div style={{display:'flex', justifyContent:'space-between', fontWeight:'bold'}}>
+              <span>{LEXICON[selectedWord].gloss}</span>
+              <span style={{fontFamily:'var(--serif)'}}>{LEXICON[selectedWord].lemma}</span>
+            </div>
+            <div className="quick-body">{LEXICON[selectedWord].pastoral}</div>
+            <div style={{fontSize:'11px', marginTop:'10px', opacity:0.7, textAlign:'right'}}>Tap again to dig deeper →</div>
+          </div>
+        )}
+
+        <button className="btn" style={{marginTop:'auto'}} onClick={onNext}>I'm Ready to Explore →</button>
+      </div>
+    );
+
+    const StepScreen = ({ step, onNext, color }) => (
+      <div className="body">
+        <div style={{display:'flex', alignItems:'center', gap: '8px', marginBottom: '20px'}}>
+           <div style={{width: 12, height: 12, borderRadius: '50%', background: color}}></div>
+           <h2 style={{textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px'}}>{step}</h2>
+        </div>
+        <textarea className="input" rows="6" placeholder="Write your reflections here..." style={{flex: 1}}></textarea>
+        <button className="btn" style={{background: color}} onClick={onNext}>Continue →</button>
+      </div>
+    );
+
+    // --- Main App ---
     function App() {
       const [screen, setScreen] = useState('welcome');
       const [name, setName] = useState('');
       const [selectedWord, setSelectedWord] = useState(null);
-      const [showFullModal, setShowFullModal] = useState(false);
+      const [showModal, setShowModal] = useState(false);
 
-      const handleWordTap = (strongs) => {
-        if (selectedWord === strongs) {
-          setShowFullModal(true);
+      const handleNext = () => {
+        const idx = FLOW.indexOf(screen);
+        if (idx < FLOW.length - 1) setScreen(FLOW[idx + 1]);
+      };
+
+      const handleWordTap = (id, forceModal = false) => {
+        if (selectedWord === id || forceModal) {
+          setShowModal(true);
         } else {
-          setSelectedWord(strongs);
+          setSelectedWord(id);
         }
       };
 
-      // --- Screens ---
-      const Welcome = () => (
-        <div className="body">
-          <h1 style={{fontSize: '32px', marginBottom: '20px'}}>EDGE</h1>
-          <p style={{marginBottom: '30px', color: 'var(--ink-soft)'}}>Read. Understand. Respond.</p>
-          <input className="input" placeholder="Your first name" value={name} onChange={e => setName(e.target.value)} />
-          <button className="btn" onClick={() => setScreen('home')}>Get Started</button>
-        </div>
-      );
-
-      const Reader = () => (
-        <div className="body">
-          <span style={{fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase'}}>John 3:16 · BSB</span>
-          <div className="verse-card">
-            For God so <span className={`tappable-word ${selectedWord === 'G0025' ? 'is-active' : ''}`} onClick={() => handleWordTap('G0025')}>loved</span> the world that He gave His one and only Son...
-          </div>
-
-          {selectedWord && (
-            <div className="quick-banner" onClick={() => setShowFullModal(true)}>
-              <div className="quick-title">
-                <span>{LEXICON[selectedWord].gloss}</span>
-                <span style={{fontFamily: 'var(--serif)', fontWeight: 'normal'}}>{LEXICON[selectedWord].lemma}</span>
-              </div>
-              <div className="quick-body">
-                {LEXICON[selectedWord].pastoral}
-              </div>
-              <div className="dig-hint">Tap again to dig deeper →</div>
-            </div>
-          )}
-          
-          <button className="btn" onClick={() => setScreen('welcome')}>Restart</button>
-        </div>
-      );
+      const progress = (FLOW.indexOf(screen) / (FLOW.length - 1)) * 100;
 
       return (
         <div className="phone">
           <div className="progress-bar">
-            <div className={`progress-segment ${['welcome','home'].includes(screen) ? '' : 'active'}`} style={{background: 'var(--edge-explore)'}}></div>
-            <div className="progress-segment" style={{background: 'var(--edge-dig)'}}></div>
-            <div className="progress-segment" style={{background: 'var(--edge-gather)'}}></div>
-            <div className="progress-segment" style={{background: 'var(--edge-embrace)'}}></div>
+             <div className="progress-fill" style={{width: `${progress}%`}}></div>
           </div>
           <div className="header">
-            <div style={{fontWeight: 'bold', letterSpacing: '2px'}}>EDGE</div>
+            <div style={{fontWeight: '700', letterSpacing: '2px', fontSize: '14px'}}>EDGE</div>
           </div>
 
-          {screen === 'welcome' ? <Welcome /> : <Reader />}
+          {screen === 'welcome' && <Welcome name={name} setName={setName} onNext={handleNext} />}
+          {screen === 'home'    && <Home name={name} onStart={handleNext} />}
+          {screen === 'passage' && <div className="body"><h2 style={{marginBottom:20}}>Select Passage</h2><button className="btn" onClick={handleNext}>John 3:16</button></div>}
+          {screen === 'version' && <div className="body"><h2 style={{marginBottom:20}}>Select Version</h2><button className="btn" onClick={handleNext}>BSB (Default)</button></div>}
+          {screen === 'reader'  && <Reader selectedWord={selectedWord} onWordTap={handleWordTap} onNext={handleNext} />}
+          {screen === 'E1' && <StepScreen step="Explore" color={STEP_COLORS.E1} onNext={handleNext} />}
+          {screen === 'D'  && <StepScreen step="Dig"     color={STEP_COLORS.D}  onNext={handleNext} />}
+          {screen === 'G'  && <StepScreen step="Gather"  color={STEP_COLORS.G}  onNext={handleNext} />}
+          {screen === 'E2' && <StepScreen step="Embrace" color={STEP_COLORS.E2} onNext={handleNext} />}
+          {screen === 'done' && <div className="body"><h2>Study Complete</h2><button className="btn" onClick={() => setScreen('home')}>Return Home</button></div>}
 
-          {showFullModal && selectedWord && (
-            <div className="modal-overlay" onClick={() => setShowFullModal(false)}>
+          {showModal && selectedWord && (
+            <div className="modal-overlay" onClick={() => setShowModal(false)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <button className="close-btn" onClick={() => setShowFullModal(false)}>×</button>
-                <div className="modal-header">
-                  <h2 style={{fontFamily: 'var(--serif)', fontSize: '28px'}}>{LEXICON[selectedWord].lemma}</h2>
-                  <p style={{color: 'var(--muted)'}}>{LEXICON[selectedWord].translit} · {selectedWord}</p>
-                </div>
+                <button className="close-btn" onClick={() => setShowModal(false)}>×</button>
+                <h2 style={{fontFamily:'var(--serif)', fontSize:'32px'}}>{LEXICON[selectedWord].lemma}</h2>
+                <p style={{color:'var(--muted)', marginBottom: '20px'}}>{LEXICON[selectedWord].translit} · {selectedWord}</p>
+                
                 <div className="pastoral-note">
-                  <span className="pastoral-label">What this means</span>
-                  <p style={{fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '18px'}}>{LEXICON[selectedWord].pastoral}</p>
+                   <span className="pastoral-label">What this means</span>
+                   <p style={{fontFamily:'var(--serif)', fontStyle:'italic', fontSize:'18px', marginTop:'5px'}}>
+                     {LEXICON[selectedWord].pastoral}
+                   </p>
                 </div>
-                <h3 style={{fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px', color: 'var(--muted)'}}>Scholarly Definition</h3>
-                <p style={{lineHeight: '1.6', marginBottom: '20px'}}>{LEXICON[selectedWord].definition}</p>
-                <button className="btn" onClick={() => setShowFullModal(false)}>Close Analysis</button>
+
+                <label className="label">Full Definition</label>
+                <p style={{lineHeight: '1.6', fontSize: '17px'}}>{LEXICON[selectedWord].definition}</p>
+                <button className="btn" onClick={() => setShowModal(false)}>Close Analysis</button>
               </div>
             </div>
           )}
