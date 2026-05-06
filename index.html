@@ -577,47 +577,43 @@ select.translation-select {
   vertical-align: middle;
 }
 
-/* ─── Lookup link (Explore: "Define a difficult word") ──── */
-.lookup-link {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: var(--accent-pale);
-  border: 1px solid var(--accent-soft);
-  border-left: 3px solid var(--accent);
-  padding: 14px 50px 14px 16px;
-  border-radius: 8px;
+/* ─── Lexicon Quick Banner additions ─────────────────────── */
+.tappable-word {
+  color: var(--accent);
   cursor: pointer;
-  margin-bottom: 16px;
-  font-family: var(--sans);
-  position: relative;
-  transition: all 0.15s ease;
+  padding: 0 2px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
 }
-.lookup-link:hover {
+.tappable-word:hover {
   background: var(--accent-soft);
-  border-color: var(--accent);
 }
-.lookup-link-h {
-  display: block;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 2px;
+.tappable-word.is-active {
+  background: var(--accent);
+  color: white;
 }
-.lookup-link-d {
-  display: block;
-  font-size: 13px;
-  color: var(--ink-soft);
-  line-height: 1.45;
+.quick-banner {
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-top: 16px;
+  box-shadow: var(--shadow-elev);
+  position: relative;
+  animation: slideIn 0.2s ease;
 }
-.lookup-link-arrow {
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.quick-close {
   position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--accent);
-  font-size: 22px;
-  font-weight: 700;
+  top: 10px; right: 10px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 20px;
+  cursor: pointer;
 }
 
 /* ─── Hint box ───────────────────────────────────────────── */
@@ -1025,7 +1021,6 @@ select.translation-select {
 
 <main>
 
-  <!-- ─── WELCOME ──────────────────────────────────────────── -->
   <section class="screen" id="screen-welcome">
     <div class="welcome-hero">
       <div class="logo-large">
@@ -1058,7 +1053,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── HOME ─────────────────────────────────────────────── -->
   <section class="screen" id="screen-home">
     <div class="greeting">
       <div class="salute" id="greetingSalute">Good morning</div>
@@ -1077,19 +1071,12 @@ select.translation-select {
       <div class="home-tile-d">Look up a Greek word by Strong's number, transliteration, or meaning.</div>
     </button>
 
-    <button class="home-tile" onclick="showScreen('readBible')">
-      <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Read the Bible</div>
-      <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
-    </button>
-
     <div class="privacy" style="margin-top: 24px;">
       <strong>Your notes stay here.</strong> EDGE saves your study answers in your browser.
       No accounts, no servers, no sharing.
     </div>
   </section>
 
-  <!-- ─── PICK PASSAGE ─────────────────────────────────────── -->
   <section class="screen" id="screen-pickPassage">
     <div class="card">
       <div class="h-step gather">CHOOSE A PASSAGE</div>
@@ -1122,13 +1109,11 @@ select.translation-select {
 
       <div class="preset-list">
         <div class="preset-h">Or start with one of these</div>
-        <!-- Filled by JS -->
         <div id="presetSlots"></div>
       </div>
     </div>
   </section>
 
-  <!-- ─── READER (E0 — passage shown before EDGE flow) ────── -->
   <section class="screen" id="screen-reader">
     <div class="card">
       <div class="h-step explore">READ</div>
@@ -1141,6 +1126,8 @@ select.translation-select {
     <div class="passage-display" id="readerPassage">
       <div class="passage-loading">Loading passage…</div>
     </div>
+    
+    <div id="readerBannerSlot"></div>
 
     <div class="hint-box" id="readerHint" style="display:none;">
       <button class="hint-toggle" onclick="toggleHint('readerHint')">Need a nudge? <span class="caret">›</span></button>
@@ -1153,7 +1140,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── EXPLORE ──────────────────────────────────────────── -->
   <section class="screen" id="screen-explore">
     <div class="card tinted-explore">
       <div class="h-step explore">E · EXPLORE</div>
@@ -1164,12 +1150,6 @@ select.translation-select {
         <div class="passage-ref" id="explorePassageRef"></div>
         <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
       </div>
-
-      <button class="lookup-link" onclick="openLookupFromStudy()">
-        <span class="lookup-link-h">Define a difficult word</span>
-        <span class="lookup-link-d">Look up an unfamiliar Greek term — your notes here will be saved.</span>
-        <span class="lookup-link-arrow">→</span>
-      </button>
 
       <div class="hint-box" id="exploreHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('exploreHint')">Need a nudge? <span class="caret">›</span></button>
@@ -1187,7 +1167,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── DIG ──────────────────────────────────────────────── -->
   <section class="screen" id="screen-dig">
     <div class="card tinted-dig">
       <div class="h-step dig">D · DIG</div>
@@ -1216,7 +1195,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── GATHER ──────────────────────────────────────────── -->
   <section class="screen" id="screen-gather">
     <div class="card tinted-gather">
       <div class="h-step gather">G · GATHER</div>
@@ -1247,7 +1225,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── EMBRACE ─────────────────────────────────────────── -->
   <section class="screen" id="screen-embrace">
     <div class="card tinted-embrace">
       <div class="h-step embrace">E · EMBRACE</div>
@@ -1276,7 +1253,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── DONE ────────────────────────────────────────────── -->
   <section class="screen" id="screen-done">
     <div class="done-celebrate">
       <div class="check">✓</div>
@@ -1289,8 +1265,7 @@ select.translation-select {
       <h2 class="h-question" id="donePassageRef">—</h2>
 
       <div class="done-summary" id="doneSummary">
-        <!-- Filled by JS -->
-      </div>
+        </div>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goHome()">← Home</button>
@@ -1299,7 +1274,6 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── WORD STUDY (Lexicon Search) ─────────────────────── -->
   <section class="screen" id="screen-wordStudy">
     <div class="card">
       <div class="h-step gather">WORD STUDY</div>
@@ -1317,35 +1291,8 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── READ THE BIBLE (no study flow) ───────────────────── -->
-  <section class="screen" id="screen-readBible">
-    <div class="card">
-      <div class="h-step gather">JUST READ</div>
-      <h2 class="h-question">Read a passage</h2>
-      <p class="lead">No study flow. Just the text — slowly, prayerfully, however you'd like.</p>
-
-      <div class="translation-row">
-        <label for="readBibleTranslation">Translation:</label>
-        <select id="readBibleTranslation" class="translation-select">
-          <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="kjv">KJV · King James Version</option>
-          <option value="web">WEB · World English Bible</option>
-        </select>
-      </div>
-
-      <label class="field-label" for="readBibleInput" style="margin-top: 18px;">Reference</label>
-      <div class="passage-input-row">
-        <input type="text" id="readBibleInput" placeholder="e.g. Romans 8:28-39" autocomplete="off">
-        <button class="btn btn-primary" onclick="onReadBibleSubmit()">Go</button>
-      </div>
-    </div>
-
-    <div id="readBibleDisplay"></div>
-  </section>
-
 </main>
 
-<!-- ─── FULL ANALYSIS MODAL (used by Word Study) ─────────── -->
 <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="modal-content" id="modalContent"></div>
 </div>
@@ -1513,7 +1460,6 @@ function showScreen(name, opts = {}) {
   if (name === 'embrace')      mountEmbrace();
   if (name === 'done')         renderDone();
   if (name === 'wordStudy')    mountWordStudy();
-  if (name === 'readBible')    mountReadBible();
 
   window.scrollTo(0, 0);
 }
@@ -1631,13 +1577,10 @@ function onPassageSubmit() {
    PASSAGE FETCH
    ============================================================ */
 async function fetchPassage(ref, translation) {
-  // bible-api.com accepts unencoded colons; just normalize whitespace to '+'
-  const encodedRef = ref.trim().replace(/\s+/g, '+');
-  const url = `https://bible-api.com/${encodedRef}?translation=${translation || 'web'}`;
+  const url = `https://bible-api.com/${encodeURIComponent(ref)}?translation=${encodeURIComponent(translation)}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`API returned ${res.status}`);
+  if (!res.ok) throw new Error('Passage not found.');
   const data = await res.json();
-  if (data.error) throw new Error(data.error);
   if (!data.verses || !data.verses.length) throw new Error('No verses returned.');
   return data;
 }
@@ -1662,6 +1605,25 @@ function renderPassageInto(elementId, data) {
 async function fetchPassageForReader() {
   const display = document.getElementById('readerPassage');
   display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
+  closeQuickBanner(); // Clear banner if returning from another screen
+
+  // --- INTERCEPT FOR TAGGED DEMO ---
+  if (state.study.passage && state.study.passage.toLowerCase().includes('john 3:16')) {
+    const taggedHtml = `
+      <div class="passage-ref">John 3:16-21 <span class="translation-badge">BSB</span></div>
+      <div class="passage-text">
+        <span class="verse-num">16</span>For God so <span class="tappable-word" onclick="handleWordTap('G0025', this)">loved</span> the world that He gave His one and only Son, that whoever believes in Him shall not perish but have eternal life.
+      </div>
+    `;
+    display.innerHTML = taggedHtml;
+    
+    // Set hint
+    const h = document.getElementById('readerHint');
+    h.style.display = 'block';
+    h.querySelector('.hint-content').innerHTML = PRESETS[0].hints.reader;
+    return;
+  }
+  // ---------------------------------
 
   try {
     const data = await fetchPassage(state.study.passage, state.study.translation);
@@ -1669,10 +1631,9 @@ async function fetchPassageForReader() {
     saveStudy();
     renderPassageInto('readerPassage', data);
   } catch (err) {
-    console.error('Bible API error:', err);
     display.innerHTML = `
       <div class="passage-error">
-        Couldn't load "${escapeHtml(state.study.passage)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
+        Couldn't load "${escapeHtml(state.study.passage)}". Check the reference and try again.
       </div>
       <div style="text-align:center; margin-top:14px;">
         <button class="btn btn-secondary" onclick="showScreen('pickPassage', { skipHistory: true })">← Edit reference</button>
@@ -1900,6 +1861,27 @@ function parseTbesg(raw) {
   return { sections, synonyms, attribution };
 }
 
+/* Quick Banner Renderer */
+function renderQuick(entry) {
+  const parsed = parseTbesg(entry.raw);
+  let bodyHtml = entry.pastoral ? escapeHtml(entry.pastoral) : (parsed.sections.find(s => s.type === 'paragraph')?.content || '');
+  
+  return `
+    <div class="quick-banner">
+      <button class="quick-close" onclick="closeQuickBanner()" aria-label="Close">×</button>
+      <div style="margin-bottom: 8px;">
+        <span style="font-weight: 700; font-size: 22px; display: block;">${escapeHtml(entry.gloss)}</span>
+        <span style="font-family: var(--serif); font-size: 21px;">${escapeHtml(entry.lemma)}</span>
+        <span style="font-family: var(--serif); font-style: italic; opacity: 0.88; font-size: 17px; margin-left: 6px;">(${escapeHtml(entry.translit)})</span>
+      </div>
+      <div style="font-size: 16px; line-height: 1.55; font-family: var(--serif); font-style: italic; opacity: 0.96;">${bodyHtml}</div>
+      <div style="border-top: 1px solid rgba(255,255,255,0.18); padding-top: 11px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; letter-spacing: 1px; background: rgba(255,255,255,0.13); padding: 4px 9px; border-radius: 5px; font-size: 13px;">${entry.id}</span>
+        <button style="background: transparent; border: none; color: #BCDDFF; font-size: 13px; font-style: italic; cursor: pointer;" onclick="openLexicon('${entry.id}')">Tap again to dig deeper →</button>
+      </div>
+    </div>`;
+}
+
 function renderFull(entry) {
   const parsed = parseTbesg(entry.raw);
   const etymology  = parsed.sections.find(s => s.type === 'etymology');
@@ -1977,8 +1959,29 @@ function formatPos(pos) {
 }
 
 /* ============================================================
-   MODAL
+   BANNER & MODAL
    ============================================================ */
+function handleWordTap(strongsId, element) {
+  const entry = LEXICON.find(e => e.id === strongsId);
+  if (!entry) return;
+
+  // If tapping the already active word, open full dictionary
+  if (element.classList.contains('is-active')) {
+    openLexicon(strongsId);
+    return;
+  }
+
+  // Otherwise, show quick banner
+  document.querySelectorAll('.tappable-word').forEach(w => w.classList.remove('is-active'));
+  element.classList.add('is-active');
+  document.getElementById('readerBannerSlot').innerHTML = renderQuick(entry);
+}
+
+function closeQuickBanner() {
+  document.getElementById('readerBannerSlot').innerHTML = '';
+  document.querySelectorAll('.tappable-word').forEach(el => el.classList.remove('is-active'));
+}
+
 function openLexicon(strongsId) {
   const entry = LEXICON.find(e => e.id === strongsId);
   if (!entry) return;
@@ -2048,73 +2051,6 @@ function renderLexResults(query) {
       <div class="lr-gloss">${escapeHtml(e.gloss)}</div>
     </button>
   `).join('');
-}
-
-/* ============================================================
-   LOOKUP FROM STUDY (Explore → Word Study)
-   ============================================================ */
-function openLookupFromStudy() {
-  // Save current Explore draft so it survives the round-trip
-  captureCurrentInputs();
-  showScreen('wordStudy');
-}
-
-/* ============================================================
-   READ THE BIBLE (no study flow)
-   ============================================================ */
-function mountReadBible() {
-  const input = document.getElementById('readBibleInput');
-  const display = document.getElementById('readBibleDisplay');
-
-  // Clear display on mount unless we have a recent fetch
-  if (!display.dataset.populated) {
-    display.innerHTML = '';
-  }
-
-  // Allow Enter key to submit
-  if (!input._enterWired) {
-    input._enterWired = true;
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') onReadBibleSubmit();
-    });
-  }
-}
-
-async function onReadBibleSubmit() {
-  const ref = document.getElementById('readBibleInput').value.trim();
-  const translation = document.getElementById('readBibleTranslation').value || 'bsb';
-  const display = document.getElementById('readBibleDisplay');
-
-  if (!ref) {
-    document.getElementById('readBibleInput').focus();
-    return;
-  }
-
-  display.innerHTML = '<div class="passage-display"><div class="passage-loading">Loading passage…</div></div>';
-
-  try {
-    const data = await fetchPassage(ref, translation);
-    display.dataset.populated = '1';
-    const versesHtml = data.verses.map(v => {
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
-    }).join('');
-    const transBadge = `<span class="translation-badge">${(data.translation_id || translation).toUpperCase()}</span>`;
-    display.innerHTML = `
-      <div class="passage-display">
-        <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-        <div class="passage-text">${versesHtml}</div>
-      </div>
-    `;
-  } catch (err) {
-    console.error('Bible API error:', err);
-    display.innerHTML = `
-      <div class="passage-display">
-        <div class="passage-error">
-          Couldn't load "${escapeHtml(ref)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
-        </div>
-      </div>
-    `;
-  }
 }
 
 /* ============================================================
