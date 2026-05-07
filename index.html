@@ -549,6 +549,16 @@ select.translation-select {
   line-height: 1.6;
   color: var(--ink);
 }
+/* Tappable words in passage */
+.bible-word {
+  color: var(--accent);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.1s ease;
+  display: inline;
+}
+.bible-word:hover, .bible-word:active { background: var(--accent-soft); }
+
 .passage-text .verse-num {
   font-family: var(--sans);
   font-size: 11px;
@@ -1352,7 +1362,7 @@ select.translation-select {
 
 <footer class="app-footer">
   <strong>EDGE · Bible Study</strong> · Lexicon: STEPBible / Tyndale House Cambridge · CC BY 4.0<br>
-  Bible text via bible-api.com · Your notes stay on your device.
+  Bible text: Berean Standard Bible · Public Domain · Your notes stay on your device.
 </footer>
 
 <script>
@@ -1628,33 +1638,109 @@ function onPassageSubmit() {
 }
 
 /* ============================================================
-   PASSAGE FETCH
+   PASSAGE FETCH — BSB static JSON files
    ============================================================ */
-async function fetchPassage(ref, translation) {
-  // bible-api.com accepts unencoded colons; just normalize whitespace to '+'
-  const encodedRef = ref.trim().replace(/\s+/g, '+');
-  const url = `https://bible-api.com/${encodedRef}?translation=${translation || 'web'}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`API returned ${res.status}`);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  if (!data.verses || !data.verses.length) throw new Error('No verses returned.');
-  return data;
+
+/* NT book name → file code mapping */
+const BOOK_CODES = {
+  'matthew':'MAT','matt':'MAT','mat':'MAT',
+  'mark':'MRK','mrk':'MRK','mk':'MRK',
+  'luke':'LUK','luk':'LUK','lk':'LUK',
+  'john':'JHN','jhn':'JHN','jn':'JHN',
+  'acts':'ACT','act':'ACT',
+  'romans':'ROM','rom':'ROM',
+  '1 corinthians':'1CO','1corinthians':'1CO','1 cor':'1CO','1cor':'1CO','1co':'1CO',
+  '2 corinthians':'2CO','2corinthians':'2CO','2 cor':'2CO','2cor':'2CO','2co':'2CO',
+  'galatians':'GAL','gal':'GAL',
+  'ephesians':'EPH','eph':'EPH',
+  'philippians':'PHP','phil':'PHP','php':'PHP',
+  'colossians':'COL','col':'COL',
+  '1 thessalonians':'1TH','1thessalonians':'1TH','1 thess':'1TH','1thess':'1TH','1th':'1TH',
+  '2 thessalonians':'2TH','2thessalonians':'2TH','2 thess':'2TH','2thess':'2TH','2th':'2TH',
+  '1 timothy':'1TI','1timothy':'1TI','1 tim':'1TI','1tim':'1TI','1ti':'1TI',
+  '2 timothy':'2TI','2timothy':'2TI','2 tim':'2TI','2tim':'2TI','2ti':'2TI',
+  'titus':'TIT','tit':'TIT',
+  'philemon':'PHM','phm':'PHM','phlm':'PHM',
+  'hebrews':'HEB','heb':'HEB',
+  'james':'JAS','jas':'JAS',
+  '1 peter':'1PE','1peter':'1PE','1 pet':'1PE','1pet':'1PE','1pe':'1PE',
+  '2 peter':'2PE','2peter':'2PE','2 pet':'2PE','2pet':'2PE','2pe':'2PE',
+  '1 john':'1JN','1john':'1JN','1 jn':'1JN','1jn':'1JN',
+  '2 john':'2JN','2john':'2JN','2 jn':'2JN','2jn':'2JN',
+  '3 john':'3JN','3john':'3JN','3 jn':'3JN','3jn':'3JN',
+  'jude':'JUD','jud':'JUD',
+  'revelation':'REV','rev':'REV'
+};
+
+function parseRef(ref) {
+  // Match "John 3:16-21" | "1 John 4:7" | "Romans 8" etc.
+  const m = ref.trim().match(/^(\d?\s*[A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?/);
+  if (!m) return null;
+  const bookCode = BOOK_CODES[m[1].trim().toLowerCase()];
+  if (!bookCode) return null;
+  const chapter    = parseInt(m[2]);
+  const startVerse = m[3] ? parseInt(m[3]) : 1;
+  const endVerse   = m[4] ? parseInt(m[4]) : (m[3] ? parseInt(m[3]) : 9999);
+  return { bookCode, chapter, startVerse, endVerse };
 }
 
-function renderPassageInto(elementId, data) {
-  const el = document.getElementById(elementId);
-  if (!data) {
-    el.innerHTML = '<div class="passage-loading">No passage loaded.</div>';
-    return;
+async function fetchPassage(ref) {
+  const parsed = parseRef(ref);
+  if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
+
+  const url = `/data/bsb/${parsed.bookCode}_${parsed.chapter}.json`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Chapter not found. Check the reference and try again.`);
+
+  const chapter = await res.json();
+
+  // Filter to requested verse range
+  const verses = [];
+  for (const [vn, words] of Object.entries(chapter.verses)) {
+    const n = parseInt(vn);
+    if (n >= parsed.startVerse && n <= parsed.endVerse) {
+      verses.push({ verse: n, words });
+    }
   }
-  const ref = data.reference;
-  const transBadge = `<span class="translation-badge">${(data.translation_id || state.study.translation || '').toUpperCase()}</span>`;
-  const versesHtml = data.verses.map(v => {
-    return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
-  }).join('');
+  if (!verses.length) throw new Error(`No verses found in that range.`);
+
+  return {
+    reference: ref,
+    translation_id: 'BSB',
+    verses,
+    // Plain text for study flow text areas
+    plainVerses: verses.map(v => ({
+      verse: v.verse,
+      text: v.words.filter(w => w.w !== '-' && !w.w.startsWith('. ')).map(w => w.w).join(' ')
+    }))
+  };
+}
+
+function renderPassageInto(elementId, data, tappable = false) {
+  const el = document.getElementById(elementId);
+  if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
+  const transBadge = `<span class="translation-badge">BSB</span>`;
+
+  let versesHtml;
+  if (tappable && data.verses && data.verses[0] && data.verses[0].words) {
+    // Word-level rendering with tappable spans
+    versesHtml = data.verses.map(v => {
+      const wHtml = v.words.map(w => {
+        if (!w.s || w.w === '-') return `${escapeHtml(w.w)} `;
+        return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
+      }).join('');
+      return `<span class="verse-num">${v.verse}</span>${wHtml}`;
+    }).join('');
+  } else {
+    const src = data.plainVerses || data.verses || [];
+    versesHtml = src.map(v => {
+      const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
+      return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
+    }).join('');
+  }
+
   el.innerHTML = `
-    <div class="passage-ref">${escapeHtml(ref)}${transBadge}</div>
+    <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
     <div class="passage-text">${versesHtml}</div>
   `;
 }
@@ -1664,12 +1750,12 @@ async function fetchPassageForReader() {
   display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
 
   try {
-    const data = await fetchPassage(state.study.passage, state.study.translation);
+    const data = await fetchPassage(state.study.passage);
     state.study.text = data;
     saveStudy();
-    renderPassageInto('readerPassage', data);
+    renderPassageInto('readerPassage', data, true); // tappable words enabled
   } catch (err) {
-    console.error('Bible API error:', err);
+    console.error('Bible fetch error:', err);
     display.innerHTML = `
       <div class="passage-error">
         Couldn't load "${escapeHtml(state.study.passage)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
@@ -1700,9 +1786,12 @@ function startEdge() {
    ============================================================ */
 function mountExplore() {
   if (state.study.text) {
-    document.getElementById('explorePassageRef').textContent  = state.study.text.reference;
-    document.getElementById('explorePassageText').innerHTML   = state.study.text.verses.map(v => {
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
+    const d = state.study.text;
+    document.getElementById('explorePassageRef').textContent = d.reference || '';
+    const verses = d.plainVerses || d.verses || [];
+    document.getElementById('explorePassageText').innerHTML = verses.map(v => {
+      const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
+      return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
     }).join('');
   }
   document.getElementById('exploreInput').value = state.study.explore || '';
@@ -1809,41 +1898,65 @@ function newStudy() {
 }
 
 /* ============================================================
-   LEXICON DATA  (TBESG sample · 14 entries)
+   LEXICON — loaded lazily from /data/tbesg.json + /data/tbesh.json
    ============================================================ */
-const LEXICON = [
-  { id: 'G0020', lemma: 'ἀγαλλίασις', translit: 'agalliasis', pos: 'G:N-F', gloss: 'joy',
-    raw: `<b>ἀγαλλίασις</b>, -εως, ἡ <BR /> (ἀγαλλιάω), [in LXX (most frequently in Pss. and often coupled with εὐφροσύνη, as <ref='Psa.45.15'>Ps 44(45):15</ref>) chiefly for גִּיל ;] <BR /><b>exultation, exuberant joy</b>: <ref='Luk.1.44'>Luk.1:44</ref>, <ref='Act.2.46'>Act.2:46</ref>, <ref='Heb.1.9'>Heb.1:9</ref>, <ref='Jude.24'>Ju 24</ref>; χαρὰ καὶ ἀ., <ref='Luk.1.14'>Luk.1:14</ref> (Cremer, 592).†<BR /> (AS)` },
-  { id: 'G0021', lemma: 'ἀγαλλιάω', translit: 'agalliaō', pos: 'G:V', gloss: 'to rejoice',
-    raw: `<b>ἀγαλλιάω</b>, -ῶ, Hellenistic form of cl. ἀγάλλω, <b>to glorify</b>, mid. -ομαι, <b>to exult in</b>; <BR /> [in LXX (most frequently in Pss.) chiefly for גיל, רנן pi. ;] <BR /><b>to exult, rejoice greatly</b>: before ἐπί, with dative, <ref='Luk.1.47'>Luk.1:47;</ref> with dative mod., <ref='1Pe.1.8'>1Pe.1:8</ref>, <ref='Rev.19.7'>Rev.19:7</ref>. Mid., with same sense: <ref='Mat.5.12'>Mat.5:12</ref>, <ref='Luk.10.21'>Luk.10:21</ref>, <ref='Act.2.26; 16.34'>Act.2:26, 16:34</ref>, <ref='1Pe.4.13'>1Pe.4:13</ref>; before ἵνα, <ref='Jhn.8.56'>Jhn.8:56;</ref> ἐν, <ref='Jhn.5.35'>Jhn.5:35</ref> (1 aor. pass. perh. as mid.; but see Mozley, <i>Psalter</i>, 5), <ref='1Pe.1.6'>1Pe.1:6</ref> (Cremer, 590).†<BR /> (AS)` },
-  { id: 'G0022', lemma: 'ἄγαμος', translit: 'agamos', pos: 'G:N-M/F', gloss: 'unmarried',
-    raw: `<b>ἄ-γαμος</b>, -ον <BR /> [in LXX: <ref='4Ma.16.9'>4Ma.16:9</ref> * ;] <BR /><b>unmarried</b>: <ref='1Co.7.8, 32'>1Co.7:8, 32</ref>; fem. (= cl. ἄνανδρος), ib. 11, 34.†<BR /> (AS)` },
-  { id: 'G0023', lemma: 'ἀγανακτέω', translit: 'aganakteō', pos: 'G:V', gloss: 'be indignant',
-    raw: `<b>ἀγανακτέω</b>, -ῶ (ἄγαν, <b>much</b>, ἄχομαι, <b>to grieve</b>), <BR /> [in LXX: <ref='Wis.5.22; 12.27'>Wis.5:22, 12:27</ref>, Da TH Bel 28, <ref='4Ma.4.21'>4Ma.4:21</ref> * ;] <BR /><b>to be indignant</b>: <ref='Mat.21.15; 26.8'>Mat.21:15, 26:8</ref>, <ref='Mrk.10.14; 14.4'>Mrk.10:14, 14:4</ref>; before περί, <ref='Mat.20.24'>Mat.20:24</ref>, <ref='Mrk.10.41'>Mrk.10:41</ref>; before ὅτι, <ref='Luk.13.14'>Luk.13:14</ref> (see MM, <i>VGT</i>, see word).†<BR /> (AS)` },
-  { id: 'G0024', lemma: 'ἀγανάκτησις', translit: 'aganaktēsis', pos: 'G:N-F', gloss: 'indignation',
-    raw: `<b>ἀγανάκτησις</b>, -εως, ἡ <BR /> (ἀγανακτέω), [in LXX: <ref='Est.18.3'>Est.18:3</ref> א 1 * ;] <BR /><b>indignation</b>: <ref='2Co.7.11'>2Co.7:11</ref> (see MM, <i>VGT</i>, see word).†<BR /> (AS)` },
-  { id: 'G0025', lemma: 'ἀγαπάω', translit: 'agapaō', pos: 'G:V', gloss: 'to love',
-    pastoral: 'A decision to act in the best interest of another. Not a feeling that comes and goes, but a settled commitment of the will.',
-    raw: `<b>ἀγαπάω</b>, -ῶ, <BR /> [in LXX chiefly for אהב ;] <BR /><b>to love</b>, to feel and exhibit esteem and goodwill to a person, to prize and delight in a thing. <BR />__1. <b>Of human affection, to men</b>: τ. πλησίον, <ref='Mat.5.43'>Mat.5:43;</ref> τ. ἐχθρούς, ib. 44; to Christ, <ref='Jhn.8.42'>Jhn.8:42;</ref> to God, <ref='Mat.22.37'>Mat.22:37;</ref> with accusative of thing(s), <ref='Luk.11.43'>Luk.11:43</ref>, <ref='Jhn.12.43'>Jhn.12:43</ref>.<BR /> __2. <b>Of divine love</b>; <BR />__(a) <b>God's love</b>: to men, <ref='Rom.8.37'>Rom.8:37;</ref> to Christ, <ref='Jhn.3.35'>Jhn.3:35;</ref> <BR /> __(b) <b>Christ's love</b>: to men, <ref='Mrk.10.21'>Mrk.10:21;</ref> to God, <ref='Jhn.14.31'>Jhn.14:31;</ref> with cogn. accusative, <ref='Jhn.17.26'>Jhn.17:26</ref>, <ref='Eph.2.4'>Eph.2:4</ref>.<BR /> <re><i>SYN.</i>: φιλέω. From its supposed etymology ἀ. is commonly understood properly to denote love based on esteem (diligo), as distinct from that expressed by φιλέω (amo), spontaneous natural affection, emotional and unreasoning. If this distinction holds, ἀ. is fitly used in NT of Christian love to God and man, the spiritual affection which follows the direction of the will, and which, therefore, unlike that feeling which is instinctive and unreasoned, can be commanded as a duty.</re> (AS)` },
-  { id: 'G0026', lemma: 'ἀγάπη', translit: 'agapē', pos: 'G:N-F', gloss: 'love',
-    pastoral: 'The settled choice to seek another\'s good. The love that holds even when feelings don\'t — God\'s love for his people, and the love his people grow to have for God and one another.',
-    raw: `<b>ἀγάπη</b>, -ης, ἡ <BR /> [in LXX for אַהֲבָה, which is also rendered by ἀγάπησις and φιλία ;] <BR /> <b>love, goodwill, esteem</b>. In NT, like ἀγαπάω, -ῶ, <BR />__1. <b>Of men's love</b>: <BR />__(a) to one another, <ref='Jhn.13.35'>Jhn.13:35;</ref> <BR /> __(b) to God, <ref='1Jn.2.5'>1Jn.2:5.</ref><BR /> __2. <b>Of divine love</b>; <BR />__(a) <b>God's love</b>: to men, <ref='Rom.5.8'>Rom.5:8;</ref> to Christ, <ref='Jhn.17.26'>Jhn.17:26;</ref> <BR /> __(b) <b>Christ's love to men</b>: <ref='Rom.8.35'>Rom.8:35.</ref> <BR /> __3. In pl., <b>love feasts</b>: <ref='Jude.12'>Ju 12</ref>.<BR /> <re><i>SYN.</i>: φιλία. ἀ., signifying properly love which chooses its object, is taken over from LXX into NT, and there used exclusively to express that spiritual bond of love between God and man and between man and man, in Christ.</re> (AS)` },
-  { id: 'G0027', lemma: 'ἀγαπητός', translit: 'agapētos', pos: 'G:A', gloss: 'beloved',
-    pastoral: 'Not earned, just received. To be "beloved" is to be chosen, treasured, and claimed — first by God, and then by his family in turn.',
-    raw: `<b>ἀγαπητός</b>, -ή, -όν <BR /> (ἀγαπάω), [in LXX chiefly for יָתִיד, יָדִיד ;] <BR /><b>beloved</b>; <BR />__(a) <b>by God</b>: of Christ, <ref='Mat.3.17'>Mat.3:17;</ref> of men, <ref='Rom.1.7'>Rom.1:7;</ref> <BR /> __(b) <b>by Christians, of one another</b>: <ref='1Co.4.14'>1Co.4:14;</ref> frequently as form of address, <ref='1Co.10.14'>ib. 10:14</ref>; opposite to ἐχθρός, <ref='Rom.11.28'>Rom.11:28</ref>.<BR /> (AS)` },
-  { id: 'G0028', lemma: 'Ἅγαρ', translit: 'Agar', pos: 'N:N-F-P', gloss: 'Hagar',
-    raw: `<b>Ἅγαρ</b> (Rec. Ἄ-), ἡ, indecl. (in FlJ, Ἀγάρα, -ης, Heb. הָגָר), <BR /> <b>Hagar</b> (Gen.16): <ref='Gal.4.24,25'>Gal.4:24,25</ref>.†<BR /> (AS)` },
-  { id: 'G0029', lemma: 'ἀγγαρεύω', translit: 'angareuō', pos: 'G:V', gloss: 'to force',
-    raw: `<b>ἀγγαρεύω</b> (from the Persian; cf. Vg. angiare, and the Heb. אִגֶרֶת), <BR /> <b>to impress</b> into public service, employ a courier; hence, <b>to compel</b> to perform a service: <ref='Mat.5.41; 27.32'>Mat.5:41, 27:32</ref>, <ref='Mrk.15.21'>Mrk.15:21</ref>.†<BR /> (AS)` },
-  { id: 'G0030', lemma: 'ἀγγεῖον', translit: 'angeion', pos: 'G:N-N', gloss: 'jar',
-    raw: `<b>ἀγγεῖον</b>, -ου, τό <BR /> (ἄγγος), [in LXX chiefly for כְּלִי ;] <BR /><b>a vessel</b>: <ref='Mat.25.4'>Mat.25:4.</ref>†<BR /> (AS)` },
-  { id: 'G0031', lemma: 'ἀγγελία', translit: 'angelia', pos: 'G:N-F', gloss: 'message',
-    raw: `<b>ἀγγελία</b>, -ας, ἡ <BR /> (ἄγγελος), [in LXX chiefly for שְׁמוּעָה ;] <BR /><b>a message</b>: <ref='1Jn.1.5'>1Jn.1:5</ref>, <ref='1Jn.3.11'>3:11</ref>.†<BR /> (AS)` },
-  { id: 'G0032G', lemma: 'ἄγγελος', translit: 'angelos', pos: 'G:N-M', gloss: 'angel',
-    raw: `<b>ἄγγελος</b>, -ου, ὁ, <BR /> [in LXX chiefly for מַלְאָךְ ;] <BR /> __1. <b>a messenger</b>, <b>one sent</b>: <ref='Mat.11.10'>Mat.11:10</ref>, <ref='Jas.2.25'>Jas.2:25</ref>.<BR /> __2. As in LXX, in the special sense of <b>angel</b>, a spiritual, heavenly being, attendant upon God and employed as his messenger to men, to make known his purposes, as <ref='Luk.1.11'>Luk.1:11</ref>, or to execute them, as <ref='Mat.4.6'>Mat.4:6.</ref><BR /> (AS)` },
-  { id: 'G0032H', lemma: 'ἄγγελος', translit: 'angelos', pos: 'G:N-M', gloss: 'angel: messenger',
-    raw: `<b>ἄγγελος</b>, -ου, ὁ, <BR /> [in LXX chiefly for מַלְאָךְ ;] <BR /> __1. <b>a messenger</b>, <b>one sent</b>: <ref='Mat.11.10'>Mat.11:10</ref>, <ref='Jas.2.25'>Jas.2:25</ref>.<BR /> __2. As in LXX, in the special sense of <b>angel</b>, a spiritual, heavenly being, attendant upon God and employed as his messenger to men.<BR /> (AS)` }
-];
+let TBESG_DATA = null;
+let TBESH_DATA = null;
+let TBESG_LOADING = false;
+let TBESH_LOADING = false;
+
+async function loadLexiconData(lang) {
+  if (lang === 'G') {
+    if (TBESG_DATA) return TBESG_DATA;
+    if (TBESG_LOADING) { while (TBESG_LOADING) await new Promise(r => setTimeout(r, 50)); return TBESG_DATA; }
+    TBESG_LOADING = true;
+    try { const r = await fetch('/data/tbesg.json'); TBESG_DATA = await r.json(); }
+    finally { TBESG_LOADING = false; }
+    return TBESG_DATA;
+  } else {
+    if (TBESH_DATA) return TBESH_DATA;
+    if (TBESH_LOADING) { while (TBESH_LOADING) await new Promise(r => setTimeout(r, 50)); return TBESH_DATA; }
+    TBESH_LOADING = true;
+    try { const r = await fetch('/data/tbesh.json'); TBESH_DATA = await r.json(); }
+    finally { TBESH_LOADING = false; }
+    return TBESH_DATA;
+  }
+}
+
+/* Called when user taps a blue word in the passage */
+function handleWordTap(el) {
+  const strongs = el.dataset.strongs;
+  if (strongs) openLexiconFromStrongs(strongs);
+}
+
+async function openLexiconFromStrongs(strongs) {
+  if (!strongs) return;
+  const lang = strongs.startsWith('H') ? 'H' : 'G';
+  const backdrop = document.getElementById('modalBackdrop');
+  const content  = document.getElementById('modalContent');
+  content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--sans);">Loading…</div>';
+  backdrop.classList.add('is-open');
+  backdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  try {
+    const lexicon = await loadLexiconData(lang);
+    const entry = lexicon[strongs];
+    if (entry) {
+      content.innerHTML = renderFull(entry);
+    } else {
+      content.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--sans);">
+        <p style="margin-bottom:16px;">No entry found for ${escapeHtml(strongs)}.</p>
+        <button onclick="closeModal()" style="padding:10px 20px;border:1px solid var(--rule);border-radius:8px;cursor:pointer;font-family:var(--sans);">Close</button>
+      </div>`;
+    }
+  } catch (err) {
+    console.error('Lexicon error:', err);
+    content.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--sans);">
+      <p style="margin-bottom:16px;">Couldn't load lexicon. Check your connection.</p>
+      <button onclick="closeModal()" style="padding:10px 20px;border:1px solid var(--rule);border-radius:8px;cursor:pointer;font-family:var(--sans);">Close</button>
+    </div>`;
+  }
+}
 
 /* ============================================================
    LEXICON RENDERER  (parser + renderers)
@@ -1980,14 +2093,7 @@ function formatPos(pos) {
    MODAL
    ============================================================ */
 function openLexicon(strongsId) {
-  const entry = LEXICON.find(e => e.id === strongsId);
-  if (!entry) return;
-  const backdrop = document.getElementById('modalBackdrop');
-  const content  = document.getElementById('modalContent');
-  content.innerHTML = renderFull(entry);
-  backdrop.classList.add('is-open');
-  backdrop.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
+  openLexiconFromStrongs(strongsId);
 }
 
 function closeModal() {
@@ -2013,6 +2119,13 @@ function mountWordStudy() {
   const input = document.getElementById('lexSearch');
   input.value = '';
   renderLexResults('');
+  // Pre-load Greek lexicon in background
+  if (!TBESG_DATA && !TBESG_LOADING) {
+    loadLexiconData('G').then(() => {
+      if (input.value) renderLexResults(input.value);
+      else renderLexResults('');
+    });
+  }
   if (!input._wired) {
     input._wired = true;
     input.addEventListener('input', () => renderLexResults(input.value));
@@ -2023,14 +2136,26 @@ function renderLexResults(query) {
   const out = document.getElementById('lexResults');
   const q = (query || '').trim().toLowerCase();
 
-  let matches = LEXICON;
-  if (q) {
-    matches = LEXICON.filter(e => {
-      return e.id.toLowerCase().includes(q) ||
-             e.lemma.toLowerCase().includes(q) ||
-             e.translit.toLowerCase().includes(q) ||
-             e.gloss.toLowerCase().includes(q);
-    });
+  if (!TBESG_DATA) {
+    out.innerHTML = `<div class="no-results">${TBESG_LOADING ? 'Loading lexicon…' : 'Type a word to begin.'}</div>`;
+    return;
+  }
+  if (!q) {
+    out.innerHTML = `<div class="no-results">Type a Strong's number, transliteration, or English meaning.</div>`;
+    return;
+  }
+
+  const matches = [];
+  for (const [id, entry] of Object.entries(TBESG_DATA)) {
+    if (
+      id.toLowerCase().includes(q) ||
+      (entry.lemma||'').toLowerCase().includes(q) ||
+      (entry.translit||'').toLowerCase().includes(q) ||
+      (entry.gloss||'').toLowerCase().includes(q)
+    ) {
+      matches.push({ ...entry, id });
+      if (matches.length >= 50) break;
+    }
   }
 
   if (!matches.length) {
@@ -2039,13 +2164,13 @@ function renderLexResults(query) {
   }
 
   out.innerHTML = matches.map(e => `
-    <button class="lex-result" onclick="openLexicon('${e.id}')">
+    <button class="lex-result" onclick="openLexiconFromStrongs('${escapeAttr(e.id)}')">
       <span class="lr-id">${e.id}</span>
       <div>
-        <span class="lr-greek">${escapeHtml(e.lemma)}</span>
-        <span class="lr-translit">${escapeHtml(e.translit)}</span>
+        <span class="lr-greek">${escapeHtml(e.lemma||'')}</span>
+        <span class="lr-translit">${escapeHtml(e.translit||'')}</span>
       </div>
-      <div class="lr-gloss">${escapeHtml(e.gloss)}</div>
+      <div class="lr-gloss">${escapeHtml(e.gloss||'')}</div>
     </button>
   `).join('');
 }
@@ -2082,31 +2207,19 @@ function mountReadBible() {
 
 async function onReadBibleSubmit() {
   const ref = document.getElementById('readBibleInput').value.trim();
-  const translation = document.getElementById('readBibleTranslation').value || 'bsb';
   const display = document.getElementById('readBibleDisplay');
 
-  if (!ref) {
-    document.getElementById('readBibleInput').focus();
-    return;
-  }
+  if (!ref) { document.getElementById('readBibleInput').focus(); return; }
 
   display.innerHTML = '<div class="passage-display"><div class="passage-loading">Loading passage…</div></div>';
 
   try {
-    const data = await fetchPassage(ref, translation);
+    const data = await fetchPassage(ref);
     display.dataset.populated = '1';
-    const versesHtml = data.verses.map(v => {
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml(v.text.trim())} `;
-    }).join('');
-    const transBadge = `<span class="translation-badge">${(data.translation_id || translation).toUpperCase()}</span>`;
-    display.innerHTML = `
-      <div class="passage-display">
-        <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-        <div class="passage-text">${versesHtml}</div>
-      </div>
-    `;
+    display.innerHTML = '<div class="passage-display" id="readBiblePassage"></div>';
+    renderPassageInto('readBiblePassage', data, true);
   } catch (err) {
-    console.error('Bible API error:', err);
+    console.error('Bible fetch error:', err);
     display.innerHTML = `
       <div class="passage-display">
         <div class="passage-error">
