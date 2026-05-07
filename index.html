@@ -559,6 +559,18 @@ select.translation-select {
 }
 .bible-word:hover, .bible-word:active { background: var(--accent-soft); }
 
+/* Scrollable passage containers */
+#readerPassage {
+  max-height: 42vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.explore-passage-scroll {
+  max-height: 30vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 .passage-text .verse-num {
   font-family: var(--sans);
   font-size: 11px;
@@ -1170,7 +1182,7 @@ select.translation-select {
       <h2 class="h-question">What is it saying?</h2>
       <p class="lead">Notice what's actually on the page. Don't interpret yet — just observe.</p>
 
-      <div class="passage-display" style="box-shadow:none; border-color:var(--rule); margin-bottom: 16px; padding: 16px 18px;">
+      <div class="passage-display explore-passage-scroll" style="box-shadow:none; border-color:var(--rule); margin-bottom: 16px; padding: 16px 18px;">
         <div class="passage-ref" id="explorePassageRef"></div>
         <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
       </div>
@@ -1726,7 +1738,8 @@ function renderPassageInto(elementId, data, tappable = false) {
     // Word-level rendering with tappable spans
     versesHtml = data.verses.map(v => {
       const wHtml = v.words.map(w => {
-        if (!w.s || w.w === '-') return `${escapeHtml(w.w)} `;
+        // Skip display markers (dashes, ellipses) — they're structural not textual
+        if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .') return '';
         return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
@@ -1788,11 +1801,23 @@ function mountExplore() {
   if (state.study.text) {
     const d = state.study.text;
     document.getElementById('explorePassageRef').textContent = d.reference || '';
-    const verses = d.plainVerses || d.verses || [];
-    document.getElementById('explorePassageText').innerHTML = verses.map(v => {
-      const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
-    }).join('');
+    const passageEl = document.getElementById('explorePassageText');
+    if (d.verses && d.verses[0] && d.verses[0].words) {
+      // Tappable word-level rendering
+      passageEl.innerHTML = d.verses.map(v => {
+        const wHtml = v.words.map(w => {
+          if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w)) return '';
+          return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
+        }).join('');
+        return `<span class="verse-num">${v.verse}</span>${wHtml}`;
+      }).join('');
+    } else {
+      const verses = d.plainVerses || d.verses || [];
+      passageEl.innerHTML = verses.map(v => {
+        const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
+        return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
+      }).join('');
+    }
   }
   document.getElementById('exploreInput').value = state.study.explore || '';
   attachAutosave('exploreInput', 'explore');
