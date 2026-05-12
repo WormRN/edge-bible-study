@@ -1655,6 +1655,47 @@ function onPassageSubmit() {
 
 /* NT book name → file code mapping */
 const BOOK_CODES = {
+  // ── Old Testament ─────────────────────────────────────
+  'genesis':'GEN','gen':'GEN',
+  'exodus':'EXO','exo':'EXO','ex':'EXO',
+  'leviticus':'LEV','lev':'LEV',
+  'numbers':'NUM','num':'NUM',
+  'deuteronomy':'DEU','deu':'DEU','deut':'DEU',
+  'joshua':'JOS','jos':'JOS','josh':'JOS',
+  'judges':'JDG','jdg':'JDG','judg':'JDG',
+  'ruth':'RUT','rut':'RUT',
+  '1 samuel':'1SA','1samuel':'1SA','1 sam':'1SA','1sam':'1SA','1sa':'1SA',
+  '2 samuel':'2SA','2samuel':'2SA','2 sam':'2SA','2sam':'2SA','2sa':'2SA',
+  '1 kings':'1KI','1kings':'1KI','1 kgs':'1KI','1kgs':'1KI','1ki':'1KI',
+  '2 kings':'2KI','2kings':'2KI','2 kgs':'2KI','2kgs':'2KI','2ki':'2KI',
+  '1 chronicles':'1CH','1chronicles':'1CH','1 chr':'1CH','1chr':'1CH','1ch':'1CH',
+  '2 chronicles':'2CH','2chronicles':'2CH','2 chr':'2CH','2chr':'2CH','2ch':'2CH',
+  'ezra':'EZR','ezr':'EZR',
+  'nehemiah':'NEH','neh':'NEH',
+  'esther':'EST','est':'EST',
+  'job':'JOB',
+  'psalms':'PSA','psalm':'PSA','psa':'PSA','ps':'PSA',
+  'proverbs':'PRO','pro':'PRO','prov':'PRO',
+  'ecclesiastes':'ECC','ecc':'ECC','eccl':'ECC',
+  'song of solomon':'SNG','song of songs':'SNG','song':'SNG','sng':'SNG','sos':'SNG',
+  'isaiah':'ISA','isa':'ISA',
+  'jeremiah':'JER','jer':'JER',
+  'lamentations':'LAM','lam':'LAM',
+  'ezekiel':'EZK','ezk':'EZK','ezek':'EZK',
+  'daniel':'DAN','dan':'DAN',
+  'hosea':'HOS','hos':'HOS',
+  'joel':'JOL','jol':'JOL',
+  'amos':'AMO','amo':'AMO',
+  'obadiah':'OBA','oba':'OBA',
+  'jonah':'JON','jon':'JON',
+  'micah':'MIC','mic':'MIC',
+  'nahum':'NAH','nah':'NAH',
+  'habakkuk':'HAB','hab':'HAB',
+  'zephaniah':'ZEP','zep':'ZEP','zeph':'ZEP',
+  'haggai':'HAG','hag':'HAG',
+  'zechariah':'ZEC','zec':'ZEC','zech':'ZEC',
+  'malachi':'MAL','mal':'MAL',
+  // ── New Testament ─────────────────────────────────────
   'matthew':'MAT','matt':'MAT','mat':'MAT',
   'mark':'MRK','mrk':'MRK','mk':'MRK',
   'luke':'LUK','luk':'LUK','lk':'LUK',
@@ -1700,7 +1741,12 @@ async function fetchPassage(ref) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  const url = `/data/bsb/${parsed.bookCode}_${parsed.chapter}.json`;
+  // NT files live in data/bsb/, OT files landed in data/ directly
+  const NT_CODES = new Set(['MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH',
+    'PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE',
+    '1JN','2JN','3JN','JUD','REV']);
+  const folder = NT_CODES.has(parsed.bookCode) ? 'data/bsb' : 'data';
+  const url = `/${folder}/${parsed.bookCode}_${parsed.chapter}.json`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Chapter not found. Check the reference and try again.`);
 
