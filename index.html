@@ -559,6 +559,20 @@ select.translation-select {
 }
 .bible-word:hover, .bible-word:active { background: var(--accent-soft); }
 
+/* Info button next to BSB badge */
+.info-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0 4px;
+  vertical-align: middle;
+  transition: color 0.15s ease;
+  line-height: 1;
+}
+.info-btn:hover { color: var(--accent); }
+
 /* Scrollable passage containers */
 #readerPassage {
   max-height: 42vh;
@@ -1087,6 +1101,12 @@ select.translation-select {
       <h2 id="greetingName">Friend.</h2>
     </div>
 
+    <button class="home-tile" onclick="showScreen('readBible')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">Read the Bible</div>
+      <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
+    </button>
+
     <button class="home-tile" onclick="showScreen('pickPassage')">
       <span class="home-tile-arrow">→</span>
       <div class="home-tile-h">Start a study</div>
@@ -1097,12 +1117,6 @@ select.translation-select {
       <span class="home-tile-arrow">→</span>
       <div class="home-tile-h">Word study</div>
       <div class="home-tile-d">Look up a Greek word by Strong's number, transliteration, or meaning.</div>
-    </button>
-
-    <button class="home-tile" onclick="showScreen('readBible')">
-      <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Read the Bible</div>
-      <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
     </button>
 
     <div class="privacy" style="margin-top: 24px;">
@@ -1777,7 +1791,7 @@ async function fetchPassage(ref) {
 function renderPassageInto(elementId, data, tappable = false) {
   const el = document.getElementById(elementId);
   if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
-  const transBadge = `<span class="translation-badge">BSB</span>`;
+  const transBadge = `<span class="translation-badge">BSB</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
 
   let versesHtml;
   if (tappable && data.verses && data.verses[0] && data.verses[0].words) {
@@ -2165,6 +2179,52 @@ function formatPos(pos) {
    ============================================================ */
 function openLexicon(strongsId) {
   openLexiconFromStrongs(strongsId);
+}
+
+/* ============================================================
+   TEXT INFO MODAL  (ⓘ button beside BSB badge)
+   ============================================================ */
+function showTextInfo() {
+  const backdrop = document.getElementById('modalBackdrop');
+  const content  = document.getElementById('modalContent');
+  content.innerHTML = `
+    <div class="full-card">
+      <div class="full-header">
+        <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
+        <div class="gloss" style="padding-right:40px;">About this text</div>
+        <div class="grammar">Berean Standard Bible · Public Domain</div>
+      </div>
+      <div class="full-body">
+        <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
+          The BSB marks editorial additions so you can see exactly what comes from the original
+          language and what English grammar requires.
+        </p>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;font-family:var(--serif);">{curly braces}</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tense or aspect built into the original Hebrew or Greek verb — made explicit in English.
+          Hebrew and Greek pack tense, person, and aspect directly into the verb form.
+          English often needs a helper word like <em>will</em> or <em>was</em> to convey the same idea.</div>
+        </div>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;font-family:var(--serif);">[square brackets]</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Words implied by context in the original but not explicitly stated —
+          added so the English reads naturally and completely.</div>
+        </div>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px;">Blue words</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tap any blue word to look up its underlying Hebrew or Greek —
+          definition, grammar, and meaning from the STEPBible lexicon.</div>
+        </div>
+      </div>
+      <div class="full-footer">
+        <span>Berean Standard Bible · bereanbible.com · Public Domain</span>
+        <a href="https://bereanbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
+      </div>
+    </div>
+  `;
+  backdrop.classList.add('is-open');
+  backdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
