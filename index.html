@@ -1755,12 +1755,7 @@ async function fetchPassage(ref) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  // NT files live in data/bsb/, OT files landed in data/ directly
-  const NT_CODES = new Set(['MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH',
-    'PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE',
-    '1JN','2JN','3JN','JUD','REV']);
-  const folder = NT_CODES.has(parsed.bookCode) ? 'data/bsb' : 'data';
-  const url = `/${folder}/${parsed.bookCode}_${parsed.chapter}.json`;
+  const url = `/data/bsb/${parsed.bookCode}_${parsed.chapter}.json`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Chapter not found. Check the reference and try again.`);
 
