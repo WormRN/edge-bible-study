@@ -1794,7 +1794,7 @@ function renderPassageInto(elementId, data, tappable = false) {
     versesHtml = data.verses.map(v => {
       const wHtml = v.words.map(w => {
         // Skip display markers (dashes, ellipses) — they're structural not textual
-        if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .') return '';
+        if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
         return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
@@ -1861,7 +1861,7 @@ function mountExplore() {
       // Tappable word-level rendering
       passageEl.innerHTML = d.verses.map(v => {
         const wHtml = v.words.map(w => {
-          if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w)) return '';
+          if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || /^v+[.,;:!?]?$/i.test(w.w)) return '';
           return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
         }).join('');
         return `<span class="verse-num">${v.verse}</span>${wHtml}`;
