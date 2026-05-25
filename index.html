@@ -837,6 +837,245 @@ select.translation-select {
   to   { transform: translateY(0); opacity: 1; }
 }
 
+/* ─── Reference Picker (Book → Chapter) ──────────────────── */
+.ref-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  min-height: 48px;
+  background: var(--paper);
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 17px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ref-button:hover, .ref-button:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ref-button.is-empty { color: var(--muted); }
+.ref-button .ref-icon {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.ref-button .ref-caret {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 26, 53, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 300;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.picker-backdrop.is-open { display: flex; animation: backdropFade 0.2s ease; }
+
+.picker-sheet {
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-radius: 18px 18px 0 0;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.28s cubic-bezier(0.2, 0.7, 0.3, 1);
+  overflow: hidden;
+}
+@media (min-width: 720px) {
+  .picker-backdrop { align-items: center; padding: 24px; }
+  .picker-sheet { border-radius: 16px; max-height: 86vh; }
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--navy);
+  color: white;
+  flex-shrink: 0;
+}
+.picker-header h2 {
+  flex: 1;
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+}
+.picker-close,
+.picker-back {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 22px;
+  line-height: 1;
+}
+.picker-close:hover,
+.picker-back:hover { background: rgba(255, 255, 255, 0.12); }
+.picker-back { font-size: 24px; }
+
+.picker-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px 6px;
+  flex-shrink: 0;
+}
+.picker-tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--canvas);
+  border: 1.5px solid var(--rule);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.picker-tab.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.picker-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.picker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.book-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 14px 6px 8px;
+}
+.book-section-label:first-child { padding-top: 4px; }
+.testament-divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 18px 6px 6px;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 4px;
+}
+@media (min-width: 480px) {
+  .book-grid { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 720px) {
+  .book-grid { grid-template-columns: repeat(7, 1fr); }
+}
+
+.book-tile {
+  padding: 12px 6px;
+  min-height: 48px;
+  background: var(--canvas);
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.08s, border-color 0.15s, background 0.15s;
+}
+.book-tile:hover { transform: translateY(-1px); }
+.book-tile:active { transform: translateY(0); }
+
+/* Book categories — mapped to existing EDGE palette */
+.book-tile.cat-law      { color: var(--edge-dig); }
+.book-tile.cat-history  { color: var(--edge-gather); }
+.book-tile.cat-wisdom   { color: var(--edge-dig); font-style: italic; }
+.book-tile.cat-major    { color: var(--edge-embrace); }
+.book-tile.cat-minor    { color: var(--edge-explore); }
+.book-tile.cat-gospel   { color: var(--edge-dig); }
+.book-tile.cat-acts     { color: var(--edge-gather); }
+.book-tile.cat-pauline  { color: var(--edge-dig); font-style: italic; }
+.book-tile.cat-general  { color: var(--edge-embrace); }
+.book-tile.cat-apoc     { color: var(--edge-explore); }
+
+.book-tile:hover {
+  background: var(--accent-pale);
+  border-color: var(--rule);
+}
+
+.chapter-context {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 6px 8px 14px;
+  text-align: center;
+}
+
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 0 4px;
+}
+@media (min-width: 480px) {
+  .chapter-grid { grid-template-columns: repeat(7, 1fr); }
+}
+@media (min-width: 720px) {
+  .chapter-grid { grid-template-columns: repeat(8, 1fr); }
+}
+
+.chapter-tile {
+  padding: 12px 4px;
+  min-height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--canvas);
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: transform 0.08s, background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chapter-tile:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.chapter-tile:active { transform: translateY(0); }
+
 .full-card { background: var(--paper); }
 .full-header {
   background: var(--navy);
@@ -1150,9 +1389,17 @@ select.translation-select {
         <span>thought-for-thought →</span>
       </div>
 
-      <label class="field-label" for="passageInput" style="margin-top: 22px;">Reference</label>
+      <label class="field-label" for="passagePickerBtn" style="margin-top: 22px;">Reference</label>
       <div class="passage-input-row">
-        <input type="text" id="passageInput" placeholder="e.g. John 3:16-21" autocomplete="off">
+        <button type="button" id="passagePickerBtn" class="ref-button is-empty" onclick="openRefPicker('passageInput', 'passagePickerBtn')" aria-label="Choose a Bible passage">
+          <svg class="ref-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="passagePickerLabel">Choose a passage</span>
+          <span class="ref-caret">▾</span>
+        </button>
+        <input type="hidden" id="passageInput" value="">
         <button class="btn btn-primary" onclick="onPassageSubmit()">Go</button>
       </div>
 
@@ -1369,9 +1616,17 @@ select.translation-select {
         </select>
       </div>
 
-      <label class="field-label" for="readBibleInput" style="margin-top: 18px;">Reference</label>
+      <label class="field-label" for="readBiblePickerBtn" style="margin-top: 18px;">Reference</label>
       <div class="passage-input-row">
-        <input type="text" id="readBibleInput" placeholder="e.g. Romans 8:28-39" autocomplete="off">
+        <button type="button" id="readBiblePickerBtn" class="ref-button is-empty" onclick="openRefPicker('readBibleInput', 'readBiblePickerBtn')" aria-label="Choose a Bible passage">
+          <svg class="ref-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="readBiblePickerLabel">Choose a passage</span>
+          <span class="ref-caret">▾</span>
+        </button>
+        <input type="hidden" id="readBibleInput" value="">
         <button class="btn btn-primary" onclick="onReadBibleSubmit()">Go</button>
       </div>
     </div>
@@ -1380,6 +1635,22 @@ select.translation-select {
   </section>
 
 </main>
+
+<!-- ─── REFERENCE PICKER (Book → Chapter) ────────────────── -->
+<div class="picker-backdrop" id="refPickerBackdrop" role="dialog" aria-modal="true" aria-labelledby="refPickerTitle" aria-hidden="true">
+  <div class="picker-sheet" id="refPickerSheet">
+    <div class="picker-header">
+      <button class="picker-back" id="refPickerBack" type="button" aria-label="Back to books" style="visibility:hidden;">‹</button>
+      <h2 id="refPickerTitle">Choose a Passage</h2>
+      <button class="picker-close" type="button" aria-label="Close" onclick="closeRefPicker()">✕</button>
+    </div>
+    <div class="picker-tabs">
+      <button class="picker-tab is-active" id="refTabBook" type="button" onclick="showPickerBookPhase()">📕 BOOK</button>
+      <button class="picker-tab" id="refTabChapter" type="button" disabled>🔖 CHAPTER</button>
+    </div>
+    <div class="picker-body" id="refPickerBody"></div>
+  </div>
+</div>
 
 <!-- ─── FULL ANALYSIS MODAL (used by Word Study) ─────────── -->
 <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
@@ -1655,7 +1926,7 @@ function pickPreset(i) {
 function onPassageSubmit() {
   const v = document.getElementById('passageInput').value.trim();
   if (!v) {
-    document.getElementById('passageInput').focus();
+    openRefPicker('passageInput', 'passagePickerBtn');
     return;
   }
   state.study = { ...emptyStudy(), passage: v, translation: state.study.translation || 'bsb' };
@@ -1738,6 +2009,213 @@ const BOOK_CODES = {
   'jude':'JUD','jud':'JUD',
   'revelation':'REV','rev':'REV'
 };
+
+/* ============================================================
+   REFERENCE PICKER — Book → Chapter
+   Two-phase modal. Single-chapter books skip the chapter step.
+   ============================================================ */
+const BIBLE_BOOKS = [
+  // Old Testament
+  { name: 'Genesis',         abbr: 'GEN',  ch: 50,  cat: 'law' },
+  { name: 'Exodus',          abbr: 'EX',   ch: 40,  cat: 'law' },
+  { name: 'Leviticus',       abbr: 'LEV',  ch: 27,  cat: 'law' },
+  { name: 'Numbers',         abbr: 'NUM',  ch: 36,  cat: 'law' },
+  { name: 'Deuteronomy',     abbr: 'DEU',  ch: 34,  cat: 'law' },
+  { name: 'Joshua',          abbr: 'JOS',  ch: 24,  cat: 'history' },
+  { name: 'Judges',          abbr: 'JDG',  ch: 21,  cat: 'history' },
+  { name: 'Ruth',            abbr: 'RTH',  ch: 4,   cat: 'history' },
+  { name: '1 Samuel',        abbr: '1SA',  ch: 31,  cat: 'history' },
+  { name: '2 Samuel',        abbr: '2SA',  ch: 24,  cat: 'history' },
+  { name: '1 Kings',         abbr: '1KI',  ch: 22,  cat: 'history' },
+  { name: '2 Kings',         abbr: '2KI',  ch: 25,  cat: 'history' },
+  { name: '1 Chronicles',    abbr: '1CH',  ch: 29,  cat: 'history' },
+  { name: '2 Chronicles',    abbr: '2CH',  ch: 36,  cat: 'history' },
+  { name: 'Ezra',            abbr: 'EZR',  ch: 10,  cat: 'history' },
+  { name: 'Nehemiah',        abbr: 'NEH',  ch: 13,  cat: 'history' },
+  { name: 'Esther',          abbr: 'EST',  ch: 10,  cat: 'history' },
+  { name: 'Job',             abbr: 'JOB',  ch: 42,  cat: 'wisdom' },
+  { name: 'Psalms',          abbr: 'PSA',  ch: 150, cat: 'wisdom' },
+  { name: 'Proverbs',        abbr: 'PRV',  ch: 31,  cat: 'wisdom' },
+  { name: 'Ecclesiastes',    abbr: 'ECC',  ch: 12,  cat: 'wisdom' },
+  { name: 'Song of Solomon', abbr: 'SOS',  ch: 8,   cat: 'wisdom' },
+  { name: 'Isaiah',          abbr: 'ISA',  ch: 66,  cat: 'major' },
+  { name: 'Jeremiah',        abbr: 'JER',  ch: 52,  cat: 'major' },
+  { name: 'Lamentations',    abbr: 'LAM',  ch: 5,   cat: 'major' },
+  { name: 'Ezekiel',         abbr: 'EZE',  ch: 48,  cat: 'major' },
+  { name: 'Daniel',          abbr: 'DAN',  ch: 12,  cat: 'major' },
+  { name: 'Hosea',           abbr: 'HOS',  ch: 14,  cat: 'minor' },
+  { name: 'Joel',            abbr: 'JOE',  ch: 3,   cat: 'minor' },
+  { name: 'Amos',            abbr: 'AMO',  ch: 9,   cat: 'minor' },
+  { name: 'Obadiah',         abbr: 'OBD',  ch: 1,   cat: 'minor' },
+  { name: 'Jonah',           abbr: 'JON',  ch: 4,   cat: 'minor' },
+  { name: 'Micah',           abbr: 'MIC',  ch: 7,   cat: 'minor' },
+  { name: 'Nahum',           abbr: 'NAH',  ch: 3,   cat: 'minor' },
+  { name: 'Habakkuk',        abbr: 'HAB',  ch: 3,   cat: 'minor' },
+  { name: 'Zephaniah',       abbr: 'ZEP',  ch: 3,   cat: 'minor' },
+  { name: 'Haggai',          abbr: 'HAG',  ch: 2,   cat: 'minor' },
+  { name: 'Zechariah',       abbr: 'ZEC',  ch: 14,  cat: 'minor' },
+  { name: 'Malachi',         abbr: 'MAL',  ch: 4,   cat: 'minor' },
+  // New Testament
+  { name: 'Matthew',         abbr: 'MAT',  ch: 28,  cat: 'gospel' },
+  { name: 'Mark',            abbr: 'MRK',  ch: 16,  cat: 'gospel' },
+  { name: 'Luke',            abbr: 'LUK',  ch: 24,  cat: 'gospel' },
+  { name: 'John',            abbr: 'JN',   ch: 21,  cat: 'gospel' },
+  { name: 'Acts',            abbr: 'ACT',  ch: 28,  cat: 'acts' },
+  { name: 'Romans',          abbr: 'ROM',  ch: 16,  cat: 'pauline' },
+  { name: '1 Corinthians',   abbr: '1CO',  ch: 16,  cat: 'pauline' },
+  { name: '2 Corinthians',   abbr: '2CO',  ch: 13,  cat: 'pauline' },
+  { name: 'Galatians',       abbr: 'GAL',  ch: 6,   cat: 'pauline' },
+  { name: 'Ephesians',       abbr: 'EPH',  ch: 6,   cat: 'pauline' },
+  { name: 'Philippians',     abbr: 'PHP',  ch: 4,   cat: 'pauline' },
+  { name: 'Colossians',      abbr: 'COL',  ch: 4,   cat: 'pauline' },
+  { name: '1 Thessalonians', abbr: '1TH',  ch: 5,   cat: 'pauline' },
+  { name: '2 Thessalonians', abbr: '2TH',  ch: 3,   cat: 'pauline' },
+  { name: '1 Timothy',       abbr: '1TI',  ch: 6,   cat: 'pauline' },
+  { name: '2 Timothy',       abbr: '2TI',  ch: 4,   cat: 'pauline' },
+  { name: 'Titus',           abbr: 'TIT',  ch: 3,   cat: 'pauline' },
+  { name: 'Philemon',        abbr: 'PHM',  ch: 1,   cat: 'pauline' },
+  { name: 'Hebrews',         abbr: 'HEB',  ch: 13,  cat: 'general' },
+  { name: 'James',           abbr: 'JAM',  ch: 5,   cat: 'general' },
+  { name: '1 Peter',         abbr: '1PE',  ch: 5,   cat: 'general' },
+  { name: '2 Peter',         abbr: '2PE',  ch: 3,   cat: 'general' },
+  { name: '1 John',          abbr: '1JN',  ch: 5,   cat: 'general' },
+  { name: '2 John',          abbr: '2JN',  ch: 1,   cat: 'general' },
+  { name: '3 John',          abbr: '3JN',  ch: 1,   cat: 'general' },
+  { name: 'Jude',            abbr: 'JUD',  ch: 1,   cat: 'general' },
+  { name: 'Revelation',      abbr: 'REV',  ch: 22,  cat: 'apoc' },
+];
+
+/* State for the active picker session. */
+const refPicker = {
+  targetInputId: null,
+  targetLabelId: null,
+  targetButtonId: null,
+  selectedBook: null,
+};
+
+function openRefPicker(inputId, buttonId) {
+  refPicker.targetInputId = inputId;
+  refPicker.targetButtonId = buttonId;
+  refPicker.targetLabelId = buttonId.replace('Btn', 'Label');
+  refPicker.selectedBook = null;
+  document.getElementById('refPickerBackdrop').classList.add('is-open');
+  document.getElementById('refPickerBackdrop').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  showPickerBookPhase();
+}
+
+function closeRefPicker() {
+  document.getElementById('refPickerBackdrop').classList.remove('is-open');
+  document.getElementById('refPickerBackdrop').setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function showPickerBookPhase() {
+  document.getElementById('refPickerTitle').textContent = 'Choose a Book';
+  document.getElementById('refPickerBack').style.visibility = 'hidden';
+  document.getElementById('refTabBook').classList.add('is-active');
+  document.getElementById('refTabChapter').classList.remove('is-active');
+  document.getElementById('refTabChapter').disabled = true;
+  renderPickerBooks();
+}
+
+function showPickerChapterPhase(book) {
+  refPicker.selectedBook = book;
+  document.getElementById('refPickerTitle').textContent = book.name;
+  document.getElementById('refPickerBack').style.visibility = 'visible';
+  document.getElementById('refTabBook').classList.remove('is-active');
+  document.getElementById('refTabChapter').classList.add('is-active');
+  document.getElementById('refTabChapter').disabled = false;
+  renderPickerChapters(book);
+}
+
+function renderPickerBooks() {
+  const ot = BIBLE_BOOKS.filter((_, i) => i < 39);
+  const nt = BIBLE_BOOKS.filter((_, i) => i >= 39);
+  const body = document.getElementById('refPickerBody');
+  body.innerHTML = `
+    <div class="book-section-label">Old Testament</div>
+    <div class="book-grid">
+      ${ot.map(b => bookTileHtml(b)).join('')}
+    </div>
+    <div class="testament-divider"></div>
+    <div class="book-section-label">New Testament</div>
+    <div class="book-grid">
+      ${nt.map(b => bookTileHtml(b)).join('')}
+    </div>
+  `;
+  body.scrollTop = 0;
+  // Wire clicks
+  body.querySelectorAll('.book-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const idx = parseInt(tile.dataset.idx, 10);
+      const book = BIBLE_BOOKS[idx];
+      if (book.ch === 1) {
+        // Single-chapter book: skip chapter picker
+        commitRefPick(book, 1);
+      } else {
+        showPickerChapterPhase(book);
+      }
+    });
+  });
+}
+
+function bookTileHtml(book) {
+  const idx = BIBLE_BOOKS.indexOf(book);
+  return `<button type="button" class="book-tile cat-${book.cat}" data-idx="${idx}" aria-label="${escapeAttr(book.name)}">${escapeHtml(book.abbr)}</button>`;
+}
+
+function renderPickerChapters(book) {
+  const body = document.getElementById('refPickerBody');
+  let tiles = '';
+  for (let i = 1; i <= book.ch; i++) {
+    tiles += `<button type="button" class="chapter-tile" data-ch="${i}" aria-label="Chapter ${i}">${i}</button>`;
+  }
+  body.innerHTML = `
+    <div class="chapter-context">${escapeHtml(book.name)}</div>
+    <div class="chapter-grid">${tiles}</div>
+  `;
+  body.scrollTop = 0;
+  body.querySelectorAll('.chapter-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const ch = parseInt(tile.dataset.ch, 10);
+      commitRefPick(book, ch);
+    });
+  });
+}
+
+function commitRefPick(book, chapter) {
+  // Single-chapter books: use just the book name (parser accepts "Obadiah 1" too, but
+  // many users expect just "Obadiah" — we'll send "Book 1" for unambiguous parsing).
+  const ref = `${book.name} ${chapter}`;
+  const input = document.getElementById(refPicker.targetInputId);
+  if (input) input.value = ref;
+  const label = document.getElementById(refPicker.targetLabelId);
+  if (label) label.textContent = ref;
+  const btn = document.getElementById(refPicker.targetButtonId);
+  if (btn) btn.classList.remove('is-empty');
+  closeRefPicker();
+}
+
+// Wire back button + backdrop dismiss after DOM is ready
+function wireRefPicker() {
+  const back = document.getElementById('refPickerBack');
+  if (back) back.addEventListener('click', showPickerBookPhase);
+
+  const backdrop = document.getElementById('refPickerBackdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeRefPicker();
+    });
+  }
+
+  // Esc to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop && backdrop.classList.contains('is-open')) {
+      closeRefPicker();
+    }
+  });
+}
 
 function parseRef(ref) {
   // Match "John 3:16-21" | "1 John 4:7" | "Romans 8" etc.
@@ -2335,7 +2813,7 @@ async function onReadBibleSubmit() {
   const ref = document.getElementById('readBibleInput').value.trim();
   const display = document.getElementById('readBibleDisplay');
 
-  if (!ref) { document.getElementById('readBibleInput').focus(); return; }
+  if (!ref) { openRefPicker('readBibleInput', 'readBiblePickerBtn'); return; }
 
   display.innerHTML = '<div class="passage-display"><div class="passage-loading">Loading passage…</div></div>';
 
@@ -2377,6 +2855,19 @@ function init() {
   // Load any in-progress study
   const savedStudy = loadStudy();
   if (savedStudy) state.study = { ...emptyStudy(), ...savedStudy };
+
+  // Wire reference picker (book/chapter modal)
+  wireRefPicker();
+
+  // Restore picker labels if a passage is already saved
+  if (state.study && state.study.passage) {
+    const passInput = document.getElementById('passageInput');
+    const passLabel = document.getElementById('passagePickerLabel');
+    const passBtn   = document.getElementById('passagePickerBtn');
+    if (passInput) passInput.value = state.study.passage;
+    if (passLabel) passLabel.textContent = state.study.passage;
+    if (passBtn)   passBtn.classList.remove('is-empty');
+  }
 
   // Decide starting screen
   if (!state.user.name) {
