@@ -2185,8 +2185,6 @@ function renderPickerChapters(book) {
 }
 
 function commitRefPick(book, chapter) {
-  // Single-chapter books: use just the book name (parser accepts "Obadiah 1" too, but
-  // many users expect just "Obadiah" — we'll send "Book 1" for unambiguous parsing).
   const ref = `${book.name} ${chapter}`;
   const input = document.getElementById(refPicker.targetInputId);
   if (input) input.value = ref;
@@ -2194,7 +2192,18 @@ function commitRefPick(book, chapter) {
   if (label) label.textContent = ref;
   const btn = document.getElementById(refPicker.targetButtonId);
   if (btn) btn.classList.remove('is-empty');
+
+  // Capture which submit to fire BEFORE closing (closeRefPicker clears state)
+  const targetInputId = refPicker.targetInputId;
   closeRefPicker();
+
+  // Auto-submit: the picker selection IS the user's intent to load that passage,
+  // so no extra "Go" tap should be required.
+  if (targetInputId === 'passageInput') {
+    onPassageSubmit();
+  } else if (targetInputId === 'readBibleInput') {
+    onReadBibleSubmit();
+  }
 }
 
 // Wire back button + backdrop dismiss after DOM is ready
