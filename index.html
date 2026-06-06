@@ -2317,9 +2317,15 @@ function renderPassageInto(elementId, data, tappable = false) {
         if (!w.grk) return '';
         const strong = escapeAttr(w.strong || '');
         const parse = escapeAttr(w.parse || '');
+        // Clean display artifacts from the gloss (vvv placeholders, bare dashes/ellipses)
+        // but keep the Greek word — only the English helper line is blanked.
+        let gloss = (w.gloss || '').trim();
+        if (/^v+[.,;:!?]?$/i.test(gloss) || gloss === '-' || gloss === '. . .' || /^\.\s*\.\s*\.$/.test(gloss)) {
+          gloss = '';
+        }
         return `<span class="il-word" data-strongs="${strong}" data-parse="${parse}" onclick="handleWordTap(this)">`
              + `<span class="il-grk">${escapeHtml(w.grk)}</span>`
-             + `<span class="il-gloss">${escapeHtml((w.gloss||'').trim())}</span>`
+             + `<span class="il-gloss">${escapeHtml(gloss)}</span>`
              + `</span>`;
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
