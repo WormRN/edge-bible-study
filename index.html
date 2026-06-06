@@ -559,6 +559,44 @@ select.translation-select {
 }
 .bible-word:hover, .bible-word:active { background: var(--accent-soft); }
 
+/* Interlinear: Greek word stacked over English gloss */
+.interlinear-text { line-height: 2.6; }
+.il-word {
+  display: inline-block;
+  text-align: center;
+  vertical-align: top;
+  margin: 0 6px 10px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 3px;
+  transition: background 0.1s ease;
+}
+.il-word:hover, .il-word:active { background: var(--accent-soft); }
+.il-grk {
+  display: block;
+  font-family: var(--serif, Georgia, serif);
+  font-size: 19px;
+  color: var(--ink, #1a1a2e);
+  line-height: 1.2;
+}
+.il-gloss {
+  display: block;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--accent);
+  line-height: 1.2;
+  margin-top: 1px;
+}
+.interlinear-text .verse-num {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+  vertical-align: super;
+  margin-right: 4px;
+  letter-spacing: 0.5px;
+}
+
 /* Info button next to BSB badge */
 .info-btn {
   background: none;
@@ -1375,12 +1413,7 @@ select.translation-select {
         <label for="translationSelect">Translation:</label>
         <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="kjv">KJV · King James Version</option>
-          <option value="" disabled>──────────</option>
-          <option value="" disabled>NLT · coming soon</option>
-          <option value="" disabled>NIV · coming soon</option>
-          <option value="" disabled>ESV · coming soon</option>
-          <option value="" disabled>NASB · coming soon</option>
+          <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
 
@@ -1605,8 +1638,7 @@ select.translation-select {
         <label for="readBibleTranslation">Translation:</label>
         <select id="readBibleTranslation" class="translation-select">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="kjv">KJV · King James Version</option>
-          <option value="web">WEB · World English Bible</option>
+          <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
 
@@ -2235,9 +2267,14 @@ async function fetchPassage(ref) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  const url = `/data/bsb/${parsed.bookCode}_${parsed.chapter}.json`;
+  const isInterlinear = (state.study.translation === 'interlinear');
+  const folder = isInterlinear ? 'interlinear' : 'bsb';
+  const url = `/data/${folder}/${parsed.bookCode}_${parsed.chapter}.json`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Chapter not found. Check the reference and try again.`);
+  if (!res.ok) {
+    if (isInterlinear) throw new Error(`Interlinear is New Testament only. This passage isn't available in interlinear yet.`);
+    throw new Error(`Chapter not found. Check the reference and try again.`);
+  }
 
   const chapter = await res.json();
 
@@ -2253,12 +2290,15 @@ async function fetchPassage(ref) {
 
   return {
     reference: ref,
-    translation_id: 'BSB',
+    translation_id: isInterlinear ? 'Interlinear' : 'BSB',
+    isInterlinear,
     verses,
-    // Plain text for study flow text areas
+    // Plain text for study flow text areas (interlinear uses gloss; BSB uses w)
     plainVerses: verses.map(v => ({
       verse: v.verse,
-      text: v.words.filter(w => w.w !== '-' && !w.w.startsWith('. ')).map(w => w.w).join(' ')
+      text: isInterlinear
+        ? v.words.map(w => (w.gloss||'').trim()).filter(Boolean).join(' ')
+        : v.words.filter(w => w.w !== '-' && !w.w.startsWith('. ')).map(w => w.w).join(' ')
     }))
   };
 }
@@ -2266,9 +2306,31 @@ async function fetchPassage(ref) {
 function renderPassageInto(elementId, data, tappable = false) {
   const el = document.getElementById(elementId);
   if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
-  const transBadge = `<span class="translation-badge">BSB</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
+  const badgeLabel = data.isInterlinear ? 'Interlinear' : 'BSB';
+  const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
 
   let versesHtml;
+  if (data.isInterlinear) {
+    // Interlinear: each word shows Greek over English gloss, both tap to lexicon
+    versesHtml = data.verses.map(v => {
+      const wHtml = v.words.map(w => {
+        if (!w.grk) return '';
+        const strong = escapeAttr(w.strong || '');
+        const parse = escapeAttr(w.parse || '');
+        return `<span class="il-word" data-strongs="${strong}" data-parse="${parse}" onclick="handleWordTap(this)">`
+             + `<span class="il-grk">${escapeHtml(w.grk)}</span>`
+             + `<span class="il-gloss">${escapeHtml((w.gloss||'').trim())}</span>`
+             + `</span>`;
+      }).join('');
+      return `<span class="verse-num">${v.verse}</span>${wHtml}`;
+    }).join('');
+    el.innerHTML = `
+      <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
+      <div class="passage-text interlinear-text">${versesHtml}</div>
+    `;
+    return;
+  }
+
   if (tappable && data.verses && data.verses[0] && data.verses[0].words) {
     // Word-level rendering with tappable spans
     versesHtml = data.verses.map(v => {
@@ -2796,6 +2858,10 @@ function openLookupFromStudy() {
 function mountReadBible() {
   const input = document.getElementById('readBibleInput');
   const display = document.getElementById('readBibleDisplay');
+  const transSel = document.getElementById('readBibleTranslation');
+
+  // Reflect current translation choice
+  if (transSel) transSel.value = state.study.translation || 'bsb';
 
   // Clear display on mount unless we have a recent fetch
   if (!display.dataset.populated) {
@@ -2809,11 +2875,23 @@ function mountReadBible() {
       if (e.key === 'Enter') onReadBibleSubmit();
     });
   }
+
+  // Re-fetch when translation changes (if a passage is already showing)
+  if (transSel && !transSel._wired) {
+    transSel._wired = true;
+    transSel.addEventListener('change', () => {
+      state.study.translation = transSel.value || 'bsb';
+      saveStudy();
+      if (input.value.trim()) onReadBibleSubmit();
+    });
+  }
 }
 
 async function onReadBibleSubmit() {
   const ref = document.getElementById('readBibleInput').value.trim();
   const display = document.getElementById('readBibleDisplay');
+  const transSel = document.getElementById('readBibleTranslation');
+  if (transSel) { state.study.translation = transSel.value || 'bsb'; saveStudy(); }
 
   if (!ref) { openRefPicker('readBibleInput', 'readBiblePickerBtn'); return; }
 
