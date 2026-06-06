@@ -1164,6 +1164,8 @@ select.translation-select {
 }
 .full-header .gloss { font-size: 19px; font-weight: 700; margin-top: 4px; padding-right: 40px; }
 .full-header .grammar { font-size: 13px; opacity: 0.78; margin-top: 6px; letter-spacing: 0.3px; }
+.full-header .freq { font-size: 12px; opacity: 0.7; margin-top: 3px; letter-spacing: 0.3px; font-family: var(--sans); }
+.accord-sub { margin-top: 10px; font-size: 14px; line-height: 1.5; }
 .full-header .strongs {
   display: inline-block;
   margin-top: 10px;
@@ -1683,7 +1685,7 @@ select.translation-select {
 </div>
 
 <footer class="app-footer">
-  <strong>EDGE · Bible Study</strong> · Lexicon: STEPBible / Tyndale House Cambridge · CC BY 4.0<br>
+  <strong>EDGE · Bible Study</strong> · Lexicons: Mounce Concise Greek-English Dictionary © 1993 (teknia.com/greek-dictionary), STEPBible / Tyndale House Cambridge CC BY 4.0<br>
   Bible text: Berean Standard Bible · Public Domain · Your notes stay on your device.
 </footer>
 
@@ -2530,8 +2532,20 @@ function newStudy() {
    ============================================================ */
 let TBESG_DATA = null;
 let TBESH_DATA = null;
+let MOUNCE_DATA = null;
 let TBESG_LOADING = false;
 let TBESH_LOADING = false;
+let MOUNCE_LOADING = false;
+
+async function loadMounceData() {
+  if (MOUNCE_DATA) return MOUNCE_DATA;
+  if (MOUNCE_LOADING) { while (MOUNCE_LOADING) await new Promise(r => setTimeout(r, 50)); return MOUNCE_DATA; }
+  MOUNCE_LOADING = true;
+  try { const r = await fetch('/data/mounce_by_strongs.json'); MOUNCE_DATA = await r.json(); }
+  catch (e) { MOUNCE_DATA = {}; }
+  finally { MOUNCE_LOADING = false; }
+  return MOUNCE_DATA;
+}
 
 async function loadLexiconData(lang) {
   if (lang === 'G') {
@@ -2569,8 +2583,14 @@ async function openLexiconFromStrongs(strongs) {
   try {
     const lexicon = await loadLexiconData(lang);
     const entry = lexicon[strongs];
-    if (entry) {
-      content.innerHTML = renderFull(entry);
+    // Mounce is Greek/NT only — load it for Greek words to use as the primary definition
+    let mounce = null;
+    if (lang === 'G') {
+      const mData = await loadMounceData();
+      mounce = mData[strongs] || null;
+    }
+    if (entry || mounce) {
+      content.innerHTML = renderFull(entry, mounce, strongs);
     } else {
       content.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--sans);">
         <p style="margin-bottom:16px;">No entry found for ${escapeHtml(strongs)}.</p>
@@ -2641,62 +2661,104 @@ function parseTbesg(raw) {
   return { sections, synonyms, attribution };
 }
 
-function renderFull(entry) {
-  const parsed = parseTbesg(entry.raw);
+function renderFull(entry, mounce, strongsId) {
+  // entry = TBESG/TBESH (Abbott-Smith); mounce = Mounce Concise (Greek only, may be null)
+  const parsed = entry ? parseTbesg(entry.raw) : { sections: [], synonyms: '', attribution: '' };
   const etymology  = parsed.sections.find(s => s.type === 'etymology');
   const briefGloss = parsed.sections.find(s => s.type === 'paragraph');
   const senses     = parsed.sections.filter(s => s.type === 'sense' || s.type === 'subsense');
 
-  const pastoralHtml = entry.pastoral
+  // ---- Header: prefer Mounce's lemma/translit when available, else Abbott-Smith ----
+  const lemma   = (mounce && mounce.lemma)   || (entry && entry.lemma)   || '';
+  const translit= (mounce && mounce.translit)|| (entry && entry.translit)|| '';
+  const id      = (entry && entry.id) || strongsId || '';
+  const grammarHtml = entry ? `<div class="grammar">${formatPos(entry.pos)}</div>` : '';
+  const freqHtml = (mounce && mounce.freq)
+    ? `<div class="freq">occurs ${mounce.freq}×</div>` : '';
+
+  // ---- Primary definition: Mounce (Greek). If no Mounce (Hebrew), Abbott-Smith is primary. ----
+  let primaryHtml, abbottAccordionHtml = '';
+  if (mounce) {
+    primaryHtml = `<p class="brief-gloss">${escapeHtml(mounce.def)}</p>`;
+    // Abbott-Smith becomes a collapsed accordion (only if we actually have an entry)
+    if (entry) {
+      const asBody =
+        (etymology ? `<p class="etymology">${etymology.content}</p>` : '') +
+        (briefGloss ? `<p class="brief-gloss">${briefGloss.content}</p>` : '') +
+        (senses.length
+          ? `<ul class="sense-list">${senses.map(s => `
+               <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
+                 <span class="marker">${escapeHtml(s.marker)}</span>
+                 <span class="content">${s.content}</span>
+               </li>`).join('')}</ul>` : '') +
+        (parsed.synonyms ? `<div class="accord-sub"><strong>Word relationships:</strong> ${parsed.synonyms}</div>` : '');
+      abbottAccordionHtml = `
+        <details class="accord">
+          <summary>Abbott-Smith (detailed)</summary>
+          <div class="accord-body">${asBody || '<span class="placeholder">No detailed entry.</span>'}</div>
+        </details>`;
+    }
+  } else {
+    // Hebrew (or Greek with no Mounce): Abbott-Smith stays primary, as before
+    primaryHtml =
+      (etymology ? `<p class="etymology">${etymology.content}</p>` : '') +
+      (briefGloss ? `<p class="brief-gloss">${briefGloss.content}</p>` : '') +
+      (senses.length
+        ? `<h3 class="section-h">Meaning</h3>
+           <ul class="sense-list">${senses.map(s => `
+             <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
+               <span class="marker">${escapeHtml(s.marker)}</span>
+               <span class="content">${s.content}</span>
+             </li>`).join('')}</ul>` : '');
+    if (parsed.synonyms) {
+      abbottAccordionHtml = `
+        <details class="accord">
+          <summary>Word relationships</summary>
+          <div class="accord-body">${parsed.synonyms}</div>
+        </details>`;
+    }
+  }
+
+  const pastoralHtml = (entry && entry.pastoral)
     ? `<div class="pastoral-note">
          <span class="pn-label">What this means</span>
          <div class="pn-content">${escapeHtml(entry.pastoral)}</div>
        </div>` : '';
 
-  const etymologyHtml = etymology ? `<p class="etymology">${etymology.content}</p>` : '';
-  const briefGlossHtml = briefGloss ? `<p class="brief-gloss">${briefGloss.content}</p>` : '';
-
-  const sensesHtml = senses.length
-    ? `<h3 class="section-h">Meaning</h3>
-       <ul class="sense-list">
-         ${senses.map(s => `
-           <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
-             <span class="marker">${escapeHtml(s.marker)}</span>
-             <span class="content">${s.content}</span>
-           </li>`).join('')}
-       </ul>` : '';
-
-  const synonymsHtml = parsed.synonyms
-    ? `<details class="accord">
-         <summary>Word relationships</summary>
-         <div class="accord-body">${parsed.synonyms}</div>
-       </details>` : '';
-
-  const lsjPlaceholder = `
+  // Thayer's — placeholder accordion (data added in a later session). Greek only.
+  const thayerHtml = mounce ? `
     <details class="accord">
-      <summary>LSJ dictionary</summary>
-      <div class="accord-body placeholder">Full LSJ entry will appear here in v2 (TFLSJ data).</div>
-    </details>`;
+      <summary>Thayer's</summary>
+      <div class="accord-body placeholder">Thayer's entry coming soon.</div>
+    </details>` : '';
+
+  // Footer attribution reflects the source(s) shown. Both licenses must remain visible.
+  let footerSrc;
+  if (mounce && entry) {
+    footerSrc = `Mounce Concise Greek-English Dictionary · © 1993 All Rights Reserved · teknia.com/greek-dictionary · also STEPBible (Abbott-Smith) CC BY 4.0`;
+  } else if (mounce) {
+    footerSrc = `Mounce Concise Greek-English Dictionary · © 1993 All Rights Reserved · teknia.com/greek-dictionary`;
+  } else {
+    footerSrc = `STEPBible · CC BY 4.0 · src: ${parsed.attribution || 'Abbott-Smith'}`;
+  }
 
   return `
     <div class="full-card">
       <div class="full-header">
         <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
-        <span class="lemma">${escapeHtml(entry.lemma)}</span><span class="lemma-meta">(${escapeHtml(entry.translit)})</span>
-        <div class="gloss">${escapeHtml(entry.gloss)}</div>
-        <div class="grammar">${formatPos(entry.pos)}</div>
-        <div><span class="strongs">${entry.id}</span></div>
+        <span class="lemma">${escapeHtml(lemma)}</span><span class="lemma-meta">(${escapeHtml(translit)})</span>
+        ${grammarHtml}
+        ${freqHtml}
+        <div><span class="strongs">${escapeHtml(id)}</span></div>
       </div>
       <div class="full-body">
         ${pastoralHtml}
-        ${etymologyHtml}
-        ${briefGlossHtml}
-        ${sensesHtml}
-        ${synonymsHtml}
-        ${lsjPlaceholder}
+        ${primaryHtml}
+        ${abbottAccordionHtml}
+        ${thayerHtml}
       </div>
       <div class="full-footer">
-        <span>STEPBible · CC BY 4.0 · src: ${parsed.attribution || 'Abbott-Smith'}</span>
+        <span>${footerSrc}</span>
         <a href="#" onclick="event.preventDefault();">Report lexicon issue</a>
       </div>
     </div>`;
