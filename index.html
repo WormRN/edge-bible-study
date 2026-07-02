@@ -1515,31 +1515,71 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── DIG ──────────────────────────────────────────────── -->
-  <section class="screen" id="screen-dig">
+  <!-- ─── DIG · 1 of 3 — DETAILS ──────────────────────────── -->
+  <section class="screen" id="screen-digDetails">
     <div class="card tinted-dig">
-      <div class="h-step dig">D · DIG</div>
-      <h2 class="h-question">What's beneath the surface?</h2>
-      <p class="lead">Look at the context — who's speaking, who they're speaking to, what's happening around it.</p>
+      <div class="h-step dig">D · DIG — DETAILS · 1 of 3</div>
+      <h2 class="h-question">Interrogate the details.</h2>
+      <p class="lead">Ask the reporter's questions: who, what, when, where, why, and how.</p>
 
-      <div class="hint-box" id="digHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('digHint')">Need a nudge? <span class="caret">›</span></button>
+      <div class="hint-box" id="digDetailsHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digDetailsHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="digWho">Who is speaking, and to whom?</label>
-      <textarea id="digWho" rows="2" placeholder="e.g., Jesus is speaking with Nicodemus, a Jewish leader who came at night…"></textarea>
-
-      <label class="field-label" for="digContext">What's happening before this passage?</label>
-      <textarea id="digContext" rows="2" placeholder="e.g., Jesus has just cleared the temple and started his public ministry…"></textarea>
-
-      <label class="field-label" for="digParaphrase">Now say it in your own words.</label>
-      <p class="field-help">Don't worry about getting it perfect — this is just to be sure you understand it.</p>
-      <textarea id="digParaphrase" rows="4" placeholder="Rewrite the passage as if you were explaining it to a friend…"></textarea>
+      <label class="field-label" for="digWho">What do the details tell you?</label>
+      <p class="field-help">Who is involved? What's happening? When and where? Why, and how?</p>
+      <textarea id="digWho" rows="4" placeholder="e.g., Jesus is speaking with Nicodemus, a Jewish leader who came at night with a question…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromDig()">Continue to Gather →</button>
+        <button class="btn btn-primary" onclick="advanceFromDigDetails()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DIG · 2 of 3 — INVESTIGATE ──────────────────────── -->
+  <section class="screen" id="screen-digInvestigate">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG — INVESTIGATE · 2 of 3</div>
+      <h2 class="h-question">Investigate the surroundings.</h2>
+      <p class="lead">Look into the context, the characters, the culture, and how the passage is put together.</p>
+
+      <div class="hint-box" id="digInvestigateHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digInvestigateHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digContext">What did you find?</label>
+      <p class="field-help">What's happening before this passage? Who are these people? What would this have meant to its first readers?</p>
+      <textarea id="digContext" rows="4" placeholder="e.g., Jesus has just cleared the temple and started his public ministry; Nicodemus is a Pharisee — a respected religious teacher…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDigInvestigate()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DIG · 3 of 3 — GRASP ────────────────────────────── -->
+  <section class="screen" id="screen-digGrasp">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG — GRASP · 3 of 3</div>
+      <h2 class="h-question">Grasp it in your own words.</h2>
+      <p class="lead">Rewrite or reword the heart of the passage — as if you were explaining it to a friend.</p>
+
+      <div class="hint-box" id="digGraspHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digGraspHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digParaphrase">Say it in your own words.</label>
+      <p class="field-help">Don't worry about getting it perfect — this is just to be sure you understand it.</p>
+      <textarea id="digParaphrase" rows="5" placeholder="Rewrite the passage as if you were explaining it to a friend…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDigGrasp()">Continue to Gather →</button>
       </div>
     </div>
   </section>
@@ -1848,22 +1888,25 @@ function showScreen(name, opts = {}) {
   const showBack = !['welcome', 'home', 'done'].includes(name);
   document.getElementById('backBtn').classList.toggle('is-visible', showBack);
 
-  // Progress bar (only during EDGE flow)
-  const showProgress = ['explore', 'dig', 'gather', 'embrace'].includes(name);
+  // Progress bar (only during EDGE flow). Dig sub-steps all map to the Dig dot.
+  const EDGE_FLOW = ['explore', 'digDetails', 'digInvestigate', 'digGrasp', 'gather', 'embrace'];
+  const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
-  if (showProgress) updateProgress(name);
+  if (showProgress) updateProgress(name.startsWith('dig') ? 'dig' : name);
 
   // Per-screen mounting
-  if (name === 'home')         renderHome();
-  if (name === 'pickPassage')  renderPresets();
-  if (name === 'reader')       fetchPassageForReader();
-  if (name === 'explore')      mountExplore();
-  if (name === 'dig')          mountDig();
-  if (name === 'gather')       mountGather();
-  if (name === 'embrace')      mountEmbrace();
-  if (name === 'done')         renderDone();
-  if (name === 'wordStudy')    mountWordStudy();
-  if (name === 'readBible')    mountReadBible();
+  if (name === 'home')           renderHome();
+  if (name === 'pickPassage')    renderPresets();
+  if (name === 'reader')         fetchPassageForReader();
+  if (name === 'explore')        mountExplore();
+  if (name === 'digDetails')     mountDigDetails();
+  if (name === 'digInvestigate') mountDigInvestigate();
+  if (name === 'digGrasp')       mountDigGrasp();
+  if (name === 'gather')         mountGather();
+  if (name === 'embrace')        mountEmbrace();
+  if (name === 'done')           renderDone();
+  if (name === 'wordStudy')      mountWordStudy();
+  if (name === 'readBible')      mountReadBible();
 
   window.scrollTo(0, 0);
 }
@@ -1898,10 +1941,12 @@ function updateProgress(currentStep) {
 
 function captureCurrentInputs() {
   const map = {
-    explore:  ['exploreInput'],
-    dig:      ['digWho', 'digContext', 'digParaphrase'],
-    gather:   ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'],
-    embrace:  ['embraceApply', 'embraceCommit', 'embraceAction']
+    explore:        ['exploreInput'],
+    digDetails:     ['digWho'],
+    digInvestigate: ['digContext'],
+    digGrasp:       ['digParaphrase'],
+    gather:         ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'],
+    embrace:        ['embraceApply', 'embraceCommit', 'embraceAction']
   };
   const ids = map[state.screen];
   if (!ids) return;
@@ -2436,14 +2481,23 @@ function mountExplore() {
   populateHint('exploreHint', 'explore');
 }
 
-function mountDig() {
-  document.getElementById('digWho').value        = state.study.digWho || '';
-  document.getElementById('digContext').value    = state.study.digContext || '';
-  document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
+function mountDigDetails() {
+  document.getElementById('digWho').value = state.study.digWho || '';
   attachAutosave('digWho', 'digWho');
+  // Preset dig hints are contextual, so they live on the Investigate page.
+  document.getElementById('digDetailsHint').style.display = 'none';
+}
+
+function mountDigInvestigate() {
+  document.getElementById('digContext').value = state.study.digContext || '';
   attachAutosave('digContext', 'digContext');
+  populateHint('digInvestigateHint', 'dig');
+}
+
+function mountDigGrasp() {
+  document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
   attachAutosave('digParaphrase', 'digParaphrase');
-  populateHint('digHint', 'dig');
+  document.getElementById('digGraspHint').style.display = 'none';
 }
 
 function mountGather() {
@@ -2491,10 +2545,12 @@ function toggleHint(boxId) {
   content.classList.toggle('is-open');
 }
 
-function advanceFromExplore() { captureCurrentInputs(); showScreen('dig'); }
-function advanceFromDig()      { captureCurrentInputs(); showScreen('gather'); }
-function advanceFromGather()   { captureCurrentInputs(); showScreen('embrace'); }
-function advanceFromEmbrace()  { captureCurrentInputs(); showScreen('done'); }
+function advanceFromExplore()        { captureCurrentInputs(); showScreen('digDetails'); }
+function advanceFromDigDetails()     { captureCurrentInputs(); showScreen('digInvestigate'); }
+function advanceFromDigInvestigate() { captureCurrentInputs(); showScreen('digGrasp'); }
+function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gather'); }
+function advanceFromGather()         { captureCurrentInputs(); showScreen('embrace'); }
+function advanceFromEmbrace()        { captureCurrentInputs(); showScreen('done'); }
 
 /* ============================================================
    DONE
@@ -2506,9 +2562,9 @@ function renderDone() {
 
   const items = [
     { step: 'explore', label: 'Explore', q: 'What did you notice?',                a: state.study.explore },
-    { step: 'dig',     label: 'Dig',     q: 'Who is speaking, and to whom?',       a: state.study.digWho },
-    { step: 'dig',     label: 'Dig',     q: 'What\'s happening before this?',      a: state.study.digContext },
-    { step: 'dig',     label: 'Dig',     q: 'In your own words.',                  a: state.study.digParaphrase },
+    { step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?', a: state.study.digWho },
+    { step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.',     a: state.study.digContext },
+    { step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.',                a: state.study.digParaphrase },
     { step: 'gather',  label: 'Gather',  q: 'What\'s the main message?',           a: state.study.gatherKey },
     { step: 'gather',  label: 'Gather',  q: 'What does this say about God?',      a: state.study.gatherGod },
     { step: 'gather',  label: 'Gather',  q: 'What does this say about people?',   a: state.study.gatherPeople },
