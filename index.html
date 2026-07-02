@@ -709,6 +709,16 @@ select.translation-select {
 }
 .tap-note strong { color: var(--accent); }
 
+/* ─── Passage accordion (collapsible Scripture on study steps) ── */
+.passage-accord { margin: 0 0 16px 0; }
+.passage-accord summary .pa-ref { font-family: var(--serif); font-size: 16px; }
+.passage-accord-body {
+  max-height: 40vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ─── Hint box ───────────────────────────────────────────── */
 .hint-box {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
@@ -1522,6 +1532,13 @@ select.translation-select {
       <h2 class="h-question">Interrogate the details.</h2>
       <p class="lead">Ask the reporter's questions: who, what, when, where, why, and how.</p>
 
+      <details class="accord passage-accord" id="digDetailsPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
       <div class="hint-box" id="digDetailsHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('digDetailsHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
@@ -1545,6 +1562,13 @@ select.translation-select {
       <h2 class="h-question">Investigate the surroundings.</h2>
       <p class="lead">Look into the context, the characters, the culture, and how the passage is put together.</p>
 
+      <details class="accord passage-accord" id="digInvestigatePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
       <div class="hint-box" id="digInvestigateHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('digInvestigateHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
@@ -1567,6 +1591,13 @@ select.translation-select {
       <div class="h-step dig">D · DIG — GRASP · 3 of 3</div>
       <h2 class="h-question">Grasp it in your own words.</h2>
       <p class="lead">Rewrite or reword the heart of the passage — as if you were explaining it to a friend.</p>
+
+      <details class="accord passage-accord" id="digGraspPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
 
       <div class="hint-box" id="digGraspHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('digGraspHint')">Need a nudge? <span class="caret">›</span></button>
@@ -2481,7 +2512,29 @@ function mountExplore() {
   populateHint('exploreHint', 'explore');
 }
 
+/* Passage accordion — collapsible Scripture on study steps.
+   Remembers open/closed across steps for the current session. */
+let passageAccordOpen = false;
+
+function mountPassageAccord(accordId) {
+  const det = document.getElementById(accordId);
+  if (!det) return;
+  const d = state.study.text;
+  if (!d) { det.style.display = 'none'; return; }
+  det.style.display = '';
+  det.querySelector('.pa-ref').textContent = d.reference || 'Passage';
+  const textEl = det.querySelector('.passage-text');
+  textEl.innerHTML = buildVersesHtml(d, true);
+  textEl.classList.toggle('interlinear-text', !!d.isInterlinear);
+  det.open = passageAccordOpen;
+  if (!det._toggleWired) {
+    det._toggleWired = true;
+    det.addEventListener('toggle', () => { passageAccordOpen = det.open; });
+  }
+}
+
 function mountDigDetails() {
+  mountPassageAccord('digDetailsPassage');
   document.getElementById('digWho').value = state.study.digWho || '';
   attachAutosave('digWho', 'digWho');
   // Preset dig hints are contextual, so they live on the Investigate page.
@@ -2489,12 +2542,14 @@ function mountDigDetails() {
 }
 
 function mountDigInvestigate() {
+  mountPassageAccord('digInvestigatePassage');
   document.getElementById('digContext').value = state.study.digContext || '';
   attachAutosave('digContext', 'digContext');
   populateHint('digInvestigateHint', 'dig');
 }
 
 function mountDigGrasp() {
+  mountPassageAccord('digGraspPassage');
   document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
   attachAutosave('digParaphrase', 'digParaphrase');
   document.getElementById('digGraspHint').style.display = 'none';
