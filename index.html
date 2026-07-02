@@ -2321,16 +2321,13 @@ async function fetchPassage(ref) {
   };
 }
 
-function renderPassageInto(elementId, data, tappable = false) {
-  const el = document.getElementById(elementId);
-  if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
-  const badgeLabel = data.isInterlinear ? 'Interlinear' : 'BSB';
-  const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
-
-  let versesHtml;
+/* Shared verse renderer — used by both the Reader and the Explore step
+   so interlinear and BSB display identically everywhere. Returns the
+   inner HTML for the verses (no wrapper, no ref line). */
+function buildVersesHtml(data, tappable = false) {
   if (data.isInterlinear) {
     // Interlinear: each word shows Greek over English gloss, both tap to lexicon
-    versesHtml = data.verses.map(v => {
+    return data.verses.map(v => {
       const wHtml = v.words.map(w => {
         if (!w.grk) return '';
         const strong = escapeAttr(w.strong || '');
@@ -2348,16 +2345,11 @@ function renderPassageInto(elementId, data, tappable = false) {
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
     }).join('');
-    el.innerHTML = `
-      <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-      <div class="passage-text interlinear-text">${versesHtml}</div>
-    `;
-    return;
   }
 
   if (tappable && data.verses && data.verses[0] && data.verses[0].words) {
-    // Word-level rendering with tappable spans
-    versesHtml = data.verses.map(v => {
+    // BSB word-level rendering with tappable spans
+    return data.verses.map(v => {
       const wHtml = v.words.map(w => {
         // Skip display markers (dashes, ellipses) — they're structural not textual
         if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
@@ -2365,17 +2357,28 @@ function renderPassageInto(elementId, data, tappable = false) {
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
     }).join('');
-  } else {
-    const src = data.plainVerses || data.verses || [];
-    versesHtml = src.map(v => {
-      const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
-    }).join('');
   }
+
+  // Plain text fallback
+  const src = data.plainVerses || data.verses || [];
+  return src.map(v => {
+    const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
+    return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
+  }).join('');
+}
+
+function renderPassageInto(elementId, data, tappable = false) {
+  const el = document.getElementById(elementId);
+  if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
+  const badgeLabel = data.isInterlinear ? 'Interlinear' : 'BSB';
+  const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
+
+  const versesHtml = buildVersesHtml(data, tappable);
+  const textClass = data.isInterlinear ? 'passage-text interlinear-text' : 'passage-text';
 
   el.innerHTML = `
     <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-    <div class="passage-text">${versesHtml}</div>
+    <div class="${textClass}">${versesHtml}</div>
   `;
 }
 
@@ -2423,22 +2426,10 @@ function mountExplore() {
     const d = state.study.text;
     document.getElementById('explorePassageRef').textContent = d.reference || '';
     const passageEl = document.getElementById('explorePassageText');
-    if (d.verses && d.verses[0] && d.verses[0].words) {
-      // Tappable word-level rendering
-      passageEl.innerHTML = d.verses.map(v => {
-        const wHtml = v.words.map(w => {
-          if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || /^v+[.,;:!?]?$/i.test(w.w)) return '';
-          return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
-        }).join('');
-        return `<span class="verse-num">${v.verse}</span>${wHtml}`;
-      }).join('');
-    } else {
-      const verses = d.plainVerses || d.verses || [];
-      passageEl.innerHTML = verses.map(v => {
-        const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
-        return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
-      }).join('');
-    }
+    // Use the shared renderer so BSB and interlinear both display
+    // exactly as they do on the Reader screen (tappable words included).
+    passageEl.innerHTML = buildVersesHtml(d, true);
+    passageEl.classList.toggle('interlinear-text', !!d.isInterlinear);
   }
   document.getElementById('exploreInput').value = state.study.explore || '';
   attachAutosave('exploreInput', 'explore');
