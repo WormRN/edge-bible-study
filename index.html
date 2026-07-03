@@ -1615,33 +1615,66 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── GATHER ──────────────────────────────────────────── -->
-  <section class="screen" id="screen-gather">
+  <!-- ─── GATHER · 1 of 2 — KEY & NATURE OF GOD ───────────── -->
+  <section class="screen" id="screen-gatherKN">
     <div class="card tinted-gather">
-      <div class="h-step gather">G · GATHER</div>
+      <div class="h-step gather">G · GATHER — KEY &amp; NATURE OF GOD · 1 of 2</div>
       <h2 class="h-question">What does it mean?</h2>
       <p class="lead"><em>Look for what this says about God before what it says about you.</em></p>
 
-      <div class="hint-box" id="gatherHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('gatherHint')">Need a nudge? <span class="caret">›</span></button>
+      <details class="accord passage-accord" id="gatherKNPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="gatherKNHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('gatherKNHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="gatherKey">What's the main message?</label>
-      <textarea id="gatherKey" rows="2" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
+      <label class="field-label" for="gatherKey">Key — what is the primary message of the passage?</label>
+      <textarea id="gatherKey" rows="3" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
 
-      <label class="field-label" for="gatherGod">What does this say about God?</label>
-      <textarea id="gatherGod" rows="2" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
-
-      <label class="field-label" for="gatherPeople">What does this say about people?</label>
-      <textarea id="gatherPeople" rows="2" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
-
-      <label class="field-label" for="gatherMe">What does this mean for me?</label>
-      <textarea id="gatherMe" rows="3" placeholder="e.g., I'm reminded that the gospel isn't about my performance — it's about God's gift. I can rest in that…"></textarea>
+      <label class="field-label" for="gatherGod">Nature of God — what does this say about God?</label>
+      <textarea id="gatherGod" rows="3" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromGather()">Continue to Embrace →</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherKN()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GATHER · 2 of 2 — OUTCOME & WISDOM ──────────────── -->
+  <section class="screen" id="screen-gatherOW">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — OUTCOME &amp; WISDOM · 2 of 2</div>
+      <h2 class="h-question">What does it change?</h2>
+      <p class="lead">Scripture shapes what we believe and how we live — both matter.</p>
+
+      <details class="accord passage-accord" id="gatherOWPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="gatherOWHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('gatherOWHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="gatherOutcome">Outcome — what does it mean for our faith and beliefs?</label>
+      <textarea id="gatherOutcome" rows="3" placeholder="e.g., Salvation rests on God's gift, not our performance — that reshapes how I think about earning approval…"></textarea>
+
+      <label class="field-label" for="gatherPeople">Wisdom — what does it say about people, and to people?</label>
+      <textarea id="gatherPeople" rows="3" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherOW()">Continue to Embrace →</button>
       </div>
     </div>
   </section>
@@ -1796,7 +1829,7 @@ function emptyStudy() {
     text: null,
     explore: '',
     digWho: '', digContext: '', digParaphrase: '',
-    gatherKey: '', gatherGod: '', gatherPeople: '', gatherMe: '',
+    gatherKey: '', gatherGod: '', gatherOutcome: '', gatherPeople: '',
     embraceApply: '', embraceCommit: '', embraceAction: ''
   };
 }
@@ -1919,11 +1952,14 @@ function showScreen(name, opts = {}) {
   const showBack = !['welcome', 'home', 'done'].includes(name);
   document.getElementById('backBtn').classList.toggle('is-visible', showBack);
 
-  // Progress bar (only during EDGE flow). Dig sub-steps all map to the Dig dot.
-  const EDGE_FLOW = ['explore', 'digDetails', 'digInvestigate', 'digGrasp', 'gather', 'embrace'];
+  // Progress bar (only during EDGE flow). Sub-steps map to their parent dot.
+  const EDGE_FLOW = ['explore', 'digDetails', 'digInvestigate', 'digGrasp', 'gatherKN', 'gatherOW', 'embrace'];
   const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
-  if (showProgress) updateProgress(name.startsWith('dig') ? 'dig' : name);
+  if (showProgress) {
+    const dot = name.startsWith('dig') ? 'dig' : name.startsWith('gather') ? 'gather' : name;
+    updateProgress(dot);
+  }
 
   // Per-screen mounting
   if (name === 'home')           renderHome();
@@ -1933,7 +1969,8 @@ function showScreen(name, opts = {}) {
   if (name === 'digDetails')     mountDigDetails();
   if (name === 'digInvestigate') mountDigInvestigate();
   if (name === 'digGrasp')       mountDigGrasp();
-  if (name === 'gather')         mountGather();
+  if (name === 'gatherKN')       mountGatherKN();
+  if (name === 'gatherOW')       mountGatherOW();
   if (name === 'embrace')        mountEmbrace();
   if (name === 'done')           renderDone();
   if (name === 'wordStudy')      mountWordStudy();
@@ -1976,7 +2013,8 @@ function captureCurrentInputs() {
     digDetails:     ['digWho'],
     digInvestigate: ['digContext'],
     digGrasp:       ['digParaphrase'],
-    gather:         ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'],
+    gatherKN:       ['gatherKey', 'gatherGod'],
+    gatherOW:       ['gatherOutcome', 'gatherPeople'],
     embrace:        ['embraceApply', 'embraceCommit', 'embraceAction']
   };
   const ids = map[state.screen];
@@ -2555,13 +2593,20 @@ function mountDigGrasp() {
   document.getElementById('digGraspHint').style.display = 'none';
 }
 
-function mountGather() {
-  document.getElementById('gatherKey').value    = state.study.gatherKey || '';
-  document.getElementById('gatherGod').value    = state.study.gatherGod || '';
-  document.getElementById('gatherPeople').value = state.study.gatherPeople || '';
-  document.getElementById('gatherMe').value     = state.study.gatherMe || '';
-  ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'].forEach(id => attachAutosave(id, id));
-  populateHint('gatherHint', 'gather');
+function mountGatherKN() {
+  mountPassageAccord('gatherKNPassage');
+  document.getElementById('gatherKey').value = state.study.gatherKey || '';
+  document.getElementById('gatherGod').value = state.study.gatherGod || '';
+  ['gatherKey', 'gatherGod'].forEach(id => attachAutosave(id, id));
+  populateHint('gatherKNHint', 'gather');
+}
+
+function mountGatherOW() {
+  mountPassageAccord('gatherOWPassage');
+  document.getElementById('gatherOutcome').value = state.study.gatherOutcome || '';
+  document.getElementById('gatherPeople').value  = state.study.gatherPeople || '';
+  ['gatherOutcome', 'gatherPeople'].forEach(id => attachAutosave(id, id));
+  document.getElementById('gatherOWHint').style.display = 'none';
 }
 
 function mountEmbrace() {
@@ -2603,8 +2648,9 @@ function toggleHint(boxId) {
 function advanceFromExplore()        { captureCurrentInputs(); showScreen('digDetails'); }
 function advanceFromDigDetails()     { captureCurrentInputs(); showScreen('digInvestigate'); }
 function advanceFromDigInvestigate() { captureCurrentInputs(); showScreen('digGrasp'); }
-function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gather'); }
-function advanceFromGather()         { captureCurrentInputs(); showScreen('embrace'); }
+function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gatherKN'); }
+function advanceFromGatherKN()       { captureCurrentInputs(); showScreen('gatherOW'); }
+function advanceFromGatherOW()       { captureCurrentInputs(); showScreen('embrace'); }
 function advanceFromEmbrace()        { captureCurrentInputs(); showScreen('done'); }
 
 /* ============================================================
@@ -2620,10 +2666,10 @@ function renderDone() {
     { step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?', a: state.study.digWho },
     { step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.',     a: state.study.digContext },
     { step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.',                a: state.study.digParaphrase },
-    { step: 'gather',  label: 'Gather',  q: 'What\'s the main message?',           a: state.study.gatherKey },
-    { step: 'gather',  label: 'Gather',  q: 'What does this say about God?',      a: state.study.gatherGod },
-    { step: 'gather',  label: 'Gather',  q: 'What does this say about people?',   a: state.study.gatherPeople },
-    { step: 'gather',  label: 'Gather',  q: 'What does this mean for me?',        a: state.study.gatherMe },
+    { step: 'gather',  label: 'Gather · Key',           q: 'The primary message.',                  a: state.study.gatherKey },
+    { step: 'gather',  label: 'Gather · Nature of God', q: 'What does this say about God?',         a: state.study.gatherGod },
+    { step: 'gather',  label: 'Gather · Outcome',       q: 'What does it mean for faith & beliefs?', a: state.study.gatherOutcome },
+    { step: 'gather',  label: 'Gather · Wisdom',        q: 'About people, and to people.',          a: state.study.gatherPeople },
     { step: 'embrace', label: 'Embrace', q: 'Where in my life does this apply?',  a: state.study.embraceApply },
     { step: 'embrace', label: 'Embrace', q: 'What will I commit to today?',      a: state.study.embraceCommit },
     { step: 'embrace', label: 'Embrace', q: 'One specific thing I\'ll do.',       a: state.study.embraceAction }
