@@ -1414,10 +1414,16 @@ select.translation-select {
       <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
     </button>
 
+    <button class="home-tile" onclick="showScreen('quickPick')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">Quick Study</div>
+      <div class="home-tile-d">One passage, four simple questions. A great place to start.</div>
+    </button>
+
     <button class="home-tile" onclick="showScreen('pickPassage')">
       <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Start a study</div>
-      <div class="home-tile-d">Walk through a passage with the EDGE method.</div>
+      <div class="home-tile-h">Full EDGE Study</div>
+      <div class="home-tile-d">The complete method — walk step by step through a passage with EDGE.</div>
     </button>
 
     <button class="home-tile" onclick="showScreen('wordStudy')">
@@ -1731,6 +1737,125 @@ select.translation-select {
     </div>
   </section>
 
+  <!-- ─── QUICK STUDY · PICK ──────────────────────────────── -->
+  <section class="screen" id="screen-quickPick">
+    <div class="card">
+      <div class="h-step gather">QUICK STUDY</div>
+      <h2 class="h-question">Pick a passage.</h2>
+      <p class="lead">Choose any passage. You'll read it, then answer four simple questions. That's the whole thing.</p>
+
+      <label class="field-label" for="quickPickerBtn">Reference</label>
+      <div class="passage-input-row">
+        <button type="button" id="quickPickerBtn" class="ref-button is-empty" onclick="openRefPicker('quickInput', 'quickPickerBtn')" aria-label="Choose a Bible passage">
+          <svg class="ref-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="quickPickerLabel">Choose a passage</span>
+          <span class="ref-caret">▾</span>
+        </button>
+        <input type="hidden" id="quickInput" value="">
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · READ ──────────────────────────────── -->
+  <section class="screen" id="screen-quickRead">
+    <div class="card">
+      <div class="h-step gather">QUICK STUDY</div>
+      <h2 class="h-question">Read it slowly. Twice is better.</h2>
+      <p class="lead">There's no hurry. When you're ready, four short questions are waiting.</p>
+    </div>
+
+    <div class="passage-display" id="quickReadPassage">
+      <div class="passage-loading">Loading passage…</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" onclick="advanceFromQuickRead()">I've read it →</button>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · 1 of 2 ────────────────────────────── -->
+  <section class="screen" id="screen-quick1">
+    <div class="card tinted-gather">
+      <div class="h-step gather">QUICK STUDY · 1 of 2</div>
+      <h2 class="h-question">What did you see?</h2>
+      <p class="lead">There are no wrong answers here — just write what you noticed.</p>
+
+      <details class="accord passage-accord" id="quick1Passage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <label class="field-label" for="quickGod">What does this say about God?</label>
+      <textarea id="quickGod" rows="3" placeholder="e.g., God cares about people who feel lost…"></textarea>
+
+      <label class="field-label" for="quickPeople">What does this say about people?</label>
+      <textarea id="quickPeople" rows="3" placeholder="e.g., People need help they can't give themselves…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuick1()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · 2 of 2 ────────────────────────────── -->
+  <section class="screen" id="screen-quick2">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">QUICK STUDY · 2 of 2</div>
+      <h2 class="h-question">Now make it personal.</h2>
+      <p class="lead"><em>You're not performing. Just being honest.</em></p>
+
+      <details class="accord passage-accord" id="quick2Passage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <label class="field-label" for="quickMe">What is this saying to me?</label>
+      <textarea id="quickMe" rows="3" placeholder="e.g., I don't have to earn God's attention — he's already looking for me…"></textarea>
+
+      <label class="field-label" for="quickRespond">How will I respond — or believe differently?</label>
+      <textarea id="quickRespond" rows="3" placeholder="e.g., This week I'll thank God each morning instead of starting with worry…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuick2()">Finish →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · DONE ──────────────────────────────── -->
+  <section class="screen" id="screen-quickDone">
+    <div class="done-celebrate">
+      <div class="check">✓</div>
+      <h2 id="quickDoneHeading">You did it.</h2>
+      <p>You read God's Word and responded to it. That's Bible study — you can do this.</p>
+    </div>
+
+    <div class="card">
+      <div class="h-step gather">YOUR QUICK STUDY</div>
+      <h2 class="h-question" id="quickDoneRef">—</h2>
+
+      <div class="done-summary" id="quickDoneSummary"></div>
+
+      <div class="privacy" style="margin-top:18px;">
+        <strong>Want to go deeper next time?</strong> The Full EDGE Study walks the same path with more depth — same questions you just answered, plus room to explore.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goHome()">← Home</button>
+        <button class="btn btn-primary" onclick="newQuickStudy()">Start another →</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ─── WORD STUDY (Lexicon Search) ─────────────────────── -->
   <section class="screen" id="screen-wordStudy">
     <div class="card">
@@ -1836,6 +1961,25 @@ function emptyStudy() {
 
 const STORAGE_KEY_NAME  = 'edge.user.name';
 const STORAGE_KEY_STUDY = 'edge.study.draft';
+const STORAGE_KEY_QUICK = 'edge.quick.draft';
+
+function emptyQuick() {
+  return { passage: null, text: null, quickGod: '', quickPeople: '', quickMe: '', quickRespond: '' };
+}
+state.quick = emptyQuick();
+
+function loadQuick() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_QUICK);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveQuick() {
+  try { localStorage.setItem(STORAGE_KEY_QUICK, JSON.stringify(state.quick)); } catch {}
+}
+function clearQuick() {
+  try { localStorage.removeItem(STORAGE_KEY_QUICK); } catch {}
+}
 
 /* ============================================================
    STORAGE
@@ -1949,7 +2093,7 @@ function showScreen(name, opts = {}) {
   state.screen = name;
 
   // Header back button
-  const showBack = !['welcome', 'home', 'done'].includes(name);
+  const showBack = !['welcome', 'home', 'done', 'quickDone'].includes(name);
   document.getElementById('backBtn').classList.toggle('is-visible', showBack);
 
   // Progress bar (only during EDGE flow). Sub-steps map to their parent dot.
@@ -1973,6 +2117,10 @@ function showScreen(name, opts = {}) {
   if (name === 'gatherOW')       mountGatherOW();
   if (name === 'embrace')        mountEmbrace();
   if (name === 'done')           renderDone();
+  if (name === 'quickRead')      mountQuickRead();
+  if (name === 'quick1')         mountQuick1();
+  if (name === 'quick2')         mountQuick2();
+  if (name === 'quickDone')      renderQuickDone();
   if (name === 'wordStudy')      mountWordStudy();
   if (name === 'readBible')      mountReadBible();
 
@@ -2360,6 +2508,8 @@ function commitRefPick(book, chapter) {
     onPassageSubmit();
   } else if (targetInputId === 'readBibleInput') {
     onReadBibleSubmit();
+  } else if (targetInputId === 'quickInput') {
+    onQuickSubmit();
   }
 }
 
@@ -2395,11 +2545,11 @@ function parseRef(ref) {
   return { bookCode, chapter, startVerse, endVerse };
 }
 
-async function fetchPassage(ref) {
+async function fetchPassage(ref, translation) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  const isInterlinear = (state.study.translation === 'interlinear');
+  const isInterlinear = ((translation || state.study.translation) === 'interlinear');
   const folder = isInterlinear ? 'interlinear' : 'bsb';
   const url = `/data/${folder}/${parsed.bookCode}_${parsed.chapter}.json`;
   const res = await fetch(url);
@@ -2554,10 +2704,10 @@ function mountExplore() {
    Remembers open/closed across steps for the current session. */
 let passageAccordOpen = false;
 
-function mountPassageAccord(accordId) {
+function mountPassageAccord(accordId, data) {
   const det = document.getElementById(accordId);
   if (!det) return;
-  const d = state.study.text;
+  const d = data || state.study.text;
   if (!d) { det.style.display = 'none'; return; }
   det.style.display = '';
   det.querySelector('.pa-ref').textContent = d.reference || 'Passage';
@@ -2689,6 +2839,104 @@ function newStudy() {
   clearStudy();
   state.history = [];
   showScreen('pickPassage', { skipHistory: true });
+}
+
+/* ============================================================
+   QUICK STUDY — four questions, BSB only, own draft storage
+   ============================================================ */
+function onQuickSubmit() {
+  const v = document.getElementById('quickInput').value.trim();
+  if (!v) { openRefPicker('quickInput', 'quickPickerBtn'); return; }
+  state.quick = { ...emptyQuick(), passage: v };
+  saveQuick();
+  showScreen('quickRead');
+}
+
+async function mountQuickRead() {
+  const display = document.getElementById('quickReadPassage');
+  display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
+  try {
+    const data = await fetchPassage(state.quick.passage, 'bsb');
+    state.quick.text = data;
+    saveQuick();
+    renderPassageInto('quickReadPassage', data, true);
+  } catch (err) {
+    console.error('Bible fetch error:', err);
+    display.innerHTML = `
+      <div class="passage-error">
+        Couldn't load "${escapeHtml(state.quick.passage)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
+      </div>
+      <div style="text-align:center; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="showScreen('quickPick', { skipHistory: true })">← Edit reference</button>
+      </div>
+    `;
+  }
+}
+
+function attachQuickAutosave(id) {
+  const el = document.getElementById(id);
+  if (!el || el._autosaveAttached) return;
+  el._autosaveAttached = true;
+  el.addEventListener('input', () => {
+    state.quick[id] = el.value;
+    saveQuick();
+  });
+}
+
+function mountQuick1() {
+  mountPassageAccord('quick1Passage', state.quick.text);
+  document.getElementById('quickGod').value    = state.quick.quickGod || '';
+  document.getElementById('quickPeople').value = state.quick.quickPeople || '';
+  attachQuickAutosave('quickGod');
+  attachQuickAutosave('quickPeople');
+}
+
+function mountQuick2() {
+  mountPassageAccord('quick2Passage', state.quick.text);
+  document.getElementById('quickMe').value      = state.quick.quickMe || '';
+  document.getElementById('quickRespond').value = state.quick.quickRespond || '';
+  attachQuickAutosave('quickMe');
+  attachQuickAutosave('quickRespond');
+}
+
+function captureQuickInputs() {
+  ['quickGod', 'quickPeople', 'quickMe', 'quickRespond'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state.quick[id] = el.value;
+  });
+  saveQuick();
+}
+
+function advanceFromQuickRead() { showScreen('quick1'); }
+function advanceFromQuick1()    { captureQuickInputs(); showScreen('quick2'); }
+function advanceFromQuick2()    { captureQuickInputs(); showScreen('quickDone'); }
+
+function renderQuickDone() {
+  const name = state.user.name ? state.user.name : 'Friend';
+  document.getElementById('quickDoneHeading').textContent = `You did it, ${name}.`;
+  document.getElementById('quickDoneRef').textContent = state.quick.passage || '—';
+
+  const items = [
+    { step: 'gather',  label: 'About God',    q: 'What does this say about God?',            a: state.quick.quickGod },
+    { step: 'gather',  label: 'About people', q: 'What does this say about people?',         a: state.quick.quickPeople },
+    { step: 'embrace', label: 'To me',        q: 'What is this saying to me?',               a: state.quick.quickMe },
+    { step: 'embrace', label: 'My response',  q: 'How will I respond, or believe differently?', a: state.quick.quickRespond }
+  ];
+
+  document.getElementById('quickDoneSummary').innerHTML = items.map(i => `
+    <div class="item">
+      <div class="item-h ${i.step}">${i.label}</div>
+      <div class="item-q">${i.q}</div>
+      <div class="item-a ${(i.a || '').trim() ? '' : 'empty'}">${escapeHtml((i.a || '').trim()) || '(skipped)'}</div>
+    </div>
+  `).join('');
+}
+
+function newQuickStudy() {
+  state.quick = emptyQuick();
+  clearQuick();
+  state.history = [];
+  showScreen('quickPick', { skipHistory: true });
 }
 
 /* ============================================================
@@ -3186,6 +3434,10 @@ function init() {
   // Load any in-progress study
   const savedStudy = loadStudy();
   if (savedStudy) state.study = { ...emptyStudy(), ...savedStudy };
+
+  // Load any in-progress quick study
+  const savedQuick = loadQuick();
+  if (savedQuick) state.quick = { ...emptyQuick(), ...savedQuick };
 
   // Wire reference picker (book/chapter modal)
   wireRefPicker();
