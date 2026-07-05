@@ -719,6 +719,33 @@ select.translation-select {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ─── Translation toggle (BSB ⇄ Greek interlinear) ───────── */
+.trans-toggle {
+  display: inline-flex;
+  margin-left: 10px;
+  vertical-align: middle;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.trans-toggle-btn {
+  border: none;
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.trans-toggle-btn.is-on {
+  background: var(--accent);
+  color: white;
+}
+.pa-toggle { margin-bottom: 10px; }
+
 /* ─── Hint box ───────────────────────────────────────────── */
 .hint-box {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
@@ -2658,10 +2685,11 @@ async function fetchPassageForReader() {
   display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
 
   try {
-    const data = await fetchPassage(state.study.passage);
+    const data = await fetchPassageCached(state.study.passage, state.study.translation);
     state.study.text = data;
     saveStudy();
     renderPassageInto('readerPassage', data, true); // tappable words enabled
+    injectToggleIntoDisplay('readerPassage');
   } catch (err) {
     console.error('Bible fetch error:', err);
     display.innerHTML = `
@@ -2692,16 +2720,18 @@ function startEdge() {
 /* ============================================================
    EDGE STEP MOUNTING
    ============================================================ */
+function renderExplorePassage() {
+  const d = state.study.text;
+  if (!d) return;
+  const refEl = document.getElementById('explorePassageRef');
+  refEl.innerHTML = escapeHtml(d.reference || '') + passageToggleHtml();
+  const passageEl = document.getElementById('explorePassageText');
+  passageEl.innerHTML = buildVersesHtml(d, true);
+  passageEl.classList.toggle('interlinear-text', !!d.isInterlinear);
+}
+
 function mountExplore() {
-  if (state.study.text) {
-    const d = state.study.text;
-    document.getElementById('explorePassageRef').textContent = d.reference || '';
-    const passageEl = document.getElementById('explorePassageText');
-    // Use the shared renderer so BSB and interlinear both display
-    // exactly as they do on the Reader screen (tappable words included).
-    passageEl.innerHTML = buildVersesHtml(d, true);
-    passageEl.classList.toggle('interlinear-text', !!d.isInterlinear);
-  }
+  if (state.study.text) renderExplorePassage();
   document.getElementById('exploreInput').value = state.study.explore || '';
   attachAutosave('exploreInput', 'explore');
   populateHint('exploreHint', 'explore');
@@ -2714,10 +2744,17 @@ let passageAccordOpen = false;
 function mountPassageAccord(accordId, data) {
   const det = document.getElementById(accordId);
   if (!det) return;
+  // No explicit data = full-study passage, which gets the translation toggle.
+  const withToggle = (data === undefined);
   const d = data || state.study.text;
   if (!d) { det.style.display = 'none'; return; }
   det.style.display = '';
   det.querySelector('.pa-ref').textContent = d.reference || 'Passage';
+  const body = det.querySelector('.passage-accord-body');
+  const oldToggle = body.querySelector('.pa-toggle');
+  if (oldToggle) oldToggle.remove();
+  const tHtml = withToggle ? passageToggleHtml() : '';
+  if (tHtml) body.insertAdjacentHTML('afterbegin', `<div class="pa-toggle">${tHtml}</div>`);
   const textEl = det.querySelector('.passage-text');
   textEl.innerHTML = buildVersesHtml(d, true);
   textEl.classList.toggle('interlinear-text', !!d.isInterlinear);
@@ -2847,6 +2884,76 @@ function newStudy() {
   clearStudy();
   state.history = [];
   showScreen('pickPassage', { skipHistory: true });
+}
+
+/* ============================================================
+   TRANSLATION TOGGLE (BSB ⇄ Greek interlinear)
+   Available on Full-study passage displays. NT passages only,
+   since the interlinear covers the Greek NT. Quick Study is
+   deliberately BSB-only and never shows the toggle.
+   ============================================================ */
+const PASSAGE_CACHE = {};
+
+async function fetchPassageCached(ref, translation) {
+  const key = (translation || 'bsb') + '|' + ref;
+  if (PASSAGE_CACHE[key]) return PASSAGE_CACHE[key];
+  const data = await fetchPassage(ref, translation);
+  PASSAGE_CACHE[key] = data;
+  return data;
+}
+
+const NT_BOOK_CODES = new Set([
+  'MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL',
+  '1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV'
+]);
+
+function passageIsNT(ref) {
+  const p = parseRef(ref || '');
+  return p ? NT_BOOK_CODES.has(p.bookCode) : false;
+}
+
+function passageToggleHtml() {
+  // Interlinear is Greek NT only — no toggle for OT passages.
+  if (!passageIsNT(state.study.passage)) return '';
+  const v = state.study.translation || 'bsb';
+  return `<span class="trans-toggle" role="group" aria-label="Translation view">`
+       + `<button type="button" class="trans-toggle-btn ${v === 'bsb' ? 'is-on' : ''}" onclick="setStudyTranslation('bsb')">BSB</button>`
+       + `<button type="button" class="trans-toggle-btn ${v === 'interlinear' ? 'is-on' : ''}" onclick="setStudyTranslation('interlinear')">Greek</button>`
+       + `</span>`;
+}
+
+async function setStudyTranslation(t) {
+  if ((state.study.translation || 'bsb') === t) return;
+  state.study.translation = t;
+  saveStudy();
+  try {
+    const data = await fetchPassageCached(state.study.passage, t);
+    state.study.text = data;
+    saveStudy();
+  } catch (err) {
+    console.error('Translation toggle fetch error:', err);
+    return;
+  }
+  refreshVisiblePassages();
+}
+
+function refreshVisiblePassages() {
+  if (state.screen === 'reader') {
+    renderPassageInto('readerPassage', state.study.text, true);
+    injectToggleIntoDisplay('readerPassage');
+  }
+  if (state.screen === 'explore') renderExplorePassage();
+  // Refill any passage accordions on the active screen
+  const screenEl = document.getElementById('screen-' + state.screen);
+  if (screenEl) {
+    screenEl.querySelectorAll('.passage-accord').forEach(det => mountPassageAccord(det.id));
+  }
+}
+
+function injectToggleIntoDisplay(elId) {
+  const refEl = document.querySelector('#' + elId + ' .passage-ref');
+  const t = passageToggleHtml();
+  if (refEl && t) refEl.insertAdjacentHTML('beforeend', t);
 }
 
 /* ============================================================
