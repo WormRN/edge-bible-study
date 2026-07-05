@@ -1688,24 +1688,31 @@ select.translation-select {
   <!-- ─── EMBRACE ─────────────────────────────────────────── -->
   <section class="screen" id="screen-embrace">
     <div class="card tinted-embrace">
-      <div class="h-step embrace">E · EMBRACE</div>
+      <div class="h-step embrace">E · EMBRACE — A·C·T</div>
       <h2 class="h-question">How will this shape me?</h2>
       <p class="lead"><em>You're not earning anything here. Just receiving, then responding.</em></p>
+
+      <details class="accord passage-accord" id="embracePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
 
       <div class="hint-box" id="embraceHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('embraceHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="embraceApply">Where in your life does this apply?</label>
-      <textarea id="embraceApply" rows="2" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
+      <label class="field-label" for="embraceApply">Apply — what is it saying to me?</label>
+      <textarea id="embraceApply" rows="3" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
 
-      <label class="field-label" for="embraceCommit">What will you commit to today?</label>
-      <textarea id="embraceCommit" rows="2" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
+      <label class="field-label" for="embraceCommit">Commit — what will I do about it?</label>
+      <textarea id="embraceCommit" rows="3" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
 
-      <label class="field-label" for="embraceAction">One specific thing you'll do.</label>
+      <label class="field-label" for="embraceAction">Take action — how exactly will I practice this?</label>
       <p class="field-help">Make it concrete and small. A single action you can take this week.</p>
-      <textarea id="embraceAction" rows="2" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+      <textarea id="embraceAction" rows="3" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
@@ -2760,6 +2767,7 @@ function mountGatherOW() {
 }
 
 function mountEmbrace() {
+  mountPassageAccord('embracePassage');
   document.getElementById('embraceApply').value   = state.study.embraceApply || '';
   document.getElementById('embraceCommit').value  = state.study.embraceCommit || '';
   document.getElementById('embraceAction').value  = state.study.embraceAction || '';
@@ -2820,9 +2828,9 @@ function renderDone() {
     { step: 'gather',  label: 'Gather · Nature of God', q: 'What does this say about God?',         a: state.study.gatherGod },
     { step: 'gather',  label: 'Gather · Outcome',       q: 'What does it mean for faith & beliefs?', a: state.study.gatherOutcome },
     { step: 'gather',  label: 'Gather · Wisdom',        q: 'About people, and to people.',          a: state.study.gatherPeople },
-    { step: 'embrace', label: 'Embrace', q: 'Where in my life does this apply?',  a: state.study.embraceApply },
-    { step: 'embrace', label: 'Embrace', q: 'What will I commit to today?',      a: state.study.embraceCommit },
-    { step: 'embrace', label: 'Embrace', q: 'One specific thing I\'ll do.',       a: state.study.embraceAction }
+    { step: 'embrace', label: 'Embrace · Apply',       q: 'What is it saying to me?',           a: state.study.embraceApply },
+    { step: 'embrace', label: 'Embrace · Commit',      q: 'What will I do about it?',           a: state.study.embraceCommit },
+    { step: 'embrace', label: 'Embrace · Take action', q: 'How exactly will I practice this?',  a: state.study.embraceAction }
   ];
 
   document.getElementById('doneSummary').innerHTML = items.map(i => `
