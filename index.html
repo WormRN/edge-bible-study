@@ -746,6 +746,53 @@ select.translation-select {
 }
 .pa-toggle { margin-bottom: 10px; }
 
+/* ─── W·O·R·D wizard ─────────────────────────────────────── */
+.wiz-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+.wiz-step {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.45;
+}
+.wiz-step.is-on, .wiz-step.is-done { opacity: 1; }
+.wiz-letter {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+.wiz-step.is-on .wiz-letter { background: white; color: var(--navy); }
+.wiz-step.is-done .wiz-letter { background: var(--edge-explore); color: white; }
+.wiz-label {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: white;
+}
+.wiz-line { flex: 1; height: 1px; background: rgba(255,255,255,0.25); min-width: 8px; }
+@media (max-width: 480px) {
+  .wiz-label { display: none; }
+}
+.wiz-word-big {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--navy);
+  margin: 6px 0 2px;
+}
+.wiz-word-big .translit { font-style: italic; font-size: 22px; color: var(--muted); margin-left: 8px; }
+.wiz-meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+
 /* ─── Hint box ───────────────────────────────────────────── */
 .hint-box {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
@@ -1596,6 +1643,12 @@ select.translation-select {
         💡 <strong>Tap any word</strong> in the passage to see what it means in the original language.
       </div>
 
+      <button class="lookup-link" onclick="openWordWizard()">
+        <span class="lookup-link-h">🔍 Guided word study</span>
+        <span class="lookup-link-d">Walk the W-O-R-D steps: Word → Original → Range → Decide. Your findings are added to your notes below.</span>
+        <span class="lookup-link-arrow">→</span>
+      </button>
+
       <label class="field-label" for="exploreDefine">Words you looked up — what do they mean <em>here</em>?</label>
       <p class="field-help">Not every meaning a word can have — the meaning it carries in this passage.</p>
       <textarea id="exploreDefine" rows="4" placeholder="e.g., 'Grace' (charis) — a gift freely given; here it's God's favor we didn't earn…"></textarea>
@@ -2010,6 +2063,11 @@ select.translation-select {
 <!-- ─── FULL ANALYSIS MODAL (used by Word Study) ─────────── -->
 <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="modal-content" id="modalContent"></div>
+</div>
+
+<!-- ─── W·O·R·D WIZARD MODAL (guided word study) ─────────── -->
+<div class="modal-backdrop" id="wizBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-content" id="wizContent"></div>
 </div>
 
 <footer class="app-footer">
@@ -2803,6 +2861,206 @@ function mountExploreDefine() {
 }
 
 /* ============================================================
+   W·O·R·D WIZARD — guided word study inside Explore's Define
+   W: pick the English word · O: see the original · R: range of
+   meanings · D: decide the meaning here. Result is appended to
+   the Define notes field.
+   ============================================================ */
+const wiz = { step: 'W', strongs: null, wordEn: '', entry: null, mounce: null, thayer: null, lastLine: '' };
+
+function wizStripHtml(current) {
+  const steps = ['W', 'O', 'R', 'D'];
+  const labels = { W: 'Word', O: 'Original', R: 'Range', D: 'Decide' };
+  const idx = steps.indexOf(current); // -1 when current === 'done'
+  return `<div class="wiz-steps">` + steps.map((s, i) => {
+    const cls = (current === 'done') ? 'is-done' : (i === idx ? 'is-on' : (i < idx ? 'is-done' : ''));
+    return `<div class="wiz-step ${cls}"><span class="wiz-letter">${s}</span><span class="wiz-label">${labels[s]}</span></div>`;
+  }).join('<div class="wiz-line"></div>') + `</div>`;
+}
+
+function wizFrame(current, title, bodyHtml) {
+  return `<div class="full-card">
+    <div class="full-header">
+      <button class="full-close" onclick="closeWordWizard()" aria-label="Close">×</button>
+      <div class="gloss" style="padding-right:40px;">${title}</div>
+      ${wizStripHtml(current)}
+    </div>
+    <div class="full-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function openWordWizard() {
+  if (!state.study.text) return;
+  wiz.step = 'W'; wiz.strongs = null; wiz.wordEn = '';
+  wiz.entry = null; wiz.mounce = null; wiz.thayer = null; wiz.lastLine = '';
+  document.getElementById('wizBackdrop').classList.add('is-open');
+  document.getElementById('wizBackdrop').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  wizShowW();
+}
+
+function closeWordWizard() {
+  const backdrop = document.getElementById('wizBackdrop');
+  backdrop.classList.remove('is-open');
+  backdrop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function wizShowW() {
+  wiz.step = 'W';
+  const d = state.study.text;
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('W', 'Find the word to study', `
+    <p class="lead" style="margin-bottom:14px;">Tap the word you want to understand better.</p>
+    <div style="border:1px solid var(--rule);border-radius:10px;padding:16px 18px;max-height:45vh;overflow-y:auto;">
+      <div class="passage-text ${d.isInterlinear ? 'interlinear-text' : ''}" id="wizPassage" style="font-size:17px;"></div>
+    </div>
+  `);
+  const el = document.getElementById('wizPassage');
+  el.innerHTML = buildVersesHtml(d, true);
+  // Route word taps to the wizard instead of the lexicon popup
+  el.querySelectorAll('[data-strongs]').forEach(w => { w.onclick = () => wizSelectWord(w); });
+  content.scrollTop = 0;
+}
+
+function wizSelectWord(w) {
+  const strongs = w.dataset.strongs;
+  if (!strongs) return;
+  wiz.strongs = strongs;
+  wiz.wordEn = (w.querySelector('.il-gloss')?.textContent || w.textContent || '').trim();
+  if (!wiz.wordEn) wiz.wordEn = (w.querySelector('.il-grk')?.textContent || '').trim();
+  wizShowO();
+}
+
+async function wizShowO() {
+  wiz.step = 'O';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('O', 'The original word',
+    '<div style="padding:30px;text-align:center;color:var(--muted);">Loading…</div>');
+  const lang = wiz.strongs.startsWith('H') ? 'H' : 'G';
+  try {
+    const lexicon = await loadLexiconData(lang);
+    wiz.entry = lexicon[wiz.strongs] || null;
+    if (lang === 'G') {
+      const mData = await loadMounceData();
+      wiz.mounce = mData[wiz.strongs] || null;
+      const tData = await loadThayerData();
+      wiz.thayer = tData[wiz.strongs] || null;
+    } else {
+      wiz.mounce = null; wiz.thayer = null;
+    }
+  } catch (err) {
+    console.error('Wizard lexicon error:', err);
+  }
+  const lemma    = (wiz.mounce && wiz.mounce.lemma)    || (wiz.entry && wiz.entry.lemma)    || '—';
+  const translit = (wiz.mounce && wiz.mounce.translit) || (wiz.entry && wiz.entry.translit) || '';
+  const id       = (wiz.entry && wiz.entry.id) || wiz.strongs;
+  const freq     = wiz.mounce && wiz.mounce.freq ? ` · appears ${wiz.mounce.freq}× in the NT` : '';
+  const pos      = wiz.entry ? formatPos(wiz.entry.pos) : '';
+  content.innerHTML = wizFrame('O', 'The original word', `
+    <p class="lead">Behind “<strong>${escapeHtml(wiz.wordEn)}</strong>” is the ${lang === 'H' ? 'Hebrew' : 'Greek'} word the author actually wrote:</p>
+    <div class="wiz-word-big">${escapeHtml(lemma)}<span class="translit">${translit ? '(' + escapeHtml(translit) + ')' : ''}</span></div>
+    <div class="wiz-meta">${escapeHtml(pos)}${pos ? ' · ' : ''}Strong's ${escapeHtml(id)}${freq}</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowW()">← Pick another word</button>
+      <button class="btn btn-primary" onclick="wizShowR()">See its meanings →</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+function wizRangeBody() {
+  const entry = wiz.entry, mounce = wiz.mounce, thayer = wiz.thayer;
+  const parsed = entry ? parseTbesg(entry.raw) : { sections: [], synonyms: '', attribution: '' };
+  const etym   = parsed.sections.find(s => s.type === 'etymology');
+  const brief  = parsed.sections.find(s => s.type === 'paragraph');
+  const senses = parsed.sections.filter(s => s.type === 'sense' || s.type === 'subsense');
+  const sensesHtml = senses.length
+    ? `<ul class="sense-list">${senses.map(s => `
+         <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
+           <span class="marker">${escapeHtml(s.marker)}</span>
+           <span class="content">${s.content}</span>
+         </li>`).join('')}</ul>` : '';
+  let primary, extras = '';
+  if (mounce) {
+    primary = `<p class="brief-gloss">${escapeHtml(mounce.def)}</p>`;
+    if (entry) {
+      extras += `<details class="accord"><summary>Abbott-Smith (detailed)</summary><div class="accord-body">
+        ${etym ? `<p class="etymology">${etym.content}</p>` : ''}
+        ${brief ? `<p class="brief-gloss">${brief.content}</p>` : ''}
+        ${sensesHtml || '<span class="placeholder">No detailed entry.</span>'}
+      </div></details>`;
+    }
+  } else {
+    primary = (etym ? `<p class="etymology">${etym.content}</p>` : '')
+            + (brief ? `<p class="brief-gloss">${brief.content}</p>` : '')
+            + sensesHtml;
+    if (!primary) primary = '<p class="brief-gloss" style="color:var(--muted);font-style:italic;">No lexicon entry found for this word.</p>';
+  }
+  if (thayer) {
+    extras = `<details class="accord"><summary>Thayer's</summary><div class="accord-body thayer-body">${thayer}</div></details>` + extras;
+  }
+  return primary + extras;
+}
+
+function wizShowR() {
+  wiz.step = 'R';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('R', 'The range of meanings', `
+    <p class="lead">One word can carry several senses. Read through the range — which sense fits your passage?</p>
+    ${wizRangeBody()}
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowO()">← Back</button>
+      <button class="btn btn-primary" onclick="wizShowD()">Decide →</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+function wizShowD() {
+  wiz.step = 'D';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('D', 'Decide the meaning here', `
+    <p class="lead">Not every meaning this word <em>can</em> have — the meaning it carries in <strong>this</strong> passage. Say it in your own words.</p>
+    <textarea id="wizDecision" rows="4" placeholder="e.g., Here it means God's favor we didn't earn…"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowR()">← Back to meanings</button>
+      <button class="btn btn-primary" onclick="wizFinish()">Add to my notes →</button>
+    </div>
+  `);
+  document.getElementById('wizDecision').focus();
+  content.scrollTop = 0;
+}
+
+function wizFinish() {
+  const ta = document.getElementById('wizDecision');
+  const decision = (ta.value || '').trim();
+  if (!decision) { ta.focus(); return; }
+  const lemma = (wiz.mounce && wiz.mounce.lemma) || (wiz.entry && wiz.entry.lemma) || '';
+  const id    = (wiz.entry && wiz.entry.id) || wiz.strongs;
+  wiz.lastLine = `“${wiz.wordEn}” — ${lemma} (${id}): ${decision}`;
+  state.study.exploreDefine = (state.study.exploreDefine ? state.study.exploreDefine + '\n' : '') + wiz.lastLine;
+  saveStudy();
+  const defineField = document.getElementById('exploreDefine');
+  if (defineField) defineField.value = state.study.exploreDefine;
+  wizShowDone();
+}
+
+function wizShowDone() {
+  wiz.step = 'done';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('done', 'Added to your notes ✓', `
+    <p class="lead">Saved to your Define notes:</p>
+    <div class="hint-box" style="margin-bottom:20px;">${escapeHtml(wiz.lastLine)}</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowW()">Study another word</button>
+      <button class="btn btn-primary" onclick="closeWordWizard()">Done for now</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+/* ============================================================
    EDGE STEP MOUNTING
    ============================================================ */
 /* Passage accordion — collapsible Scripture on study steps.
@@ -3459,9 +3717,15 @@ function closeModal() {
 document.getElementById('modalBackdrop').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
+document.getElementById('wizBackdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeWordWizard();
+});
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('modalBackdrop').classList.contains('is-open')) {
     closeModal();
+  }
+  if (e.key === 'Escape' && document.getElementById('wizBackdrop').classList.contains('is-open')) {
+    closeWordWizard();
   }
 });
 
