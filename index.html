@@ -1501,10 +1501,10 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── READER (E0 — passage shown before EDGE flow) ────── -->
+  <!-- ─── EXPLORE · 1 of 4 — READ ─────────────────────────── -->
   <section class="screen" id="screen-reader">
-    <div class="card">
-      <div class="h-step explore">READ</div>
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — READ · 1 of 4</div>
       <h2 class="h-question">Slow down. Read it twice.</h2>
       <p class="lead">
         Bible study isn't about finishing fast. Read the passage through once. Then read it again, slower.
@@ -1522,25 +1522,45 @@ select.translation-select {
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-      <button class="btn btn-primary" onclick="startEdge()">Begin EDGE →</button>
+      <button class="btn btn-primary" onclick="startEdge()">Continue →</button>
     </div>
   </section>
 
-  <!-- ─── EXPLORE ──────────────────────────────────────────── -->
-  <section class="screen" id="screen-explore">
+  <!-- ─── EXPLORE · 2 of 4 — EXAMINE ──────────────────────── -->
+  <section class="screen" id="screen-exploreExamine">
     <div class="card tinted-explore">
-      <div class="h-step explore">E · EXPLORE</div>
-      <h2 class="h-question">What is it saying?</h2>
-      <p class="lead">Notice what's actually on the page. Don't interpret yet — just observe.</p>
+      <div class="h-step explore">E · EXPLORE — EXAMINE · 2 of 4</div>
+      <h2 class="h-question">Read it in another form.</h2>
+      <p class="lead">A second form slows you down and shows you what you missed. Notice what's the same — and what surprises you.</p>
+    </div>
 
-      <div class="passage-display explore-passage-scroll" style="box-shadow:none; border-color:var(--rule); margin-bottom: 16px; padding: 16px 18px;">
-        <div class="passage-ref" id="explorePassageRef"></div>
-        <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
-      </div>
+    <div class="passage-display" id="examinePassage">
+      <div class="passage-loading">Loading passage…</div>
+    </div>
 
-      <div class="tap-note">
-        💡 <strong>Tap any word</strong> in the passage above to see what it means in the original language.
-      </div>
+    <div class="tap-note" id="examineOtNote" style="display:none;">
+      💡 The Greek interlinear covers the New Testament. An Old Testament option is planned — for now, simply read the passage again, slower than before.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" onclick="advanceFromExamine()">Continue →</button>
+    </div>
+  </section>
+
+  <!-- ─── EXPLORE · 3 of 4 — ANALYZE ──────────────────────── -->
+  <section class="screen" id="screen-exploreAnalyze">
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — ANALYZE · 3 of 4</div>
+      <h2 class="h-question">Stew in it.</h2>
+      <p class="lead">Meditate on it. Read it once more, slowly, and let it sit. Don't interpret yet — just observe.</p>
+
+      <details class="accord passage-accord" id="analyzePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
 
       <div class="hint-box" id="exploreHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('exploreHint')">Need a nudge? <span class="caret">›</span></button>
@@ -1553,7 +1573,36 @@ select.translation-select {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromExplore()">Continue to Dig →</button>
+        <button class="btn btn-primary" onclick="advanceFromAnalyze()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── EXPLORE · 4 of 4 — DEFINE ───────────────────────── -->
+  <section class="screen" id="screen-exploreDefine">
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — DEFINE · 4 of 4</div>
+      <h2 class="h-question">Define difficult words.</h2>
+      <p class="lead">Any words you'd struggle to explain to a friend? Look them up before moving on.</p>
+
+      <details class="accord passage-accord" id="definePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <div class="tap-note">
+        💡 <strong>Tap any word</strong> in the passage to see what it means in the original language.
+      </div>
+
+      <label class="field-label" for="exploreDefine">Words you looked up — what do they mean <em>here</em>?</label>
+      <p class="field-help">Not every meaning a word can have — the meaning it carries in this passage.</p>
+      <textarea id="exploreDefine" rows="4" placeholder="e.g., 'Grace' (charis) — a gift freely given; here it's God's favor we didn't earn…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDefine()">Continue to Dig →</button>
       </div>
     </div>
   </section>
@@ -1986,7 +2035,7 @@ function emptyStudy() {
     passage: null,
     translation: 'bsb',
     text: null,
-    explore: '',
+    explore: '', exploreDefine: '',
     digWho: '', digContext: '', digParaphrase: '',
     gatherKey: '', gatherGod: '', gatherOutcome: '', gatherPeople: '',
     embraceApply: '', embraceCommit: '', embraceAction: ''
@@ -2131,11 +2180,15 @@ function showScreen(name, opts = {}) {
   document.getElementById('backBtn').classList.toggle('is-visible', showBack);
 
   // Progress bar (only during EDGE flow). Sub-steps map to their parent dot.
-  const EDGE_FLOW = ['explore', 'digDetails', 'digInvestigate', 'digGrasp', 'gatherKN', 'gatherOW', 'embrace'];
+  const EDGE_FLOW = ['reader', 'exploreExamine', 'exploreAnalyze', 'exploreDefine',
+                     'digDetails', 'digInvestigate', 'digGrasp', 'gatherKN', 'gatherOW', 'embrace'];
   const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
   if (showProgress) {
-    const dot = name.startsWith('dig') ? 'dig' : name.startsWith('gather') ? 'gather' : name;
+    const dot = (name === 'reader' || name.startsWith('explore')) ? 'explore'
+              : name.startsWith('dig')    ? 'dig'
+              : name.startsWith('gather') ? 'gather'
+              : name;
     updateProgress(dot);
   }
 
@@ -2143,7 +2196,9 @@ function showScreen(name, opts = {}) {
   if (name === 'home')           renderHome();
   if (name === 'pickPassage')    renderPresets();
   if (name === 'reader')         fetchPassageForReader();
-  if (name === 'explore')        mountExplore();
+  if (name === 'exploreExamine') mountExploreExamine();
+  if (name === 'exploreAnalyze') mountExploreAnalyze();
+  if (name === 'exploreDefine')  mountExploreDefine();
   if (name === 'digDetails')     mountDigDetails();
   if (name === 'digInvestigate') mountDigInvestigate();
   if (name === 'digGrasp')       mountDigGrasp();
@@ -2191,7 +2246,8 @@ function updateProgress(currentStep) {
 
 function captureCurrentInputs() {
   const map = {
-    explore:        ['exploreInput'],
+    exploreAnalyze: ['exploreInput'],
+    exploreDefine:  ['exploreDefine'],
     digDetails:     ['digWho'],
     digInvestigate: ['digContext'],
     digGrasp:       ['digParaphrase'],
@@ -2714,29 +2770,41 @@ async function fetchPassageForReader() {
 }
 
 function startEdge() {
-  showScreen('explore');
+  showScreen('exploreExamine');
 }
 
 /* ============================================================
-   EDGE STEP MOUNTING
+   EXPLORE — R·E·A·D sub-steps (Read = the Reader screen above)
    ============================================================ */
-function renderExplorePassage() {
-  const d = state.study.text;
-  if (!d) return;
-  const refEl = document.getElementById('explorePassageRef');
-  refEl.innerHTML = escapeHtml(d.reference || '') + passageToggleHtml();
-  const passageEl = document.getElementById('explorePassageText');
-  passageEl.innerHTML = buildVersesHtml(d, true);
-  passageEl.classList.toggle('interlinear-text', !!d.isInterlinear);
+function renderExaminePassage() {
+  if (!state.study.text) return;
+  renderPassageInto('examinePassage', state.study.text, true);
+  injectToggleIntoDisplay('examinePassage');
 }
 
-function mountExplore() {
-  if (state.study.text) renderExplorePassage();
+function mountExploreExamine() {
+  renderExaminePassage();
+  // Interlinear is NT-only; for OT passages explain and encourage a slow re-read.
+  document.getElementById('examineOtNote').style.display =
+    passageIsNT(state.study.passage) ? 'none' : 'block';
+}
+
+function mountExploreAnalyze() {
+  mountPassageAccord('analyzePassage');
   document.getElementById('exploreInput').value = state.study.explore || '';
   attachAutosave('exploreInput', 'explore');
   populateHint('exploreHint', 'explore');
 }
 
+function mountExploreDefine() {
+  mountPassageAccord('definePassage');
+  document.getElementById('exploreDefine').value = state.study.exploreDefine || '';
+  attachAutosave('exploreDefine', 'exploreDefine');
+}
+
+/* ============================================================
+   EDGE STEP MOUNTING
+   ============================================================ */
 /* Passage accordion — collapsible Scripture on study steps.
    Remembers open/closed across steps for the current session. */
 let passageAccordOpen = false;
@@ -2840,7 +2908,9 @@ function toggleHint(boxId) {
   content.classList.toggle('is-open');
 }
 
-function advanceFromExplore()        { captureCurrentInputs(); showScreen('digDetails'); }
+function advanceFromExamine()        { showScreen('exploreAnalyze'); }
+function advanceFromAnalyze()        { captureCurrentInputs(); showScreen('exploreDefine'); }
+function advanceFromDefine()         { captureCurrentInputs(); showScreen('digDetails'); }
 function advanceFromDigDetails()     { captureCurrentInputs(); showScreen('digInvestigate'); }
 function advanceFromDigInvestigate() { captureCurrentInputs(); showScreen('digGrasp'); }
 function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gatherKN'); }
@@ -2857,7 +2927,8 @@ function renderDone() {
   document.getElementById('donePassageRef').textContent = state.study.passage || '—';
 
   const items = [
-    { step: 'explore', label: 'Explore', q: 'What did you notice?',                a: state.study.explore },
+    { step: 'explore', label: 'Explore · Analyze', q: 'What did you notice?',                       a: state.study.explore },
+    { step: 'explore', label: 'Explore · Define',  q: 'Words I looked up, and what they mean here.', a: state.study.exploreDefine },
     { step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?', a: state.study.digWho },
     { step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.',     a: state.study.digContext },
     { step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.',                a: state.study.digParaphrase },
@@ -2942,7 +3013,7 @@ function refreshVisiblePassages() {
     renderPassageInto('readerPassage', state.study.text, true);
     injectToggleIntoDisplay('readerPassage');
   }
-  if (state.screen === 'explore') renderExplorePassage();
+  if (state.screen === 'exploreExamine') renderExaminePassage();
   // Refill any passage accordions on the active screen
   const screenEl = document.getElementById('screen-' + state.screen);
   if (screenEl) {
