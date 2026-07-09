@@ -172,6 +172,14 @@ body {
 .progress-step[data-step="gather"].is-done .progress-dot { background: var(--edge-gather); }
 .progress-step[data-step="embrace"].is-active .progress-dot,
 .progress-step[data-step="embrace"].is-done .progress-dot { background: var(--edge-embrace); }
+.progress-step[data-gstep="g"].is-active .progress-dot,
+.progress-step[data-gstep="g"].is-done .progress-dot { background: var(--edge-gather); }
+.progress-step[data-gstep="o"].is-active .progress-dot,
+.progress-step[data-gstep="o"].is-done .progress-dot { background: var(--edge-explore); }
+.progress-step[data-gstep="a"].is-active .progress-dot,
+.progress-step[data-gstep="a"].is-done .progress-dot { background: var(--edge-dig); }
+.progress-step[data-gstep="l"].is-active .progress-dot,
+.progress-step[data-gstep="l"].is-done .progress-dot { background: var(--edge-embrace); }
 .progress-line {
   width: 22px;
   height: 2px;
@@ -1440,6 +1448,18 @@ select.translation-select {
   </div>
 </div>
 
+<div class="progress" id="goalProgress">
+  <div class="progress-track">
+    <div class="progress-step" data-gstep="g"><div class="progress-dot">G</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="o"><div class="progress-dot">O</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="a"><div class="progress-dot">A</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="l"><div class="progress-dot">L</div></div>
+  </div>
+</div>
+
 <main>
 
   <!-- ─── WELCOME ──────────────────────────────────────────── -->
@@ -1490,14 +1510,14 @@ select.translation-select {
 
     <button class="home-tile" onclick="showScreen('quickPick')">
       <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Quick Study</div>
-      <div class="home-tile-d">One passage, four simple questions. A great place to start.</div>
+      <div class="home-tile-h">GOAL Study</div>
+      <div class="home-tile-d">A quick, streamlined path — four thoughtful questions. A great place to start.</div>
     </button>
 
     <button class="home-tile" onclick="showScreen('pickPassage')">
       <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Full EDGE Study</div>
-      <div class="home-tile-d">The complete method — walk step by step through a passage with EDGE.</div>
+      <div class="home-tile-h">EDGE Study</div>
+      <div class="home-tile-d">An exhaustive study — walk a passage step by step through 14 guided practices.</div>
     </button>
 
     <button class="home-tile" onclick="showScreen('wordStudy')">
@@ -1876,9 +1896,9 @@ select.translation-select {
   <!-- ─── QUICK STUDY · PICK ──────────────────────────────── -->
   <section class="screen" id="screen-quickPick">
     <div class="card">
-      <div class="h-step gather">QUICK STUDY</div>
+      <div class="h-step gather">GOAL STUDY</div>
       <h2 class="h-question">Pick a passage.</h2>
-      <p class="lead">Choose any passage. You'll read it, then answer four simple questions. That's the whole thing.</p>
+      <p class="lead">Choose any passage. You'll read it, then answer four thoughtful questions — G, O, A, L. That's the whole thing.</p>
 
       <label class="field-label" for="quickPickerBtn">Reference</label>
       <div class="passage-input-row">
@@ -1898,7 +1918,7 @@ select.translation-select {
   <!-- ─── QUICK STUDY · READ ──────────────────────────────── -->
   <section class="screen" id="screen-quickRead">
     <div class="card">
-      <div class="h-step gather">QUICK STUDY</div>
+      <div class="h-step gather">GOAL STUDY</div>
       <h2 class="h-question">Read it slowly. Twice is better.</h2>
       <p class="lead">There's no hurry. When you're ready, four short questions are waiting.</p>
     </div>
@@ -1913,61 +1933,103 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── QUICK STUDY · 1 of 2 ────────────────────────────── -->
-  <section class="screen" id="screen-quick1">
+  <!-- ─── GOAL · 1 of 4 — GOD ─────────────────────────────── -->
+  <section class="screen" id="screen-quickG">
     <div class="card tinted-gather">
-      <div class="h-step gather">QUICK STUDY · 1 of 2</div>
-      <h2 class="h-question">What did you see?</h2>
-      <p class="lead">There are no wrong answers here — just write what you noticed.</p>
+      <div class="h-step gather">GOAL — G · GOD · 1 of 4</div>
+      <h2 class="h-question">What does this teach about God?</h2>
+      <p class="lead">Start with God before you start with yourself.</p>
 
-      <details class="accord passage-accord" id="quick1Passage">
+      <details class="accord passage-accord" id="quickGPassage">
         <summary>📖 <span class="pa-ref">Passage</span></summary>
         <div class="accord-body passage-accord-body">
           <div class="passage-text" style="font-size:17px;"></div>
         </div>
       </details>
 
-      <label class="field-label" for="quickGod">What does this say about God?</label>
-      <textarea id="quickGod" rows="3" placeholder="e.g., God cares about people who feel lost…"></textarea>
-
-      <label class="field-label" for="quickPeople">What does this say about people?</label>
-      <textarea id="quickPeople" rows="3" placeholder="e.g., People need help they can't give themselves…"></textarea>
+      <p class="field-help">His love, his promises, his warnings, his mercy — and how it points to Jesus.</p>
+      <textarea id="quickGod" rows="4" placeholder="e.g., God cares about people who feel lost…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromQuick1()">Continue →</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickG()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── QUICK STUDY · 2 of 2 ────────────────────────────── -->
-  <section class="screen" id="screen-quick2">
-    <div class="card tinted-embrace">
-      <div class="h-step embrace">QUICK STUDY · 2 of 2</div>
-      <h2 class="h-question">Now make it personal.</h2>
+  <!-- ─── GOAL · 2 of 4 — OTHERS ──────────────────────────── -->
+  <section class="screen" id="screen-quickO">
+    <div class="card tinted-explore">
+      <div class="h-step explore">GOAL — O · OTHERS · 2 of 4</div>
+      <h2 class="h-question">What does this teach about others?</h2>
+      <p class="lead">Scripture tells the truth about people — including you and me.</p>
+
+      <details class="accord passage-accord" id="quickOPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <p class="field-help">Our hopes, our fears, our sin, our weakness, our need.</p>
+      <textarea id="quickPeople" rows="4" placeholder="e.g., People need help they can't give themselves…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickO()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · 3 of 4 — ALIGN ───────────────────────────── -->
+  <section class="screen" id="screen-quickA">
+    <div class="card tinted-dig">
+      <div class="h-step dig">GOAL — A · ALIGN · 3 of 4</div>
+      <h2 class="h-question">Where do I need to align with this truth?</h2>
       <p class="lead"><em>You're not performing. Just being honest.</em></p>
 
-      <details class="accord passage-accord" id="quick2Passage">
+      <details class="accord passage-accord" id="quickAPassage">
         <summary>📖 <span class="pa-ref">Passage</span></summary>
         <div class="accord-body passage-accord-body">
           <div class="passage-text" style="font-size:17px;"></div>
         </div>
       </details>
 
-      <label class="field-label" for="quickMe">What is this saying to me?</label>
-      <textarea id="quickMe" rows="3" placeholder="e.g., I don't have to earn God's attention — he's already looking for me…"></textarea>
-
-      <label class="field-label" for="quickRespond">How will I respond — or believe differently?</label>
-      <textarea id="quickRespond" rows="3" placeholder="e.g., This week I'll thank God each morning instead of starting with worry…"></textarea>
+      <p class="field-help">What belief needs to change? What lie have you been believing?</p>
+      <textarea id="quickMe" rows="4" placeholder="e.g., I've been living like God's love must be earned — this says it's a gift…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromQuick2()">Finish →</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickA()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── QUICK STUDY · DONE ──────────────────────────────── -->
+  <!-- ─── GOAL · 4 of 4 — LIVE IT OUT ─────────────────────── -->
+  <section class="screen" id="screen-quickL">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">GOAL — L · LIVE IT OUT · 4 of 4</div>
+      <h2 class="h-question">How will I live out this truth?</h2>
+      <p class="lead">Make it small and concrete — one honest step.</p>
+
+      <details class="accord passage-accord" id="quickLPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <p class="field-help">Something you'll do today or this week — someone to forgive, thank, serve, or contact; a prayer to pray.</p>
+      <textarea id="quickRespond" rows="4" placeholder="e.g., This week I'll thank God each morning instead of starting with worry…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickL()">Finish →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · DONE ─────────────────────────────────────── -->
   <section class="screen" id="screen-quickDone">
     <div class="done-celebrate">
       <div class="check">✓</div>
@@ -1976,13 +2038,13 @@ select.translation-select {
     </div>
 
     <div class="card">
-      <div class="h-step gather">YOUR QUICK STUDY</div>
+      <div class="h-step gather">YOUR GOAL STUDY</div>
       <h2 class="h-question" id="quickDoneRef">—</h2>
 
       <div class="done-summary" id="quickDoneSummary"></div>
 
       <div class="privacy" style="margin-top:18px;">
-        <strong>Want to go deeper next time?</strong> The Full EDGE Study walks the same path with more depth — same questions you just answered, plus room to explore.
+        <strong>Want to go deeper next time?</strong> The EDGE Study walks the same path with 14 guided practices — same heart, more room to explore.
       </div>
 
       <div class="btn-row">
@@ -2242,6 +2304,11 @@ function showScreen(name, opts = {}) {
                      'digDetails', 'digInvestigate', 'digGrasp', 'gatherKN', 'gatherOW', 'embrace'];
   const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
+  // GOAL study tracker (G-O-A-L, one dot per question page)
+  const GOAL_FLOW = ['quickG', 'quickO', 'quickA', 'quickL'];
+  const showGoalProgress = GOAL_FLOW.includes(name);
+  document.getElementById('goalProgress').classList.toggle('is-visible', showGoalProgress);
+  if (showGoalProgress) updateGoalProgress(name);
   if (showProgress) {
     const dot = (name === 'reader' || name.startsWith('explore')) ? 'explore'
               : name.startsWith('dig')    ? 'dig'
@@ -2265,8 +2332,10 @@ function showScreen(name, opts = {}) {
   if (name === 'embrace')        mountEmbrace();
   if (name === 'done')           renderDone();
   if (name === 'quickRead')      mountQuickRead();
-  if (name === 'quick1')         mountQuick1();
-  if (name === 'quick2')         mountQuick2();
+  if (name === 'quickG')         mountQuickPage('quickGPassage', 'quickGod');
+  if (name === 'quickO')         mountQuickPage('quickOPassage', 'quickPeople');
+  if (name === 'quickA')         mountQuickPage('quickAPassage', 'quickMe');
+  if (name === 'quickL')         mountQuickPage('quickLPassage', 'quickRespond');
   if (name === 'quickDone')      renderQuickDone();
   if (name === 'wordStudy')      mountWordStudy();
   if (name === 'readBible')      mountReadBible();
@@ -2299,6 +2368,16 @@ function updateProgress(currentStep) {
     const stepIdx = order.indexOf(el.dataset.step);
     if (stepIdx < idx)  el.classList.add('is-done');
     if (stepIdx === idx) el.classList.add('is-active');
+  });
+}
+
+function updateGoalProgress(currentScreen) {
+  const order = ['quickG', 'quickO', 'quickA', 'quickL'];
+  const idx = order.indexOf(currentScreen);
+  document.querySelectorAll('#goalProgress .progress-step').forEach((el, i) => {
+    el.classList.remove('is-active', 'is-done');
+    if (i < idx)  el.classList.add('is-done');
+    if (i === idx) el.classList.add('is-active');
   });
 }
 
@@ -3327,20 +3406,10 @@ function attachQuickAutosave(id) {
   });
 }
 
-function mountQuick1() {
-  mountPassageAccord('quick1Passage', state.quick.text);
-  document.getElementById('quickGod').value    = state.quick.quickGod || '';
-  document.getElementById('quickPeople').value = state.quick.quickPeople || '';
-  attachQuickAutosave('quickGod');
-  attachQuickAutosave('quickPeople');
-}
-
-function mountQuick2() {
-  mountPassageAccord('quick2Passage', state.quick.text);
-  document.getElementById('quickMe').value      = state.quick.quickMe || '';
-  document.getElementById('quickRespond').value = state.quick.quickRespond || '';
-  attachQuickAutosave('quickMe');
-  attachQuickAutosave('quickRespond');
+function mountQuickPage(accordId, fieldId) {
+  mountPassageAccord(accordId, state.quick.text);
+  document.getElementById(fieldId).value = state.quick[fieldId] || '';
+  attachQuickAutosave(fieldId);
 }
 
 function captureQuickInputs() {
@@ -3351,9 +3420,11 @@ function captureQuickInputs() {
   saveQuick();
 }
 
-function advanceFromQuickRead() { showScreen('quick1'); }
-function advanceFromQuick1()    { captureQuickInputs(); showScreen('quick2'); }
-function advanceFromQuick2()    { captureQuickInputs(); showScreen('quickDone'); }
+function advanceFromQuickRead() { showScreen('quickG'); }
+function advanceFromQuickG()    { captureQuickInputs(); showScreen('quickO'); }
+function advanceFromQuickO()    { captureQuickInputs(); showScreen('quickA'); }
+function advanceFromQuickA()    { captureQuickInputs(); showScreen('quickL'); }
+function advanceFromQuickL()    { captureQuickInputs(); showScreen('quickDone'); }
 
 function renderQuickDone() {
   const name = state.user.name ? state.user.name : 'Friend';
@@ -3361,10 +3432,10 @@ function renderQuickDone() {
   document.getElementById('quickDoneRef').textContent = state.quick.passage || '—';
 
   const items = [
-    { step: 'gather',  label: 'About God',    q: 'What does this say about God?',            a: state.quick.quickGod },
-    { step: 'gather',  label: 'About people', q: 'What does this say about people?',         a: state.quick.quickPeople },
-    { step: 'embrace', label: 'To me',        q: 'What is this saying to me?',               a: state.quick.quickMe },
-    { step: 'embrace', label: 'My response',  q: 'How will I respond, or believe differently?', a: state.quick.quickRespond }
+    { step: 'gather',  label: 'G · God',         q: 'What does this teach about God?',          a: state.quick.quickGod },
+    { step: 'explore', label: 'O · Others',      q: 'What does this teach about others?',       a: state.quick.quickPeople },
+    { step: 'dig',     label: 'A · Align',       q: 'Where do I need to align with this truth?', a: state.quick.quickMe },
+    { step: 'embrace', label: 'L · Live it out', q: 'How will I live out this truth?',          a: state.quick.quickRespond }
   ];
 
   document.getElementById('quickDoneSummary').innerHTML = items.map(i => `
