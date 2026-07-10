@@ -33,7 +33,7 @@
   --edge-gather:  #2A7BD4;
   --edge-embrace: #8E54B5;
 
-  --shadow:       0 1px 3px rgba(15,42,82,0.08), 0 4px 16px rgba(15,42,82,0.06);
+  --shadow:       0 1px 3px rgba(15,42,82,0.07), 0 8px 24px rgba(15,42,82,0.07);
   --shadow-elev:  0 4px 24px rgba(15,42,82,0.14);
   --shadow-modal: 0 20px 60px rgba(8,26,53,0.35);
 
@@ -206,15 +206,15 @@ main {
 .card {
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 22px;
   box-shadow: var(--shadow);
   margin-bottom: 16px;
 }
-.card.tinted-explore { border-top: 4px solid var(--edge-explore); }
-.card.tinted-dig     { border-top: 4px solid var(--edge-dig); }
-.card.tinted-gather  { border-top: 4px solid var(--edge-gather); }
-.card.tinted-embrace { border-top: 4px solid var(--edge-embrace); }
+.card.tinted-explore { border-top: 5px solid var(--edge-explore); }
+.card.tinted-dig     { border-top: 5px solid var(--edge-dig); }
+.card.tinted-gather  { border-top: 5px solid var(--edge-gather); }
+.card.tinted-embrace { border-top: 5px solid var(--edge-embrace); }
 
 .h-display {
   font-family: var(--serif);
@@ -307,7 +307,7 @@ select.translation-select {
   font-weight: 700;
   padding: 14px 24px;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
   text-decoration: none;
@@ -434,13 +434,37 @@ select.translation-select {
   padding: 22px;
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
   cursor: pointer;
   margin-bottom: 12px;
   transition: all 0.15s ease;
   font-family: var(--sans);
   color: inherit;
   box-shadow: var(--shadow);
+}
+/* Study tiles carry their method's four-color signature */
+#screen-home .home-tile:nth-of-type(2)::after,
+#screen-home .home-tile:nth-of-type(3)::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+}
+#screen-home .home-tile:nth-of-type(2)::after {
+  background: linear-gradient(90deg,
+    var(--edge-gather)  0%, var(--edge-gather)  25%,
+    var(--edge-explore) 25%, var(--edge-explore) 50%,
+    var(--edge-dig)     50%, var(--edge-dig)     75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+}
+#screen-home .home-tile:nth-of-type(3)::after {
+  background: linear-gradient(90deg,
+    var(--edge-explore) 0%, var(--edge-explore) 25%,
+    var(--edge-dig)     25%, var(--edge-dig)     50%,
+    var(--edge-gather)  50%, var(--edge-gather)  75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
 }
 .home-tile:hover {
   border-color: var(--navy);
@@ -537,7 +561,7 @@ select.translation-select {
 .passage-display {
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 24px 22px;
   box-shadow: var(--shadow);
   margin-bottom: 16px;
