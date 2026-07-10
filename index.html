@@ -1833,102 +1833,168 @@ select.translation-select {
     </div>
   </section>
 
-  <!-- ─── GATHER · 1 of 2 — KEY & NATURE OF GOD ───────────── -->
-  <section class="screen" id="screen-gatherKN">
+  <!-- ─── GATHER · K-N-O-W · one practice per page ────────── -->
+  <section class="screen" id="screen-gatherK">
     <div class="card tinted-gather">
-      <div class="h-step gather">G · GATHER — KEY &amp; NATURE OF GOD · 1 of 2</div>
-      <h2 class="h-question">What does it mean?</h2>
+      <div class="h-step gather">G · GATHER — KEY · 1 of 4</div>
+      <div class="q-head"><div class="q-badge gather">K</div><h2 class="h-question">What is the primary message of this passage?</h2></div>
       <p class="lead"><em>Look for what this says about God before what it says about you.</em></p>
 
-      <details class="accord passage-accord" id="gatherKNPassage">
+      <details class="accord passage-accord" id="gatherKPassage">
         <summary>📖 <span class="pa-ref">Passage</span></summary>
         <div class="accord-body passage-accord-body">
           <div class="passage-text" style="font-size:17px;"></div>
         </div>
       </details>
 
-      <div class="hint-box" id="gatherKNHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('gatherKNHint')">Need a nudge? <span class="caret">›</span></button>
+      <div class="hint-box" id="gatherKHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('gatherKHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label with-badge" for="gatherKey"><span class="label-badge gather">K</span><span>Key — what is the primary message of the passage?</span></label>
-      <textarea id="gatherKey" rows="3" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
-
-      <label class="field-label with-badge" for="gatherGod"><span class="label-badge gather">N</span><span>Nature of God — what does this say about God?</span></label>
-      <textarea id="gatherGod" rows="3" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
+      <textarea id="gatherKey" rows="4" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromGatherKN()">Continue →</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherK()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── GATHER · 2 of 2 — OUTCOME & WISDOM ──────────────── -->
-  <section class="screen" id="screen-gatherOW">
+  <section class="screen" id="screen-gatherN">
     <div class="card tinted-gather">
-      <div class="h-step gather">G · GATHER — OUTCOME &amp; WISDOM · 2 of 2</div>
-      <h2 class="h-question">What does it change?</h2>
-      <p class="lead">Scripture shapes what we believe and how we live — both matter.</p>
+      <div class="h-step gather">G · GATHER — NATURE OF GOD · 2 of 4</div>
+      <div class="q-head"><div class="q-badge gather">N</div><h2 class="h-question">What does this say about God?</h2></div>
+      <p class="lead">His character, his promises, his mercy, his holiness — and how it points to Jesus.</p>
 
-      <details class="accord passage-accord" id="gatherOWPassage">
+      <details class="accord passage-accord" id="gatherNPassage">
         <summary>📖 <span class="pa-ref">Passage</span></summary>
         <div class="accord-body passage-accord-body">
           <div class="passage-text" style="font-size:17px;"></div>
         </div>
       </details>
 
-      <div class="hint-box" id="gatherOWHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('gatherOWHint')">Need a nudge? <span class="caret">›</span></button>
-        <div class="hint-content"></div>
-      </div>
-
-      <label class="field-label with-badge" for="gatherOutcome"><span class="label-badge gather">O</span><span>Outcome — what does it mean for our faith and beliefs?</span></label>
-      <textarea id="gatherOutcome" rows="3" placeholder="e.g., Salvation rests on God's gift, not our performance — that reshapes how I think about earning approval…"></textarea>
-
-      <label class="field-label with-badge" for="gatherPeople"><span class="label-badge gather">W</span><span>Wisdom — what does it say about people, and to people?</span></label>
-      <textarea id="gatherPeople" rows="3" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
+      <textarea id="gatherGod" rows="4" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromGatherOW()">Continue to Embrace →</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherN()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── EMBRACE ─────────────────────────────────────────── -->
-  <section class="screen" id="screen-embrace">
+  <section class="screen" id="screen-gatherO">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — OUTCOME · 3 of 4</div>
+      <div class="q-head"><div class="q-badge gather">O</div><h2 class="h-question">What does it mean for our faith and beliefs?</h2></div>
+      <p class="lead">Scripture shapes what we believe, not only what we do.</p>
+
+      <details class="accord passage-accord" id="gatherOPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <textarea id="gatherOutcome" rows="4" placeholder="e.g., Salvation rests on God's gift, not our performance — that reshapes how I think about earning approval…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherO()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-gatherW">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — WISDOM · 4 of 4</div>
+      <div class="q-head"><div class="q-badge gather">W</div><h2 class="h-question">What does it say about people — and to people?</h2></div>
+      <p class="lead">Two questions in one: what it shows about us, and what it says to us.</p>
+
+      <details class="accord passage-accord" id="gatherWPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <textarea id="gatherPeople" rows="4" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherW()">Continue to Embrace →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── EMBRACE · A-C-T · one practice per page ─────────── -->
+  <section class="screen" id="screen-embraceA">
     <div class="card tinted-embrace">
-      <div class="h-step embrace">E · EMBRACE — A·C·T</div>
-      <h2 class="h-question">How will this shape me?</h2>
+      <div class="h-step embrace">E · EMBRACE — APPLY · 1 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">A</div><h2 class="h-question">What is it saying to me?</h2></div>
       <p class="lead"><em>You're not earning anything here. Just receiving, then responding.</em></p>
 
-      <details class="accord passage-accord" id="embracePassage">
+      <details class="accord passage-accord" id="embraceAPassage">
         <summary>📖 <span class="pa-ref">Passage</span></summary>
         <div class="accord-body passage-accord-body">
           <div class="passage-text" style="font-size:17px;"></div>
         </div>
       </details>
 
-      <div class="hint-box" id="embraceHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('embraceHint')">Need a nudge? <span class="caret">›</span></button>
+      <div class="hint-box" id="embraceAHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('embraceAHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label with-badge" for="embraceApply"><span class="label-badge embrace">A</span><span>Apply — what is it saying to me?</span></label>
-      <textarea id="embraceApply" rows="3" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
-
-      <label class="field-label with-badge" for="embraceCommit"><span class="label-badge embrace">C</span><span>Commit — what will I do about it?</span></label>
-      <textarea id="embraceCommit" rows="3" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
-
-      <label class="field-label with-badge" for="embraceAction"><span class="label-badge embrace">T</span><span>Take action — how exactly will I practice this?</span></label>
-      <p class="field-help">Make it concrete and small. A single action you can take this week.</p>
-      <textarea id="embraceAction" rows="3" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+      <textarea id="embraceApply" rows="4" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromEmbrace()">Complete study →</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceA()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-embraceC">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE — COMMIT · 2 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">C</div><h2 class="h-question">What will I do about it?</h2></div>
+      <p class="lead">Name your response — something believed differently, done differently, or surrendered.</p>
+
+      <details class="accord passage-accord" id="embraceCPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <textarea id="embraceCommit" rows="4" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceC()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-embraceT">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE — TAKE ACTION · 3 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">T</div><h2 class="h-question">How exactly will I practice this?</h2></div>
+      <p class="lead">Make it concrete and small — a single step you can take this week.</p>
+
+      <details class="accord passage-accord" id="embraceTPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text" style="font-size:17px;"></div>
+        </div>
+      </details>
+
+      <textarea id="embraceAction" rows="4" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceT()">Complete study →</button>
       </div>
     </div>
   </section>
@@ -2364,7 +2430,8 @@ function showScreen(name, opts = {}) {
 
   // Progress bar (only during EDGE flow). Sub-steps map to their parent dot.
   const EDGE_FLOW = ['reader', 'exploreExamine', 'exploreAnalyze', 'exploreDefine',
-                     'digDetails', 'digInvestigate', 'digGrasp', 'gatherKN', 'gatherOW', 'embrace'];
+                     'digDetails', 'digInvestigate', 'digGrasp',
+                     'gatherK', 'gatherN', 'gatherO', 'gatherW', 'embraceA', 'embraceC', 'embraceT'];
   const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
   // GOAL study tracker (G-O-A-L, one dot per question page)
@@ -2374,8 +2441,9 @@ function showScreen(name, opts = {}) {
   if (showGoalProgress) updateGoalProgress(name);
   if (showProgress) {
     const dot = (name === 'reader' || name.startsWith('explore')) ? 'explore'
-              : name.startsWith('dig')    ? 'dig'
-              : name.startsWith('gather') ? 'gather'
+              : name.startsWith('dig')     ? 'dig'
+              : name.startsWith('gather')  ? 'gather'
+              : name.startsWith('embrace') ? 'embrace'
               : name;
     updateProgress(dot);
   }
@@ -2390,9 +2458,13 @@ function showScreen(name, opts = {}) {
   if (name === 'digDetails')     mountDigDetails();
   if (name === 'digInvestigate') mountDigInvestigate();
   if (name === 'digGrasp')       mountDigGrasp();
-  if (name === 'gatherKN')       mountGatherKN();
-  if (name === 'gatherOW')       mountGatherOW();
-  if (name === 'embrace')        mountEmbrace();
+  if (name === 'gatherK')        mountEdgePage('gatherKPassage', 'gatherKey', 'gatherKHint', 'gather');
+  if (name === 'gatherN')        mountEdgePage('gatherNPassage', 'gatherGod');
+  if (name === 'gatherO')        mountEdgePage('gatherOPassage', 'gatherOutcome');
+  if (name === 'gatherW')        mountEdgePage('gatherWPassage', 'gatherPeople');
+  if (name === 'embraceA')       mountEdgePage('embraceAPassage', 'embraceApply', 'embraceAHint', 'embrace');
+  if (name === 'embraceC')       mountEdgePage('embraceCPassage', 'embraceCommit');
+  if (name === 'embraceT')       mountEdgePage('embraceTPassage', 'embraceAction');
   if (name === 'done')           renderDone();
   if (name === 'quickRead')      mountQuickRead();
   if (name === 'quickG')         mountQuickPage('quickGPassage', 'quickGod');
@@ -2451,9 +2523,13 @@ function captureCurrentInputs() {
     digDetails:     ['digWho'],
     digInvestigate: ['digContext'],
     digGrasp:       ['digParaphrase'],
-    gatherKN:       ['gatherKey', 'gatherGod'],
-    gatherOW:       ['gatherOutcome', 'gatherPeople'],
-    embrace:        ['embraceApply', 'embraceCommit', 'embraceAction']
+    gatherK:        ['gatherKey'],
+    gatherN:        ['gatherGod'],
+    gatherO:        ['gatherOutcome'],
+    gatherW:        ['gatherPeople'],
+    embraceA:       ['embraceApply'],
+    embraceC:       ['embraceCommit'],
+    embraceT:       ['embraceAction']
   };
   const ids = map[state.screen];
   if (!ids) return;
@@ -3255,30 +3331,15 @@ function mountDigGrasp() {
   document.getElementById('digGraspHint').style.display = 'none';
 }
 
-function mountGatherKN() {
-  mountPassageAccord('gatherKNPassage');
-  document.getElementById('gatherKey').value = state.study.gatherKey || '';
-  document.getElementById('gatherGod').value = state.study.gatherGod || '';
-  ['gatherKey', 'gatherGod'].forEach(id => attachAutosave(id, id));
-  populateHint('gatherKNHint', 'gather');
+/* Shared mount for single-practice EDGE pages */
+function mountEdgePage(accordId, fieldId, hintBoxId, hintKey) {
+  mountPassageAccord(accordId);
+  document.getElementById(fieldId).value = state.study[fieldId] || '';
+  attachAutosave(fieldId, fieldId);
+  if (hintBoxId) populateHint(hintBoxId, hintKey);
 }
 
-function mountGatherOW() {
-  mountPassageAccord('gatherOWPassage');
-  document.getElementById('gatherOutcome').value = state.study.gatherOutcome || '';
-  document.getElementById('gatherPeople').value  = state.study.gatherPeople || '';
-  ['gatherOutcome', 'gatherPeople'].forEach(id => attachAutosave(id, id));
-  document.getElementById('gatherOWHint').style.display = 'none';
-}
 
-function mountEmbrace() {
-  mountPassageAccord('embracePassage');
-  document.getElementById('embraceApply').value   = state.study.embraceApply || '';
-  document.getElementById('embraceCommit').value  = state.study.embraceCommit || '';
-  document.getElementById('embraceAction').value  = state.study.embraceAction || '';
-  ['embraceApply', 'embraceCommit', 'embraceAction'].forEach(id => attachAutosave(id, id));
-  populateHint('embraceHint', 'embrace');
-}
 
 function attachAutosave(id, key) {
   const el = document.getElementById(id);
@@ -3313,10 +3374,14 @@ function advanceFromAnalyze()        { captureCurrentInputs(); showScreen('explo
 function advanceFromDefine()         { captureCurrentInputs(); showScreen('digDetails'); }
 function advanceFromDigDetails()     { captureCurrentInputs(); showScreen('digInvestigate'); }
 function advanceFromDigInvestigate() { captureCurrentInputs(); showScreen('digGrasp'); }
-function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gatherKN'); }
-function advanceFromGatherKN()       { captureCurrentInputs(); showScreen('gatherOW'); }
-function advanceFromGatherOW()       { captureCurrentInputs(); showScreen('embrace'); }
-function advanceFromEmbrace()        { captureCurrentInputs(); showScreen('done'); }
+function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gatherK'); }
+function advanceFromGatherK()        { captureCurrentInputs(); showScreen('gatherN'); }
+function advanceFromGatherN()        { captureCurrentInputs(); showScreen('gatherO'); }
+function advanceFromGatherO()        { captureCurrentInputs(); showScreen('gatherW'); }
+function advanceFromGatherW()        { captureCurrentInputs(); showScreen('embraceA'); }
+function advanceFromEmbraceA()       { captureCurrentInputs(); showScreen('embraceC'); }
+function advanceFromEmbraceC()       { captureCurrentInputs(); showScreen('embraceT'); }
+function advanceFromEmbraceT()       { captureCurrentInputs(); showScreen('done'); }
 
 /* ============================================================
    DONE
