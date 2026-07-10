@@ -1636,6 +1636,7 @@ select.translation-select {
         <label for="translationSelect">Translation:</label>
         <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
           <option value="bsb">BSB · Berean Standard Bible</option>
+          <option value="blb">BLB · Berean Literal Bible (draft)</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -1699,7 +1700,7 @@ select.translation-select {
     </div>
 
     <div class="tap-note" id="examineOtNote" style="display:none;">
-      💡 The Greek interlinear covers the New Testament. An Old Testament option is planned — for now, simply read the passage again, slower than before.
+      💡 Try the BSB ⇄ BLB toggle above — the Berean Literal Bible keeps the shape of the original language. (The Greek interlinear covers the New Testament.)
     </div>
 
     <div class="btn-row">
@@ -2242,6 +2243,7 @@ select.translation-select {
         <label for="readBibleTranslation">Translation:</label>
         <select id="readBibleTranslation" class="translation-select">
           <option value="bsb">BSB · Berean Standard Bible</option>
+          <option value="blb">BLB · Berean Literal Bible (draft)</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -2293,7 +2295,7 @@ select.translation-select {
 
 <footer class="app-footer">
   <strong>EDGE · Bible Study</strong> · Lexicons: Mounce Concise Greek-English Dictionary © 1993 (teknia.com/greek-dictionary), STEPBible / Tyndale House Cambridge CC BY 4.0<br>
-  Bible text: Berean Standard Bible · Public Domain · Your notes stay on your device.
+  Bible text: Berean Standard Bible &amp; Berean Literal Bible (draft) · Public Domain · Your notes stay on your device.
 </footer>
 
 <script>
@@ -2941,16 +2943,23 @@ function parseRef(ref) {
   return { bookCode, chapter, startVerse, endVerse };
 }
 
+/* Translation registry — add future translations (e.g. MSB) as one line here. */
+const TRANSLATIONS = {
+  bsb:         { label: 'BSB',         toggle: 'BSB',   folder: 'bsb',         scope: 'all' },
+  blb:         { label: 'BLB',         toggle: 'BLB',   folder: 'blb',         scope: 'all' },
+  interlinear: { label: 'Interlinear', toggle: 'Greek', folder: 'interlinear', scope: 'nt'  }
+};
+
 async function fetchPassage(ref, translation) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  const isInterlinear = ((translation || state.study.translation) === 'interlinear');
-  const folder = isInterlinear ? 'interlinear' : 'bsb';
-  const url = `/data/${folder}/${parsed.bookCode}_${parsed.chapter}.json`;
+  const t = TRANSLATIONS[(translation || state.study.translation || 'bsb')] || TRANSLATIONS.bsb;
+  const isInterlinear = (t === TRANSLATIONS.interlinear);
+  const url = `/data/${t.folder}/${parsed.bookCode}_${parsed.chapter}.json`;
   const res = await fetch(url);
   if (!res.ok) {
-    if (isInterlinear) throw new Error(`Interlinear is New Testament only. This passage isn't available in interlinear yet.`);
+    if (t.scope === 'nt') throw new Error(`${t.label} covers the New Testament only. This passage isn't available in it yet.`);
     throw new Error(`Chapter not found. Check the reference and try again.`);
   }
 
@@ -2968,7 +2977,7 @@ async function fetchPassage(ref, translation) {
 
   return {
     reference: ref,
-    translation_id: isInterlinear ? 'Interlinear' : 'BSB',
+    translation_id: t.label,
     isInterlinear,
     verses,
     // Plain text for study flow text areas (interlinear uses gloss; BSB uses w)
@@ -3012,7 +3021,9 @@ function buildVersesHtml(data, tappable = false) {
     return data.verses.map(v => {
       const wHtml = v.words.map(w => {
         // Skip display markers (dashes, ellipses) — they're structural not textual
-        if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
+        if (w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
+        // Untagged words (e.g. BLB text) render as plain prose, not tappable
+        if (!w.s) return `${escapeHtml(w.w)} `;
         return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
@@ -3030,7 +3041,7 @@ function buildVersesHtml(data, tappable = false) {
 function renderPassageInto(elementId, data, tappable = false) {
   const el = document.getElementById(elementId);
   if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
-  const badgeLabel = data.isInterlinear ? 'Interlinear' : 'BSB';
+  const badgeLabel = data.translation_id || (data.isInterlinear ? 'Interlinear' : 'BSB');
   const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
 
   const versesHtml = buildVersesHtml(data, tappable);
@@ -3090,7 +3101,8 @@ function renderExaminePassage() {
 
 function mountExploreExamine() {
   renderExaminePassage();
-  // Interlinear is NT-only; for OT passages explain and encourage a slow re-read.
+  // With BLB available for the whole Bible, the second form always exists;
+  // the note now only mentions that the Greek covers the NT.
   document.getElementById('examineOtNote').style.display =
     passageIsNT(state.study.passage) ? 'none' : 'block';
 }
@@ -3479,13 +3491,14 @@ function passageIsNT(ref) {
 }
 
 function passageToggleHtml() {
-  // Interlinear is Greek NT only — no toggle for OT passages.
-  if (!passageIsNT(state.study.passage)) return '';
   const v = state.study.translation || 'bsb';
-  return `<span class="trans-toggle" role="group" aria-label="Translation view">`
-       + `<button type="button" class="trans-toggle-btn ${v === 'bsb' ? 'is-on' : ''}" onclick="setStudyTranslation('bsb')">BSB</button>`
-       + `<button type="button" class="trans-toggle-btn ${v === 'interlinear' ? 'is-on' : ''}" onclick="setStudyTranslation('interlinear')">Greek</button>`
-       + `</span>`;
+  const nt = passageIsNT(state.study.passage);
+  const btns = Object.entries(TRANSLATIONS)
+    .filter(([key, t]) => t.scope === 'all' || nt)
+    .map(([key, t]) =>
+      `<button type="button" class="trans-toggle-btn ${v === key ? 'is-on' : ''}" onclick="setStudyTranslation('${key}')">${t.toggle}</button>`)
+    .join('');
+  return `<span class="trans-toggle" role="group" aria-label="Translation view">${btns}</span>`;
 }
 
 async function setStudyTranslation(t) {
