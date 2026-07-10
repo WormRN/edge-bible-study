@@ -1456,6 +1456,36 @@ select.translation-select {
 }
 .full-footer a { color: var(--accent); text-decoration: none; font-weight: 700; }
 
+/* ─── Chapter navigation (Read the Bible) ────────────────── */
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.chapter-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  min-height: 44px;
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.chapter-nav button:hover {
+  background: var(--accent);
+  color: white;
+}
+.chapter-nav .nav-spacer { flex: 1; }
+
 /* ─── App footer ─────────────────────────────────────────── */
 .app-footer {
   padding: 16px 20px;
@@ -4035,6 +4065,76 @@ function mountReadBible() {
   }
 }
 
+/* ─── Chapter navigation: prev/next across the whole Bible ── */
+function fileCodeOf(book) { return BOOK_CODES[book.name.toLowerCase()]; }
+
+function getChapterNav(ref) {
+  const parsed = parseRef(ref || '');
+  if (!parsed) return null;
+  const idx = BIBLE_BOOKS.findIndex(b => fileCodeOf(b) === parsed.bookCode);
+  if (idx === -1) return null;
+  const book = BIBLE_BOOKS[idx];
+  let prev = null, next = null;
+  if (parsed.chapter > 1) {
+    prev = `${book.name} ${parsed.chapter - 1}`;
+  } else if (idx > 0) {
+    const pb = BIBLE_BOOKS[idx - 1];
+    prev = `${pb.name} ${pb.ch}`;
+  }
+  if (parsed.chapter < book.ch) {
+    next = `${book.name} ${parsed.chapter + 1}`;
+  } else if (idx < BIBLE_BOOKS.length - 1) {
+    next = `${BIBLE_BOOKS[idx + 1].name} 1`;
+  }
+  return { prev, next };
+}
+
+function goToChapter(ref) {
+  if (!ref) return;
+  const input = document.getElementById('readBibleInput');
+  const label = document.getElementById('readBiblePickerLabel');
+  const btn   = document.getElementById('readBiblePickerBtn');
+  if (input) input.value = ref;
+  if (label) label.textContent = ref;
+  if (btn)   btn.classList.remove('is-empty');
+  onReadBibleSubmit();
+}
+
+function renderChapterNav(ref) {
+  const nav = getChapterNav(ref);
+  const display = document.getElementById('readBibleDisplay');
+  if (!nav || !display) return;
+  const prevBtn = nav.prev
+    ? `<button type="button" onclick="goToChapter('${escapeAttr(nav.prev)}')" aria-label="Previous chapter">‹ ${escapeHtml(nav.prev)}</button>`
+    : '<span class="nav-spacer"></span>';
+  const nextBtn = nav.next
+    ? `<button type="button" onclick="goToChapter('${escapeAttr(nav.next)}')" aria-label="Next chapter">${escapeHtml(nav.next)} ›</button>`
+    : '<span class="nav-spacer"></span>';
+  display.insertAdjacentHTML('beforeend', `<div class="chapter-nav">${prevBtn}${nextBtn}</div>`);
+}
+
+/* Swipe left/right on the passage to change chapters (touch screens) */
+function wireReadBibleSwipe() {
+  const display = document.getElementById('readBibleDisplay');
+  if (!display || display._swipeWired) return;
+  display._swipeWired = true;
+  let sx = 0, sy = 0;
+  display.addEventListener('touchstart', e => {
+    sx = e.changedTouches[0].clientX;
+    sy = e.changedTouches[0].clientY;
+  }, { passive: true });
+  display.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // not a clear horizontal swipe
+    const ref = document.getElementById('readBibleInput').value.trim();
+    const nav = getChapterNav(ref);
+    if (!nav) return;
+    if (dx < 0 && nav.next) goToChapter(nav.next);   // swipe left → next
+    if (dx > 0 && nav.prev) goToChapter(nav.prev);   // swipe right → previous
+  }, { passive: true });
+}
+
 async function onReadBibleSubmit() {
   const ref = document.getElementById('readBibleInput').value.trim();
   const display = document.getElementById('readBibleDisplay');
@@ -4050,6 +4150,9 @@ async function onReadBibleSubmit() {
     display.dataset.populated = '1';
     display.innerHTML = '<div class="passage-display" id="readBiblePassage"></div>';
     renderPassageInto('readBiblePassage', data, true);
+    renderChapterNav(ref);
+    wireReadBibleSwipe();
+    window.scrollTo(0, 0);
   } catch (err) {
     console.error('Bible fetch error:', err);
     display.innerHTML = `
