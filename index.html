@@ -296,6 +296,45 @@ select.translation-select {
   cursor: pointer;
 }
 
+/* ─── Question letter badges (site-style step letters) ───── */
+.q-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.q-head .h-question { margin-bottom: 0; }
+.q-badge {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 28px; font-weight: 700;
+  color: white;
+  box-shadow: 0 6px 18px rgba(15,42,82,0.16);
+}
+.q-badge.explore { background: var(--edge-explore); }
+.q-badge.dig     { background: var(--edge-dig); }
+.q-badge.gather  { background: var(--edge-gather); }
+.q-badge.embrace { background: var(--edge-embrace); }
+.field-label.with-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.label-badge {
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 15px; font-weight: 700;
+  color: white;
+}
+.label-badge.gather  { background: var(--edge-gather); }
+.label-badge.embrace { background: var(--edge-embrace); }
+
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -1596,7 +1635,7 @@ select.translation-select {
   <section class="screen" id="screen-reader">
     <div class="card tinted-explore">
       <div class="h-step explore">E · EXPLORE — READ · 1 of 4</div>
-      <h2 class="h-question">Slow down. Read it twice.</h2>
+      <div class="q-head"><div class="q-badge explore">R</div><h2 class="h-question">Slow down. Read it twice.</h2></div>
       <p class="lead">
         Bible study isn't about finishing fast. Read the passage through once. Then read it again, slower.
       </p>
@@ -1621,7 +1660,7 @@ select.translation-select {
   <section class="screen" id="screen-exploreExamine">
     <div class="card tinted-explore">
       <div class="h-step explore">E · EXPLORE — EXAMINE · 2 of 4</div>
-      <h2 class="h-question">Read it in another form.</h2>
+      <div class="q-head"><div class="q-badge explore">E</div><h2 class="h-question">Read it in another form.</h2></div>
       <p class="lead">A second form slows you down and shows you what you missed. Notice what's the same — and what surprises you.</p>
     </div>
 
@@ -1643,7 +1682,7 @@ select.translation-select {
   <section class="screen" id="screen-exploreAnalyze">
     <div class="card tinted-explore">
       <div class="h-step explore">E · EXPLORE — ANALYZE · 3 of 4</div>
-      <h2 class="h-question">Stew in it.</h2>
+      <div class="q-head"><div class="q-badge explore">A</div><h2 class="h-question">Stew in it.</h2></div>
       <p class="lead">Meditate on it. Read it once more, slowly, and let it sit. Don't interpret yet — just observe.</p>
 
       <details class="accord passage-accord" id="analyzePassage">
@@ -1673,7 +1712,7 @@ select.translation-select {
   <section class="screen" id="screen-exploreDefine">
     <div class="card tinted-explore">
       <div class="h-step explore">E · EXPLORE — DEFINE · 4 of 4</div>
-      <h2 class="h-question">Define difficult words.</h2>
+      <div class="q-head"><div class="q-badge explore">D</div><h2 class="h-question">Define difficult words.</h2></div>
       <p class="lead">Any words you'd struggle to explain to a friend? Look them up before moving on.</p>
 
       <details class="accord passage-accord" id="definePassage">
@@ -1708,7 +1747,7 @@ select.translation-select {
   <section class="screen" id="screen-digDetails">
     <div class="card tinted-dig">
       <div class="h-step dig">D · DIG — DETAILS · 1 of 3</div>
-      <h2 class="h-question">Interrogate the details.</h2>
+      <div class="q-head"><div class="q-badge dig">D</div><h2 class="h-question">Interrogate the details.</h2></div>
       <p class="lead">Ask the reporter's questions: who, what, when, where, why, and how.</p>
 
       <details class="accord passage-accord" id="digDetailsPassage">
@@ -1738,7 +1777,7 @@ select.translation-select {
   <section class="screen" id="screen-digInvestigate">
     <div class="card tinted-dig">
       <div class="h-step dig">D · DIG — INVESTIGATE · 2 of 3</div>
-      <h2 class="h-question">Investigate the surroundings.</h2>
+      <div class="q-head"><div class="q-badge dig">I</div><h2 class="h-question">Investigate the surroundings.</h2></div>
       <p class="lead">Look into the context, the characters, the culture, and how the passage is put together.</p>
 
       <details class="accord passage-accord" id="digInvestigatePassage">
@@ -1768,7 +1807,7 @@ select.translation-select {
   <section class="screen" id="screen-digGrasp">
     <div class="card tinted-dig">
       <div class="h-step dig">D · DIG — GRASP · 3 of 3</div>
-      <h2 class="h-question">Grasp it in your own words.</h2>
+      <div class="q-head"><div class="q-badge dig">G</div><h2 class="h-question">Grasp it in your own words.</h2></div>
       <p class="lead">Rewrite or reword the heart of the passage — as if you were explaining it to a friend.</p>
 
       <details class="accord passage-accord" id="digGraspPassage">
@@ -1813,10 +1852,10 @@ select.translation-select {
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="gatherKey">Key — what is the primary message of the passage?</label>
+      <label class="field-label with-badge" for="gatherKey"><span class="label-badge gather">K</span><span>Key — what is the primary message of the passage?</span></label>
       <textarea id="gatherKey" rows="3" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
 
-      <label class="field-label" for="gatherGod">Nature of God — what does this say about God?</label>
+      <label class="field-label with-badge" for="gatherGod"><span class="label-badge gather">N</span><span>Nature of God — what does this say about God?</span></label>
       <textarea id="gatherGod" rows="3" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
 
       <div class="btn-row">
@@ -1845,10 +1884,10 @@ select.translation-select {
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="gatherOutcome">Outcome — what does it mean for our faith and beliefs?</label>
+      <label class="field-label with-badge" for="gatherOutcome"><span class="label-badge gather">O</span><span>Outcome — what does it mean for our faith and beliefs?</span></label>
       <textarea id="gatherOutcome" rows="3" placeholder="e.g., Salvation rests on God's gift, not our performance — that reshapes how I think about earning approval…"></textarea>
 
-      <label class="field-label" for="gatherPeople">Wisdom — what does it say about people, and to people?</label>
+      <label class="field-label with-badge" for="gatherPeople"><span class="label-badge gather">W</span><span>Wisdom — what does it say about people, and to people?</span></label>
       <textarea id="gatherPeople" rows="3" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
 
       <div class="btn-row">
@@ -1877,13 +1916,13 @@ select.translation-select {
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="embraceApply">Apply — what is it saying to me?</label>
+      <label class="field-label with-badge" for="embraceApply"><span class="label-badge embrace">A</span><span>Apply — what is it saying to me?</span></label>
       <textarea id="embraceApply" rows="3" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
 
-      <label class="field-label" for="embraceCommit">Commit — what will I do about it?</label>
+      <label class="field-label with-badge" for="embraceCommit"><span class="label-badge embrace">C</span><span>Commit — what will I do about it?</span></label>
       <textarea id="embraceCommit" rows="3" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
 
-      <label class="field-label" for="embraceAction">Take action — how exactly will I practice this?</label>
+      <label class="field-label with-badge" for="embraceAction"><span class="label-badge embrace">T</span><span>Take action — how exactly will I practice this?</span></label>
       <p class="field-help">Make it concrete and small. A single action you can take this week.</p>
       <textarea id="embraceAction" rows="3" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
 
@@ -1961,7 +2000,7 @@ select.translation-select {
   <section class="screen" id="screen-quickG">
     <div class="card tinted-gather">
       <div class="h-step gather">GOAL — G · GOD · 1 of 4</div>
-      <h2 class="h-question">What does this teach about God?</h2>
+      <div class="q-head"><div class="q-badge gather">G</div><h2 class="h-question">What does this teach about God?</h2></div>
       <p class="lead">Start with God before you start with yourself.</p>
 
       <details class="accord passage-accord" id="quickGPassage">
@@ -1985,7 +2024,7 @@ select.translation-select {
   <section class="screen" id="screen-quickO">
     <div class="card tinted-explore">
       <div class="h-step explore">GOAL — O · OTHERS · 2 of 4</div>
-      <h2 class="h-question">What does this teach about others?</h2>
+      <div class="q-head"><div class="q-badge explore">O</div><h2 class="h-question">What does this teach about others?</h2></div>
       <p class="lead">Scripture tells the truth about people — including you and me.</p>
 
       <details class="accord passage-accord" id="quickOPassage">
@@ -2009,7 +2048,7 @@ select.translation-select {
   <section class="screen" id="screen-quickA">
     <div class="card tinted-dig">
       <div class="h-step dig">GOAL — A · ALIGN · 3 of 4</div>
-      <h2 class="h-question">Where do I need to align with this truth?</h2>
+      <div class="q-head"><div class="q-badge dig">A</div><h2 class="h-question">Where do I need to align with this truth?</h2></div>
       <p class="lead"><em>You're not performing. Just being honest.</em></p>
 
       <details class="accord passage-accord" id="quickAPassage">
@@ -2033,7 +2072,7 @@ select.translation-select {
   <section class="screen" id="screen-quickL">
     <div class="card tinted-embrace">
       <div class="h-step embrace">GOAL — L · LIVE IT OUT · 4 of 4</div>
-      <h2 class="h-question">How will I live out this truth?</h2>
+      <div class="q-head"><div class="q-badge embrace">L</div><h2 class="h-question">How will I live out this truth?</h2></div>
       <p class="lead">Make it small and concrete — one honest step.</p>
 
       <details class="accord passage-accord" id="quickLPassage">
