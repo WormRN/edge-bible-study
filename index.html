@@ -1616,7 +1616,7 @@ select.translation-select {
     <button class="home-tile" onclick="showScreen('pickPassage')">
       <span class="home-tile-arrow">→</span>
       <div class="home-tile-h">EDGE Study</div>
-      <div class="home-tile-d">An exhaustive study — walk a passage step by step through 14 guided practices.</div>
+      <div class="home-tile-d">A thorough study — walk a passage step by step through 14 guided practices.</div>
     </button>
 
     <button class="home-tile" onclick="showScreen('wordStudy')">
@@ -1642,7 +1642,7 @@ select.translation-select {
         <label for="translationSelect">Translation:</label>
         <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="blb">BLB · Berean Literal Bible (draft)</option>
+          <option value="blb">BLB · Berean Literal Bible</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -1760,7 +1760,8 @@ select.translation-select {
       </details>
 
       <div class="tap-note">
-        💡 <strong>Tap any word</strong> in the passage to see what it means in the original language.
+        💡 <strong>Tap any word</strong> to see the Greek or Hebrew behind it.<br>
+        <span style="color:var(--muted);">A lexicon shows every meaning a word <em>can</em> have. Only the passage tells you which one fits <em>here</em> — context decides.</span>
       </div>
 
       <button class="lookup-link" onclick="openWordWizard()">
@@ -2249,7 +2250,7 @@ select.translation-select {
         <label for="readBibleTranslation">Translation:</label>
         <select id="readBibleTranslation" class="translation-select">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="blb">BLB · Berean Literal Bible (draft)</option>
+          <option value="blb">BLB · Berean Literal Bible</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -2300,6 +2301,7 @@ select.translation-select {
 </div>
 
 <footer class="app-footer">
+  <a href="https://bibleworms.org" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn the GOAL and EDGE methods at BibleWorms.org →</a><br><br>
   <strong>EDGE · Bible Study</strong> · Lexicons: Mounce Concise Greek-English Dictionary © 1993 (teknia.com/greek-dictionary), STEPBible / Tyndale House Cambridge CC BY 4.0<br>
   Bible text: Berean Standard Bible &amp; Berean Literal Bible (draft) · Public Domain · Your notes stay on your device.
 </footer>
@@ -3274,6 +3276,9 @@ function wizShowR() {
   const content = document.getElementById('wizContent');
   content.innerHTML = wizFrame('R', 'The range of meanings', `
     <p class="lead">One word can carry several senses. Read through the range — which sense fits your passage?</p>
+    <div class="tap-note" style="margin-bottom:16px;">
+      ⚠️ <strong>A word does not mean all of these at once.</strong> This is the list of what it <em>can</em> mean. The next step is deciding what it means <em>here</em>.
+    </div>
     ${wizRangeBody()}
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="wizShowO()">← Back</button>
