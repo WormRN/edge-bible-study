@@ -1,0 +1,48 @@
+{
+ "book": "Psalms",
+ "book_code": "PSA",
+ "chapter": 121,
+ "translation_id": "NET",
+ "verses": {
+  "1": [
+   {
+    "w": "A song of ascents. I look up toward the hills. From where does my help come?"
+   }
+  ],
+  "2": [
+   {
+    "w": "My help comes from the Lord , the Creator of heaven and earth."
+   }
+  ],
+  "3": [
+   {
+    "w": "May he not allow your foot to slip. May your Protector not sleep."
+   }
+  ],
+  "4": [
+   {
+    "w": "Look! Israel’s Protector does not sleep or slumber."
+   }
+  ],
+  "5": [
+   {
+    "w": "The Lord is your protector; the Lord is the shade at your right hand."
+   }
+  ],
+  "6": [
+   {
+    "w": "The sun will not harm you by day, or the moon by night."
+   }
+  ],
+  "7": [
+   {
+    "w": "The Lord will protect you from all harm; he will protect your life."
+   }
+  ],
+  "8": [
+   {
+    "w": "The Lord will protect you in all you do, now and forevermore."
+   }
+  ]
+ }
+}

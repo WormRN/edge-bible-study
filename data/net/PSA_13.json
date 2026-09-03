@@ -1,0 +1,38 @@
+{
+ "book": "Psalms",
+ "book_code": "PSA",
+ "chapter": 13,
+ "translation_id": "NET",
+ "verses": {
+  "1": [
+   {
+    "w": "For the music director, a psalm of David. How long, Lord , will you continue to ignore me? How long will you pay no attention to me?"
+   }
+  ],
+  "2": [
+   {
+    "w": "How long must I worry, and suffer in broad daylight? How long will my enemy gloat over me?"
+   }
+  ],
+  "3": [
+   {
+    "w": "Look at me! Answer me, O Lord my God! Revive me, or else I will die."
+   }
+  ],
+  "4": [
+   {
+    "w": "Then my enemy will say, “I have defeated him.” Then my foes will rejoice because I am shaken."
+   }
+  ],
+  "5": [
+   {
+    "w": "But I trust in your faithfulness. May I rejoice because of your deliverance."
+   }
+  ],
+  "6": [
+   {
+    "w": "I will sing praises to the Lord when he vindicates me."
+   }
+  ]
+ }
+}

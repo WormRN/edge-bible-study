@@ -1,0 +1,18 @@
+{
+ "book": "Psalms",
+ "book_code": "PSA",
+ "chapter": 117,
+ "translation_id": "NET",
+ "verses": {
+  "1": [
+   {
+    "w": "Praise the Lord , all you nations. Applaud him, all you foreigners."
+   }
+  ],
+  "2": [
+   {
+    "w": "For his loyal love towers over us, and the Lord ’s faithfulness endures. Praise the Lord ."
+   }
+  ]
+ }
+}

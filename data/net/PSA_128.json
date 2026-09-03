@@ -1,0 +1,38 @@
+{
+ "book": "Psalms",
+ "book_code": "PSA",
+ "chapter": 128,
+ "translation_id": "NET",
+ "verses": {
+  "1": [
+   {
+    "w": "A song of ascents. How blessed is every one of the Lord ’s loyal followers, each one who keeps his commands."
+   }
+  ],
+  "2": [
+   {
+    "w": "You will eat what you worked so hard to grow. You will be blessed and secure."
+   }
+  ],
+  "3": [
+   {
+    "w": "Your wife will be like a fruitful vine in the inner rooms of your house; your children will be like olive branches, as they sit all around your table."
+   }
+  ],
+  "4": [
+   {
+    "w": "Yes indeed, the man who fears the Lord will be blessed in this way."
+   }
+  ],
+  "5": [
+   {
+    "w": "May the Lord bless you from Zion that you might see Jerusalem prosper all the days of your life"
+   }
+  ],
+  "6": [
+   {
+    "w": "and that you might see your grandchildren. May Israel experience peace."
+   }
+  ]
+ }
+}

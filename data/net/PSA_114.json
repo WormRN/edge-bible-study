@@ -1,0 +1,48 @@
+{
+ "book": "Psalms",
+ "book_code": "PSA",
+ "chapter": 114,
+ "translation_id": "NET",
+ "verses": {
+  "1": [
+   {
+    "w": "When Israel left Egypt, when the family of Jacob left a foreign nation behind,"
+   }
+  ],
+  "2": [
+   {
+    "w": "Judah became his sanctuary, Israel his kingdom."
+   }
+  ],
+  "3": [
+   {
+    "w": "The sea looked and fled; the Jordan River turned back."
+   }
+  ],
+  "4": [
+   {
+    "w": "The mountains skipped like rams, the hills like lambs."
+   }
+  ],
+  "5": [
+   {
+    "w": "Why do you flee, O sea? Why do you turn back, O Jordan River?"
+   }
+  ],
+  "6": [
+   {
+    "w": "Why do you skip like rams, O mountains, like lambs, O hills?"
+   }
+  ],
+  "7": [
+   {
+    "w": "Tremble, O earth, before the Lord— before the God of Jacob,"
+   }
+  ],
+  "8": [
+   {
+    "w": "who turned a rock into a pool of water, a hard rock into springs of water."
+   }
+  ]
+ }
+}
