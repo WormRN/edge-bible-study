@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0E2A52">
+<meta name="theme-color" content="#0E2A52" id="themeColorMeta">
+<script>
+/* Runs before first paint so the screen never flashes white at night. */
+(function(){
+  try {
+    var t = localStorage.getItem("edge.display.theme") || "auto";
+    var resolved = (t === "auto")
+      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : t;
+    document.documentElement.setAttribute("data-theme", resolved);
+    var sz = parseInt(localStorage.getItem("edge.display.textSize"), 10);
+    if (sz >= 15 && sz <= 26) {
+      document.documentElement.style.setProperty("--reading-size", sz + "px");
+      document.documentElement.style.setProperty("--reading-lh", sz >= 22 ? 1.75 : sz >= 20 ? 1.7 : 1.65);
+    }
+  } catch (e) {}
+})();
+</script>
 <title>EDGE · Bible Study</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,12 +50,74 @@
   --edge-gather:  #2A7BD4;
   --edge-embrace: #8E54B5;
 
-  --shadow:       0 1px 3px rgba(15,42,82,0.08), 0 4px 16px rgba(15,42,82,0.06);
+  --shadow:       0 1px 3px rgba(15,42,82,0.07), 0 8px 24px rgba(15,42,82,0.07);
   --shadow-elev:  0 4px 24px rgba(15,42,82,0.14);
   --shadow-modal: 0 20px 60px rgba(8,26,53,0.35);
 
   --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
   --sans:  'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* --navy did two jobs: dark backgrounds AND heading text on paper.
+     In dark mode those must move in opposite directions, so they split. */
+  --surface-deep: #0E2A52;   /* header + modal header backgrounds */
+  --on-deep:      #FFFFFF;   /* text sitting on those backgrounds */
+  --heading:      #0E2A52;   /* serif headings + accents on paper */
+
+  /* Reading scale — driven by the Display sheet */
+  --reading-size: 19px;
+  --reading-lh:   1.65;
+}
+
+/* ─── Dark theme ─────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  --navy:        #16233B;
+  --navy-deep:   #0F1A2E;
+  --navy-soft:   #24395E;
+  --accent:      #5FA8E8;
+  --accent-soft: #1C3350;   /* pale tints become dark tints */
+  --accent-pale: #16253C;
+  --ink:         #E8E4DC;   /* warm off-white — pure white haloes on dark */
+  --ink-soft:    #B8C2D1;
+  --muted:       #7E8CA0;
+  --rule:        #263449;
+  --paper:       #131E33;
+  --canvas:      #0B1220;
+
+  --edge-explore: #6BC46B;
+  --edge-dig:     #F0A055;
+  --edge-gather:  #5FA8E8;
+  --edge-embrace: #B47FDC;
+
+  --surface-deep: #16233B;
+  --on-deep:      #E8E4DC;
+  --heading:      #DCE6F5;
+
+  --shadow:       0 1px 3px rgba(0,0,0,0.40), 0 8px 24px rgba(0,0,0,0.30);
+  --shadow-elev:  0 4px 24px rgba(0,0,0,0.45);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.60);
+}
+
+html { transition: background 0.2s ease; }
+
+/* The EDGE colors are lightened in dark mode, so white labels on them lose
+   contrast. Flip those to dark ink. */
+:root[data-theme="dark"] .q-badge,
+:root[data-theme="dark"] .label-badge,
+:root[data-theme="dark"] .progress-step.is-active .progress-dot,
+:root[data-theme="dark"] .progress-step.is-done .progress-dot,
+:root[data-theme="dark"] .done-celebrate .check,
+:root[data-theme="dark"] .trans-toggle-btn.is-on,
+:root[data-theme="dark"] .btn-accent,
+:root[data-theme="dark"] .chapter-nav button:hover { color: #0B1220; }
+
+:root[data-theme="dark"] .q-badge { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+
+/* Navy on white reads as emphasis; on a dark canvas it disappears. */
+:root[data-theme="dark"] .btn-primary { background: var(--accent); color: #06182C; }
+:root[data-theme="dark"] .btn-primary:hover { background: #7BB8EE; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { transition: none; }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,7 +140,7 @@ body {
 
 /* ─── Header ─────────────────────────────────────────────── */
 .app-header {
-  background: var(--navy);
+  background: var(--surface-deep);
   color: white;
   padding: 14px 20px;
   display: flex;
@@ -79,7 +158,7 @@ body {
   background: var(--paper);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--serif);
-  color: var(--navy);
+  color: var(--heading);
   font-weight: 700;
   font-size: 22px;
   flex-shrink: 0;
@@ -172,6 +251,14 @@ body {
 .progress-step[data-step="gather"].is-done .progress-dot { background: var(--edge-gather); }
 .progress-step[data-step="embrace"].is-active .progress-dot,
 .progress-step[data-step="embrace"].is-done .progress-dot { background: var(--edge-embrace); }
+.progress-step[data-gstep="g"].is-active .progress-dot,
+.progress-step[data-gstep="g"].is-done .progress-dot { background: var(--edge-gather); }
+.progress-step[data-gstep="o"].is-active .progress-dot,
+.progress-step[data-gstep="o"].is-done .progress-dot { background: var(--edge-explore); }
+.progress-step[data-gstep="a"].is-active .progress-dot,
+.progress-step[data-gstep="a"].is-done .progress-dot { background: var(--edge-dig); }
+.progress-step[data-gstep="l"].is-active .progress-dot,
+.progress-step[data-gstep="l"].is-done .progress-dot { background: var(--edge-embrace); }
 .progress-line {
   width: 22px;
   height: 2px;
@@ -198,22 +285,22 @@ main {
 .card {
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 22px;
   box-shadow: var(--shadow);
   margin-bottom: 16px;
 }
-.card.tinted-explore { border-top: 4px solid var(--edge-explore); }
-.card.tinted-dig     { border-top: 4px solid var(--edge-dig); }
-.card.tinted-gather  { border-top: 4px solid var(--edge-gather); }
-.card.tinted-embrace { border-top: 4px solid var(--edge-embrace); }
+.card.tinted-explore { border-top: 5px solid var(--edge-explore); }
+.card.tinted-dig     { border-top: 5px solid var(--edge-dig); }
+.card.tinted-gather  { border-top: 5px solid var(--edge-gather); }
+.card.tinted-embrace { border-top: 5px solid var(--edge-embrace); }
 
 .h-display {
   font-family: var(--serif);
   font-weight: 500;
   font-size: 32px;
   line-height: 1.2;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 8px;
   letter-spacing: 0.3px;
 }
@@ -234,7 +321,7 @@ main {
   font-family: var(--serif);
   font-size: 26px;
   font-weight: 500;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 8px;
   line-height: 1.25;
 }
@@ -288,6 +375,45 @@ select.translation-select {
   cursor: pointer;
 }
 
+/* ─── Question letter badges (site-style step letters) ───── */
+.q-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.q-head .h-question { margin-bottom: 0; }
+.q-badge {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 28px; font-weight: 700;
+  color: white;
+  box-shadow: 0 6px 18px rgba(15,42,82,0.16);
+}
+.q-badge.explore { background: var(--edge-explore); }
+.q-badge.dig     { background: var(--edge-dig); }
+.q-badge.gather  { background: var(--edge-gather); }
+.q-badge.embrace { background: var(--edge-embrace); }
+.field-label.with-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.label-badge {
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 15px; font-weight: 700;
+  color: white;
+}
+.label-badge.gather  { background: var(--edge-gather); }
+.label-badge.embrace { background: var(--edge-embrace); }
+
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -299,7 +425,7 @@ select.translation-select {
   font-weight: 700;
   padding: 14px 24px;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
   text-decoration: none;
@@ -307,16 +433,16 @@ select.translation-select {
   min-height: 50px;
 }
 .btn-primary {
-  background: var(--navy);
+  background: var(--surface-deep);
   color: white;
 }
 .btn-primary:hover { background: var(--navy-deep); }
 .btn-secondary {
   background: var(--paper);
-  color: var(--navy);
+  color: var(--heading);
   border-color: var(--rule);
 }
-.btn-secondary:hover { border-color: var(--navy); }
+.btn-secondary:hover { border-color: var(--heading); }
 .btn-accent {
   background: var(--accent);
   color: white;
@@ -342,7 +468,7 @@ select.translation-select {
   color: var(--ink-soft);
   margin-top: 20px;
 }
-.privacy strong { color: var(--navy); }
+.privacy strong { color: var(--heading); }
 .privacy::before {
   content: '🔒  ';
   font-size: 14px;
@@ -356,7 +482,7 @@ select.translation-select {
 .welcome-hero .logo-large {
   width: 84px; height: 84px;
   border-radius: 20px;
-  background: var(--navy);
+  background: var(--surface-deep);
   margin: 0 auto 20px;
   display: flex; align-items: center; justify-content: center;
   position: relative;
@@ -386,7 +512,7 @@ select.translation-select {
   font-size: 36px;
   font-weight: 700;
   letter-spacing: 6px;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 4px;
 }
 .welcome-hero .tag {
@@ -415,7 +541,7 @@ select.translation-select {
   font-family: var(--serif);
   font-size: 32px;
   font-weight: 500;
-  color: var(--navy);
+  color: var(--heading);
   line-height: 1.2;
 }
 
@@ -426,7 +552,9 @@ select.translation-select {
   padding: 22px;
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
   cursor: pointer;
   margin-bottom: 12px;
   transition: all 0.15s ease;
@@ -434,15 +562,43 @@ select.translation-select {
   color: inherit;
   box-shadow: var(--shadow);
 }
+/* Study tiles carry their method's four-color signature */
+#screen-home .home-tile:nth-of-type(1)::after,
+#screen-home .home-tile:nth-of-type(2)::after,
+#screen-home .home-tile:nth-of-type(3)::after,
+#screen-home .home-tile:nth-of-type(4)::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+}
+/* Read the Bible — solid navy: the foundational, plain-text tool */
+#screen-home .home-tile:nth-of-type(1)::after { background: var(--heading); }
+/* Word study — accent blue: echoes the lexicon / tap-a-word color */
+#screen-home .home-tile:nth-of-type(4)::after { background: var(--accent); }
+#screen-home .home-tile:nth-of-type(2)::after {
+  background: linear-gradient(90deg,
+    var(--edge-gather)  0%, var(--edge-gather)  25%,
+    var(--edge-explore) 25%, var(--edge-explore) 50%,
+    var(--edge-dig)     50%, var(--edge-dig)     75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+}
+#screen-home .home-tile:nth-of-type(3)::after {
+  background: linear-gradient(90deg,
+    var(--edge-explore) 0%, var(--edge-explore) 25%,
+    var(--edge-dig)     25%, var(--edge-dig)     50%,
+    var(--edge-gather)  50%, var(--edge-gather)  75%,
+    var(--edge-embrace) 75%, var(--edge-embrace) 100%);
+}
 .home-tile:hover {
-  border-color: var(--navy);
+  border-color: var(--heading);
   transform: translateY(-1px);
 }
 .home-tile-h {
   font-family: var(--serif);
   font-size: 22px;
   font-weight: 500;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 4px;
   line-height: 1.3;
 }
@@ -517,7 +673,7 @@ select.translation-select {
   font-family: var(--serif);
   font-size: 18px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--heading);
 }
 .preset .topic {
   font-size: 13px;
@@ -529,7 +685,7 @@ select.translation-select {
 .passage-display {
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 24px 22px;
   box-shadow: var(--shadow);
   margin-bottom: 16px;
@@ -545,10 +701,13 @@ select.translation-select {
 }
 .passage-text {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 19px;
-  line-height: 1.65;
+  font-size: var(--reading-size);
+  line-height: var(--reading-lh);
   color: var(--ink);
+  transition: font-size 0.15s ease;
 }
+/* Passages inside a study step sit one step below full reading size. */
+.passage-compact { font-size: calc(var(--reading-size) - 2px); }
 /* Tappable words in passage */
 .bible-word {
   color: var(--accent);
@@ -575,23 +734,23 @@ select.translation-select {
 .il-grk {
   display: block;
   font-family: var(--serif, Georgia, serif);
-  font-size: 19px;
+  font-size: var(--reading-size);
   color: var(--accent);
   line-height: 1.2;
 }
 .il-gloss {
   display: block;
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: calc(var(--reading-size) * 0.68);
   color: var(--ink);
   line-height: 1.2;
   margin-top: 1px;
 }
 .interlinear-text .verse-num {
   font-family: var(--sans);
-  font-size: 11px;
+  font-size: 0.62em;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--heading);
   vertical-align: super;
   margin-right: 4px;
   letter-spacing: 0.5px;
@@ -625,9 +784,9 @@ select.translation-select {
 
 .passage-text .verse-num {
   font-family: var(--sans);
-  font-size: 11px;
+  font-size: 0.62em;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--heading);
   vertical-align: super;
   margin-right: 4px;
   letter-spacing: 0.5px;
@@ -649,13 +808,6 @@ select.translation-select {
   border-radius: 4px;
   margin-left: 8px;
   vertical-align: middle;
-}
-a.translation-badge {
-  text-decoration: none;
-  cursor: pointer;
-}
-a.translation-badge:hover {
-  color: var(--accent);
 }
 
 /* ─── Lookup link (Explore: "Define a difficult word") ──── */
@@ -701,6 +853,105 @@ a.translation-badge:hover {
   font-weight: 700;
 }
 
+/* ─── Tap note (Explore: reminder that words are tappable) ── */
+.tap-note {
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.tap-note strong { color: var(--accent); }
+
+/* ─── Passage accordion (collapsible Scripture on study steps) ── */
+.passage-accord { margin: 0 0 16px 0; }
+.passage-accord summary .pa-ref { font-family: var(--serif); font-size: 16px; }
+.passage-accord-body {
+  max-height: 40vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Translation toggle (BSB ⇄ Greek interlinear) ───────── */
+.trans-toggle {
+  display: inline-flex;
+  margin-left: 10px;
+  vertical-align: middle;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.trans-toggle-btn {
+  border: none;
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.trans-toggle-btn.is-on {
+  background: var(--accent);
+  color: white;
+}
+.pa-toggle { margin-bottom: 10px; }
+
+/* ─── W·O·R·D wizard ─────────────────────────────────────── */
+.wiz-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+.wiz-step {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.45;
+}
+.wiz-step.is-on, .wiz-step.is-done { opacity: 1; }
+.wiz-letter {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+.wiz-step.is-on .wiz-letter { background: white; color: var(--surface-deep); }
+.wiz-step.is-done .wiz-letter { background: var(--edge-explore); color: white; }
+.wiz-label {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: white;
+}
+.wiz-line { flex: 1; height: 1px; background: rgba(255,255,255,0.25); min-width: 8px; }
+@media (max-width: 480px) {
+  .wiz-label { display: none; }
+}
+.wiz-word-big {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--heading);
+  margin: 6px 0 2px;
+}
+.wiz-word-big .translit { font-style: italic; font-size: 22px; color: var(--muted); margin-left: 8px; }
+.wiz-meta { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+
 /* ─── Hint box ───────────────────────────────────────────── */
 .hint-box {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
@@ -710,7 +961,7 @@ a.translation-badge:hover {
   margin-bottom: 16px;
   font-size: 15px;
   line-height: 1.5;
-  color: var(--navy);
+  color: var(--heading);
 }
 .hint-toggle {
   background: none; border: none;
@@ -745,12 +996,12 @@ a.translation-badge:hover {
 .done-summary .item-q {
   font-family: var(--serif);
   font-size: 18px;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 6px;
   font-weight: 500;
 }
 .done-summary .item-a {
-  font-size: 16px;
+  font-size: calc(var(--reading-size) - 3px);
   color: var(--ink);
   white-space: pre-wrap;
   line-height: 1.55;
@@ -777,7 +1028,7 @@ a.translation-badge:hover {
 .done-celebrate h2 {
   font-family: var(--serif);
   font-size: 30px;
-  color: var(--navy);
+  color: var(--heading);
   margin-bottom: 8px;
   font-weight: 500;
   line-height: 1.2;
@@ -815,7 +1066,7 @@ a.translation-badge:hover {
   font-family: var(--serif);
   font-size: 22px;
   font-weight: 500;
-  color: var(--navy);
+  color: var(--heading);
 }
 .lex-result .lr-translit {
   font-family: var(--serif);
@@ -952,7 +1203,7 @@ a.translation-badge:hover {
   align-items: center;
   gap: 12px;
   padding: 16px 18px;
-  background: var(--navy);
+  background: var(--surface-deep);
   color: white;
   flex-shrink: 0;
 }
@@ -1123,7 +1374,7 @@ a.translation-badge:hover {
 
 .full-card { background: var(--paper); }
 .full-header {
-  background: var(--navy);
+  background: var(--surface-deep);
   color: white;
   padding: 24px 24px 22px;
   position: relative;
@@ -1189,7 +1440,7 @@ a.translation-badge:hover {
   padding: 14px 16px;
   margin-bottom: 22px;
   border-radius: 6px;
-  color: var(--navy);
+  color: var(--heading);
 }
 .pastoral-note .pn-label {
   display: block;
@@ -1218,7 +1469,7 @@ a.translation-badge:hover {
 .etymology { font-size: 14px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
 .etymology em { font-style: italic; }
 .brief-gloss { font-size: 17px; margin-bottom: 18px; line-height: 1.55; }
-.brief-gloss strong { color: var(--navy); font-weight: 700; }
+.brief-gloss strong { color: var(--heading); font-weight: 700; }
 .brief-gloss em     { font-style: italic; }
 .brief-gloss .ref, .sense .content .ref, .accord-body .ref {
   color: var(--accent); text-decoration: none;
@@ -1245,7 +1496,7 @@ a.translation-badge:hover {
 }
 .sense.subsense { padding-left: 32px; font-size: 15.5px; }
 .sense.subsense .marker { color: var(--ink-soft); min-width: 26px; font-size: 15px; }
-.sense .content strong { color: var(--navy); font-weight: 700; }
+.sense .content strong { color: var(--heading); font-weight: 700; }
 .sense .content em     { font-style: italic; }
 
 .accord {
@@ -1257,7 +1508,7 @@ a.translation-badge:hover {
 .accord summary {
   padding: 14px 16px; cursor: pointer;
   font-weight: 700; font-size: 15px;
-  color: var(--navy);
+  color: var(--heading);
   list-style: none;
   display: flex; justify-content: space-between; align-items: center;
   background: var(--canvas);
@@ -1276,7 +1527,7 @@ a.translation-badge:hover {
   border-top: 1px solid var(--rule);
 }
 .accord-body em     { font-style: italic; }
-.accord-body strong { color: var(--navy); font-weight: 700; }
+.accord-body strong { color: var(--heading); font-weight: 700; }
 .accord-body.placeholder { color: var(--muted); font-style: italic; }
 .thayer-body ol { margin: 4px 0 4px 18px; padding-left: 14px; }
 .thayer-body li { margin-bottom: 3px; }
@@ -1293,6 +1544,36 @@ a.translation-badge:hover {
 }
 .full-footer a { color: var(--accent); text-decoration: none; font-weight: 700; }
 
+/* ─── Chapter navigation (Read the Bible) ────────────────── */
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.chapter-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  min-height: 44px;
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.chapter-nav button:hover {
+  background: var(--accent);
+  color: white;
+}
+.chapter-nav .nav-spacer { flex: 1; }
+
 /* ─── App footer ─────────────────────────────────────────── */
 .app-footer {
   padding: 16px 20px;
@@ -1304,6 +1585,84 @@ a.translation-badge:hover {
   line-height: 1.6;
 }
 .app-footer strong { color: var(--ink-soft); }
+
+/* ─── Display sheet (theme + text size) ──────────────────── */
+.display-group + .display-group {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+.display-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 4px 10px;
+}
+.display-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 10px 4px 0;
+  line-height: 1.5;
+}
+.display-row { display: flex; gap: 8px; }
+.display-sample {
+  background: var(--canvas);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.display-sample .sample-ref {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.size-btn {
+  flex: 1;
+  min-height: 52px;
+  background: var(--canvas);
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.size-btn.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.size-btn[data-size="17"] { font-size: 14px; }
+.size-btn[data-size="19"] { font-size: 17px; }
+.size-btn[data-size="21"] { font-size: 20px; }
+.size-btn[data-size="24"] { font-size: 24px; }
+
+.aa-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: var(--on-deep);
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  min-width: 44px;
+  min-height: 38px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.aa-btn:hover { background: rgba(255,255,255,0.22); }
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 480px) {
@@ -1319,7 +1678,6 @@ a.translation-badge:hover {
   .welcome-hero .logo-large { width: 72px; height: 72px; }
   .welcome-hero .logo-large-letter { font-size: 48px; }
   .greeting h2 { font-size: 26px; }
-  .passage-text { font-size: 18px; }
   .full-header { padding: 20px 20px 18px; }
   .full-header .lemma { font-size: 28px; }
   .full-body { padding: 18px; }
@@ -1333,6 +1691,7 @@ a.translation-badge:hover {
 <header class="app-header">
   <div class="logo" onclick="goHome()" title="Home">E</div>
   <div class="app-title">EDGE</div>
+  <button class="aa-btn" onclick="openDisplaySheet()" aria-label="Display settings" title="Display">Aa</button>
   <button class="back-btn" id="backBtn" onclick="goBack()">Back</button>
 </header>
 
@@ -1345,6 +1704,18 @@ a.translation-badge:hover {
     <div class="progress-step" data-step="gather"><div class="progress-dot">G</div></div>
     <div class="progress-line"></div>
     <div class="progress-step" data-step="embrace"><div class="progress-dot">E</div></div>
+  </div>
+</div>
+
+<div class="progress" id="goalProgress">
+  <div class="progress-track">
+    <div class="progress-step" data-gstep="g"><div class="progress-dot">G</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="o"><div class="progress-dot">O</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="a"><div class="progress-dot">A</div></div>
+    <div class="progress-line"></div>
+    <div class="progress-step" data-gstep="l"><div class="progress-dot">L</div></div>
   </div>
 </div>
 
@@ -1396,10 +1767,16 @@ a.translation-badge:hover {
       <div class="home-tile-d">Just read a passage. No study flow, no notes — just the text.</div>
     </button>
 
+    <button class="home-tile" onclick="showScreen('quickPick')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">GOAL Study</div>
+      <div class="home-tile-d">A quick, streamlined path — four thoughtful questions. A great place to start.</div>
+    </button>
+
     <button class="home-tile" onclick="showScreen('pickPassage')">
       <span class="home-tile-arrow">→</span>
-      <div class="home-tile-h">Start a study</div>
-      <div class="home-tile-d">Walk through a passage with the EDGE method.</div>
+      <div class="home-tile-h">EDGE Study</div>
+      <div class="home-tile-d">A thorough study — walk a passage step by step through 14 guided practices.</div>
     </button>
 
     <button class="home-tile" onclick="showScreen('wordStudy')">
@@ -1425,7 +1802,7 @@ a.translation-badge:hover {
         <label for="translationSelect">Translation:</label>
         <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="net">NET · New English Translation</option>
+          <option value="blb">BLB · Berean Literal Bible</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -1451,11 +1828,11 @@ a.translation-badge:hover {
     </div>
   </section>
 
-  <!-- ─── READER (E0 — passage shown before EDGE flow) ────── -->
+  <!-- ─── EXPLORE · 1 of 4 — READ ─────────────────────────── -->
   <section class="screen" id="screen-reader">
-    <div class="card">
-      <div class="h-step explore">READ</div>
-      <h2 class="h-question">Slow down. Read it twice.</h2>
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — READ · 1 of 4</div>
+      <div class="q-head"><div class="q-badge explore">R</div><h2 class="h-question">Slow down. Read it twice.</h2></div>
       <p class="lead">
         Bible study isn't about finishing fast. Read the passage through once. Then read it again, slower.
       </p>
@@ -1472,27 +1849,45 @@ a.translation-badge:hover {
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-      <button class="btn btn-primary" onclick="startEdge()">Begin EDGE →</button>
+      <button class="btn btn-primary" onclick="startEdge()">Continue →</button>
     </div>
   </section>
 
-  <!-- ─── EXPLORE ──────────────────────────────────────────── -->
-  <section class="screen" id="screen-explore">
+  <!-- ─── EXPLORE · 2 of 4 — EXAMINE ──────────────────────── -->
+  <section class="screen" id="screen-exploreExamine">
     <div class="card tinted-explore">
-      <div class="h-step explore">E · EXPLORE</div>
-      <h2 class="h-question">What is it saying?</h2>
-      <p class="lead">Notice what's actually on the page. Don't interpret yet — just observe.</p>
+      <div class="h-step explore">E · EXPLORE — EXAMINE · 2 of 4</div>
+      <div class="q-head"><div class="q-badge explore">E</div><h2 class="h-question">Read it in another form.</h2></div>
+      <p class="lead">A second form slows you down and shows you what you missed. Notice what's the same — and what surprises you.</p>
+    </div>
 
-      <div class="passage-display explore-passage-scroll" style="box-shadow:none; border-color:var(--rule); margin-bottom: 16px; padding: 16px 18px;">
-        <div class="passage-ref" id="explorePassageRef"></div>
-        <div class="passage-text" id="explorePassageText" style="font-size: 17px;"></div>
-      </div>
+    <div class="passage-display" id="examinePassage">
+      <div class="passage-loading">Loading passage…</div>
+    </div>
 
-      <button class="lookup-link" onclick="openLookupFromStudy()">
-        <span class="lookup-link-h">Define a difficult word</span>
-        <span class="lookup-link-d">Look up an unfamiliar Greek term — your notes here will be saved.</span>
-        <span class="lookup-link-arrow">→</span>
-      </button>
+    <div class="tap-note" id="examineOtNote" style="display:none;">
+      💡 Try the BSB ⇄ BLB toggle above — the Berean Literal Bible keeps the shape of the original language. (The Greek interlinear covers the New Testament.)
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" onclick="advanceFromExamine()">Continue →</button>
+    </div>
+  </section>
+
+  <!-- ─── EXPLORE · 3 of 4 — ANALYZE ──────────────────────── -->
+  <section class="screen" id="screen-exploreAnalyze">
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — ANALYZE · 3 of 4</div>
+      <div class="q-head"><div class="q-badge explore">A</div><h2 class="h-question">Stew in it.</h2></div>
+      <p class="lead">Meditate on it. Read it once more, slowly, and let it sit. Don't interpret yet — just observe.</p>
+
+      <details class="accord passage-accord" id="analyzePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
 
       <div class="hint-box" id="exploreHint" style="display:none;">
         <button class="hint-toggle" onclick="toggleHint('exploreHint')">Need a nudge? <span class="caret">›</span></button>
@@ -1505,96 +1900,299 @@ a.translation-badge:hover {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromExplore()">Continue to Dig →</button>
+        <button class="btn btn-primary" onclick="advanceFromAnalyze()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── DIG ──────────────────────────────────────────────── -->
-  <section class="screen" id="screen-dig">
-    <div class="card tinted-dig">
-      <div class="h-step dig">D · DIG</div>
-      <h2 class="h-question">What's beneath the surface?</h2>
-      <p class="lead">Look at the context — who's speaking, who they're speaking to, what's happening around it.</p>
+  <!-- ─── EXPLORE · 4 of 4 — DEFINE ───────────────────────── -->
+  <section class="screen" id="screen-exploreDefine">
+    <div class="card tinted-explore">
+      <div class="h-step explore">E · EXPLORE — DEFINE · 4 of 4</div>
+      <div class="q-head"><div class="q-badge explore">D</div><h2 class="h-question">Define difficult words.</h2></div>
+      <p class="lead">Any words you'd struggle to explain to a friend? Look them up before moving on.</p>
 
-      <div class="hint-box" id="digHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('digHint')">Need a nudge? <span class="caret">›</span></button>
-        <div class="hint-content"></div>
+      <details class="accord passage-accord" id="definePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="tap-note">
+        💡 <strong>Tap any word</strong> to see the Greek or Hebrew behind it.<br>
+        <span style="color:var(--muted);">A lexicon shows every meaning a word <em>can</em> have. Only the passage tells you which one fits <em>here</em> — context decides.</span>
       </div>
 
-      <label class="field-label" for="digWho">Who is speaking, and to whom?</label>
-      <textarea id="digWho" rows="2" placeholder="e.g., Jesus is speaking with Nicodemus, a Jewish leader who came at night…"></textarea>
+      <button class="lookup-link" onclick="openWordWizard()">
+        <span class="lookup-link-h">🔍 Guided word study</span>
+        <span class="lookup-link-d">Walk the W-O-R-D steps: Word → Original → Range → Decide. Your findings are added to your notes below.</span>
+        <span class="lookup-link-arrow">→</span>
+      </button>
 
-      <label class="field-label" for="digContext">What's happening before this passage?</label>
-      <textarea id="digContext" rows="2" placeholder="e.g., Jesus has just cleared the temple and started his public ministry…"></textarea>
-
-      <label class="field-label" for="digParaphrase">Now say it in your own words.</label>
-      <p class="field-help">Don't worry about getting it perfect — this is just to be sure you understand it.</p>
-      <textarea id="digParaphrase" rows="4" placeholder="Rewrite the passage as if you were explaining it to a friend…"></textarea>
+      <label class="field-label" for="exploreDefine">Words you looked up — what do they mean <em>here</em>?</label>
+      <p class="field-help">Not every meaning a word can have — the meaning it carries in this passage.</p>
+      <textarea id="exploreDefine" rows="4" placeholder="e.g., 'Grace' (charis) — a gift freely given; here it's God's favor we didn't earn…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromDig()">Continue to Gather →</button>
+        <button class="btn btn-primary" onclick="advanceFromDefine()">Continue to Dig →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── GATHER ──────────────────────────────────────────── -->
-  <section class="screen" id="screen-gather">
+  <!-- ─── DIG · 1 of 3 — DETAILS ──────────────────────────── -->
+  <section class="screen" id="screen-digDetails">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG — DETAILS · 1 of 3</div>
+      <div class="q-head"><div class="q-badge dig">D</div><h2 class="h-question">Interrogate the details.</h2></div>
+      <p class="lead">Ask the reporter's questions: who, what, when, where, why, and how.</p>
+
+      <details class="accord passage-accord" id="digDetailsPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="digDetailsHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digDetailsHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digWho">What do the details tell you?</label>
+      <p class="field-help">Who is involved? What's happening? When and where? Why, and how?</p>
+      <textarea id="digWho" rows="4" placeholder="e.g., Jesus is speaking with Nicodemus, a Jewish leader who came at night with a question…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDigDetails()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DIG · 2 of 3 — INVESTIGATE ──────────────────────── -->
+  <section class="screen" id="screen-digInvestigate">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG — INVESTIGATE · 2 of 3</div>
+      <div class="q-head"><div class="q-badge dig">I</div><h2 class="h-question">Investigate the surroundings.</h2></div>
+      <p class="lead">Look into the context, the characters, the culture, and how the passage is put together.</p>
+
+      <details class="accord passage-accord" id="digInvestigatePassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="digInvestigateHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digInvestigateHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digContext">What did you find?</label>
+      <p class="field-help">What's happening before this passage? Who are these people? What would this have meant to its first readers?</p>
+      <textarea id="digContext" rows="4" placeholder="e.g., Jesus has just cleared the temple and started his public ministry; Nicodemus is a Pharisee — a respected religious teacher…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDigInvestigate()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DIG · 3 of 3 — GRASP ────────────────────────────── -->
+  <section class="screen" id="screen-digGrasp">
+    <div class="card tinted-dig">
+      <div class="h-step dig">D · DIG — GRASP · 3 of 3</div>
+      <div class="q-head"><div class="q-badge dig">G</div><h2 class="h-question">Grasp it in your own words.</h2></div>
+      <p class="lead">Rewrite or reword the heart of the passage — as if you were explaining it to a friend.</p>
+
+      <details class="accord passage-accord" id="digGraspPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="digGraspHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('digGraspHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <label class="field-label" for="digParaphrase">Say it in your own words.</label>
+      <p class="field-help">Don't worry about getting it perfect — this is just to be sure you understand it.</p>
+      <textarea id="digParaphrase" rows="5" placeholder="Rewrite the passage as if you were explaining it to a friend…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromDigGrasp()">Continue to Gather →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GATHER · K-N-O-W · one practice per page ────────── -->
+  <section class="screen" id="screen-gatherK">
     <div class="card tinted-gather">
-      <div class="h-step gather">G · GATHER</div>
-      <h2 class="h-question">What does it mean?</h2>
+      <div class="h-step gather">G · GATHER — KEY · 1 of 4</div>
+      <div class="q-head"><div class="q-badge gather">K</div><h2 class="h-question">What is the primary message of this passage?</h2></div>
       <p class="lead"><em>Look for what this says about God before what it says about you.</em></p>
 
-      <div class="hint-box" id="gatherHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('gatherHint')">Need a nudge? <span class="caret">›</span></button>
+      <details class="accord passage-accord" id="gatherKPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="gatherKHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('gatherKHint')">Need a nudge? <span class="caret">›</span></button>
         <div class="hint-content"></div>
       </div>
 
-      <label class="field-label" for="gatherKey">What's the main message?</label>
-      <textarea id="gatherKey" rows="2" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
-
-      <label class="field-label" for="gatherGod">What does this say about God?</label>
-      <textarea id="gatherGod" rows="2" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
-
-      <label class="field-label" for="gatherPeople">What does this say about people?</label>
-      <textarea id="gatherPeople" rows="2" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
-
-      <label class="field-label" for="gatherMe">What does this mean for me?</label>
-      <textarea id="gatherMe" rows="3" placeholder="e.g., I'm reminded that the gospel isn't about my performance — it's about God's gift. I can rest in that…"></textarea>
+      <textarea id="gatherKey" rows="4" placeholder="e.g., God's love drives the gospel — he sent his Son so people would have eternal life, not be condemned…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromGather()">Continue to Embrace →</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherK()">Continue →</button>
       </div>
     </div>
   </section>
 
-  <!-- ─── EMBRACE ─────────────────────────────────────────── -->
-  <section class="screen" id="screen-embrace">
-    <div class="card tinted-embrace">
-      <div class="h-step embrace">E · EMBRACE</div>
-      <h2 class="h-question">How will this shape me?</h2>
-      <p class="lead"><em>You're not earning anything here. Just receiving, then responding.</em></p>
+  <section class="screen" id="screen-gatherN">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — NATURE OF GOD · 2 of 4</div>
+      <div class="q-head"><div class="q-badge gather">N</div><h2 class="h-question">What does this say about God?</h2></div>
+      <p class="lead">His character, his promises, his mercy, his holiness — and how it points to Jesus.</p>
 
-      <div class="hint-box" id="embraceHint" style="display:none;">
-        <button class="hint-toggle" onclick="toggleHint('embraceHint')">Need a nudge? <span class="caret">›</span></button>
-        <div class="hint-content"></div>
-      </div>
+      <details class="accord passage-accord" id="gatherNPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
 
-      <label class="field-label" for="embraceApply">Where in your life does this apply?</label>
-      <textarea id="embraceApply" rows="2" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
-
-      <label class="field-label" for="embraceCommit">What will you commit to today?</label>
-      <textarea id="embraceCommit" rows="2" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
-
-      <label class="field-label" for="embraceAction">One specific thing you'll do.</label>
-      <p class="field-help">Make it concrete and small. A single action you can take this week.</p>
-      <textarea id="embraceAction" rows="2" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+      <textarea id="gatherGod" rows="4" placeholder="e.g., He initiates love. He sends, gives, saves rather than condemns…"></textarea>
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-        <button class="btn btn-primary" onclick="advanceFromEmbrace()">Complete study →</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherN()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-gatherO">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — OUTCOME · 3 of 4</div>
+      <div class="q-head"><div class="q-badge gather">O</div><h2 class="h-question">What does it mean for our faith and beliefs?</h2></div>
+      <p class="lead">Scripture shapes what we believe, not only what we do.</p>
+
+      <details class="accord passage-accord" id="gatherOPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <textarea id="gatherOutcome" rows="4" placeholder="e.g., Salvation rests on God's gift, not our performance — that reshapes how I think about earning approval…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherO()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-gatherW">
+    <div class="card tinted-gather">
+      <div class="h-step gather">G · GATHER — WISDOM · 4 of 4</div>
+      <div class="q-head"><div class="q-badge gather">W</div><h2 class="h-question">What does it say about people — and to people?</h2></div>
+      <p class="lead">Two questions in one: what it shows about us, and what it says to us.</p>
+
+      <details class="accord passage-accord" id="gatherWPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <textarea id="gatherPeople" rows="4" placeholder="e.g., We need to be born again — religion alone isn't enough; we receive, not earn…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromGatherW()">Continue to Embrace →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── EMBRACE · A-C-T · one practice per page ─────────── -->
+  <section class="screen" id="screen-embraceA">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE — APPLY · 1 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">A</div><h2 class="h-question">What is it saying to me?</h2></div>
+      <p class="lead"><em>You're not earning anything here. Just receiving, then responding.</em></p>
+
+      <details class="accord passage-accord" id="embraceAPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <div class="hint-box" id="embraceAHint" style="display:none;">
+        <button class="hint-toggle" onclick="toggleHint('embraceAHint')">Need a nudge? <span class="caret">›</span></button>
+        <div class="hint-content"></div>
+      </div>
+
+      <textarea id="embraceApply" rows="4" placeholder="e.g., I tend to slip into earning God's love through trying harder — this passage challenges that…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceA()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-embraceC">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE — COMMIT · 2 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">C</div><h2 class="h-question">What will I do about it?</h2></div>
+      <p class="lead">Name your response — something believed differently, done differently, or surrendered.</p>
+
+      <details class="accord passage-accord" id="embraceCPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <textarea id="embraceCommit" rows="4" placeholder="e.g., I'll start tomorrow morning by thanking God for his initiating love before I do anything else…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceC()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-embraceT">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">E · EMBRACE — TAKE ACTION · 3 of 3</div>
+      <div class="q-head"><div class="q-badge embrace">T</div><h2 class="h-question">How exactly will I practice this?</h2></div>
+      <p class="lead">Make it concrete and small — a single step you can take this week.</p>
+
+      <details class="accord passage-accord" id="embraceTPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <textarea id="embraceAction" rows="4" placeholder="e.g., Tell my spouse one specific way I see God's love at work in our family…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromEmbraceT()">Complete study →</button>
       </div>
     </div>
   </section>
@@ -1618,6 +2216,167 @@ a.translation-badge:hover {
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goHome()">← Home</button>
         <button class="btn btn-primary" onclick="newStudy()">Start another →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · PICK ──────────────────────────────── -->
+  <section class="screen" id="screen-quickPick">
+    <div class="card">
+      <div class="h-step gather">GOAL STUDY</div>
+      <h2 class="h-question">Pick a passage.</h2>
+      <p class="lead">Choose any passage. You'll read it, then answer four thoughtful questions — G, O, A, L. That's the whole thing.</p>
+
+      <label class="field-label" for="quickPickerBtn">Reference</label>
+      <div class="passage-input-row">
+        <button type="button" id="quickPickerBtn" class="ref-button is-empty" onclick="openRefPicker('quickInput', 'quickPickerBtn')" aria-label="Choose a Bible passage">
+          <svg class="ref-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="quickPickerLabel">Choose a passage</span>
+          <span class="ref-caret">▾</span>
+        </button>
+        <input type="hidden" id="quickInput" value="">
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QUICK STUDY · READ ──────────────────────────────── -->
+  <section class="screen" id="screen-quickRead">
+    <div class="card">
+      <div class="h-step gather">GOAL STUDY</div>
+      <h2 class="h-question">Read it slowly. Twice is better.</h2>
+      <p class="lead">There's no hurry. When you're ready, four short questions are waiting.</p>
+    </div>
+
+    <div class="passage-display" id="quickReadPassage">
+      <div class="passage-loading">Loading passage…</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" onclick="advanceFromQuickRead()">I've read it →</button>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · 1 of 4 — GOD ─────────────────────────────── -->
+  <section class="screen" id="screen-quickG">
+    <div class="card tinted-gather">
+      <div class="h-step gather">GOAL — G · GOD · 1 of 4</div>
+      <div class="q-head"><div class="q-badge gather">G</div><h2 class="h-question">What does this teach about God?</h2></div>
+      <p class="lead">Start with God before you start with yourself.</p>
+
+      <details class="accord passage-accord" id="quickGPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <p class="field-help">His love, his promises, his warnings, his mercy — and how it points to Jesus.</p>
+      <textarea id="quickGod" rows="4" placeholder="e.g., God cares about people who feel lost…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickG()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · 2 of 4 — OTHERS ──────────────────────────── -->
+  <section class="screen" id="screen-quickO">
+    <div class="card tinted-explore">
+      <div class="h-step explore">GOAL — O · OTHERS · 2 of 4</div>
+      <div class="q-head"><div class="q-badge explore">O</div><h2 class="h-question">What does this teach about others?</h2></div>
+      <p class="lead">Scripture tells the truth about people — including you and me.</p>
+
+      <details class="accord passage-accord" id="quickOPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <p class="field-help">Our hopes, our fears, our sin, our weakness, our need.</p>
+      <textarea id="quickPeople" rows="4" placeholder="e.g., People need help they can't give themselves…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickO()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · 3 of 4 — ALIGN ───────────────────────────── -->
+  <section class="screen" id="screen-quickA">
+    <div class="card tinted-dig">
+      <div class="h-step dig">GOAL — A · ALIGN · 3 of 4</div>
+      <div class="q-head"><div class="q-badge dig">A</div><h2 class="h-question">Where do I need to align with this truth?</h2></div>
+      <p class="lead"><em>You're not performing. Just being honest.</em></p>
+
+      <details class="accord passage-accord" id="quickAPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <p class="field-help">What belief needs to change? What lie have you been believing?</p>
+      <textarea id="quickMe" rows="4" placeholder="e.g., I've been living like God's love must be earned — this says it's a gift…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickA()">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · 4 of 4 — LIVE IT OUT ─────────────────────── -->
+  <section class="screen" id="screen-quickL">
+    <div class="card tinted-embrace">
+      <div class="h-step embrace">GOAL — L · LIVE IT OUT · 4 of 4</div>
+      <div class="q-head"><div class="q-badge embrace">L</div><h2 class="h-question">How will I live out this truth?</h2></div>
+      <p class="lead">Make it small and concrete — one honest step.</p>
+
+      <details class="accord passage-accord" id="quickLPassage">
+        <summary>📖 <span class="pa-ref">Passage</span></summary>
+        <div class="accord-body passage-accord-body">
+          <div class="passage-text passage-compact"></div>
+        </div>
+      </details>
+
+      <p class="field-help">Something you'll do today or this week — someone to forgive, thank, serve, or contact; a prayer to pray.</p>
+      <textarea id="quickRespond" rows="4" placeholder="e.g., This week I'll thank God each morning instead of starting with worry…"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="advanceFromQuickL()">Finish →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── GOAL · DONE ─────────────────────────────────────── -->
+  <section class="screen" id="screen-quickDone">
+    <div class="done-celebrate">
+      <div class="check">✓</div>
+      <h2 id="quickDoneHeading">You did it.</h2>
+      <p>You read God's Word and responded to it. That's Bible study — you can do this.</p>
+    </div>
+
+    <div class="card">
+      <div class="h-step gather">YOUR GOAL STUDY</div>
+      <h2 class="h-question" id="quickDoneRef">—</h2>
+
+      <div class="done-summary" id="quickDoneSummary"></div>
+
+      <div class="privacy" style="margin-top:18px;">
+        <strong>Want to go deeper next time?</strong> The EDGE Study walks the same path with 14 guided practices — same heart, more room to explore.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goHome()">← Home</button>
+        <button class="btn btn-primary" onclick="newQuickStudy()">Start another →</button>
       </div>
     </div>
   </section>
@@ -1651,7 +2410,7 @@ a.translation-badge:hover {
         <label for="readBibleTranslation">Translation:</label>
         <select id="readBibleTranslation" class="translation-select">
           <option value="bsb">BSB · Berean Standard Bible</option>
-          <option value="net">NET · New English Translation</option>
+          <option value="blb">BLB · Berean Literal Bible</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -1676,6 +2435,45 @@ a.translation-badge:hover {
 </main>
 
 <!-- ─── REFERENCE PICKER (Book → Chapter) ────────────────── -->
+<!-- ─── DISPLAY SHEET (theme + text size) ────────────────── -->
+<div class="picker-backdrop" id="displayBackdrop" role="dialog" aria-modal="true" aria-labelledby="displayTitle" aria-hidden="true">
+  <div class="picker-sheet">
+    <div class="picker-header">
+      <span style="width:36px;"></span>
+      <h2 id="displayTitle">Display</h2>
+      <button class="picker-close" type="button" aria-label="Close" onclick="closeDisplaySheet()">✕</button>
+    </div>
+    <div class="picker-body">
+
+      <div class="display-group">
+        <div class="display-label">Theme</div>
+        <div class="display-row" id="themeRow">
+          <button class="picker-tab" type="button" data-theme-pick="light">Light</button>
+          <button class="picker-tab" type="button" data-theme-pick="dark">Dark</button>
+          <button class="picker-tab" type="button" data-theme-pick="auto">Auto</button>
+        </div>
+        <p class="display-note" id="themeNote"></p>
+      </div>
+
+      <div class="display-group">
+        <div class="display-label">Text size</div>
+        <div class="display-sample">
+          <div class="sample-ref">Psalm 23:1</div>
+          <div class="passage-text"><span class="verse-num">1</span>The LORD is my shepherd; I shall not want.</div>
+        </div>
+        <div class="display-row" id="sizeRow">
+          <button class="size-btn" type="button" data-size="17" aria-label="Small text">Aa</button>
+          <button class="size-btn" type="button" data-size="19" aria-label="Default text">Aa</button>
+          <button class="size-btn" type="button" data-size="21" aria-label="Large text">Aa</button>
+          <button class="size-btn" type="button" data-size="24" aria-label="Largest text">Aa</button>
+        </div>
+        <p class="display-note">Changes passage text only. Buttons and labels stay put.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="picker-backdrop" id="refPickerBackdrop" role="dialog" aria-modal="true" aria-labelledby="refPickerTitle" aria-hidden="true">
   <div class="picker-sheet" id="refPickerSheet">
     <div class="picker-header">
@@ -1696,10 +2494,15 @@ a.translation-badge:hover {
   <div class="modal-content" id="modalContent"></div>
 </div>
 
+<!-- ─── W·O·R·D WIZARD MODAL (guided word study) ─────────── -->
+<div class="modal-backdrop" id="wizBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-content" id="wizContent"></div>
+</div>
+
 <footer class="app-footer">
+  <a href="https://bibleworms.org" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn the GOAL and EDGE methods at BibleWorms.org →</a><br><br>
   <strong>EDGE · Bible Study</strong> · Lexicons: Mounce Concise Greek-English Dictionary © 1993 (teknia.com/greek-dictionary), STEPBible / Tyndale House Cambridge CC BY 4.0<br>
-  Bible text: Berean Standard Bible · Public Domain · Your notes stay on your device.<br>
-  Scripture quoted by permission. Quotations designated (NET) are from the NET Bible® copyright ©1996, 2019 by Biblical Studies Press, L.L.C. <a href="http://netbible.com" target="_blank" rel="noopener" style="color:inherit;">netbible.com</a>. All rights reserved.
+  Bible text: Berean Standard Bible &amp; Berean Literal Bible (draft) · Public Domain · Your notes stay on your device.
 </footer>
 
 <script>
@@ -1720,15 +2523,34 @@ function emptyStudy() {
     passage: null,
     translation: 'bsb',
     text: null,
-    explore: '',
+    explore: '', exploreDefine: '',
     digWho: '', digContext: '', digParaphrase: '',
-    gatherKey: '', gatherGod: '', gatherPeople: '', gatherMe: '',
+    gatherKey: '', gatherGod: '', gatherOutcome: '', gatherPeople: '',
     embraceApply: '', embraceCommit: '', embraceAction: ''
   };
 }
 
 const STORAGE_KEY_NAME  = 'edge.user.name';
 const STORAGE_KEY_STUDY = 'edge.study.draft';
+const STORAGE_KEY_QUICK = 'edge.quick.draft';
+
+function emptyQuick() {
+  return { passage: null, text: null, quickGod: '', quickPeople: '', quickMe: '', quickRespond: '' };
+}
+state.quick = emptyQuick();
+
+function loadQuick() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_QUICK);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveQuick() {
+  try { localStorage.setItem(STORAGE_KEY_QUICK, JSON.stringify(state.quick)); } catch {}
+}
+function clearQuick() {
+  try { localStorage.removeItem(STORAGE_KEY_QUICK); } catch {}
+}
 
 /* ============================================================
    STORAGE
@@ -1842,25 +2664,55 @@ function showScreen(name, opts = {}) {
   state.screen = name;
 
   // Header back button
-  const showBack = !['welcome', 'home', 'done'].includes(name);
+  const showBack = !['welcome', 'home', 'done', 'quickDone'].includes(name);
   document.getElementById('backBtn').classList.toggle('is-visible', showBack);
 
-  // Progress bar (only during EDGE flow)
-  const showProgress = ['explore', 'dig', 'gather', 'embrace'].includes(name);
+  // Progress bar (only during EDGE flow). Sub-steps map to their parent dot.
+  const EDGE_FLOW = ['reader', 'exploreExamine', 'exploreAnalyze', 'exploreDefine',
+                     'digDetails', 'digInvestigate', 'digGrasp',
+                     'gatherK', 'gatherN', 'gatherO', 'gatherW', 'embraceA', 'embraceC', 'embraceT'];
+  const showProgress = EDGE_FLOW.includes(name);
   document.getElementById('progress').classList.toggle('is-visible', showProgress);
-  if (showProgress) updateProgress(name);
+  // GOAL study tracker (G-O-A-L, one dot per question page)
+  const GOAL_FLOW = ['quickG', 'quickO', 'quickA', 'quickL'];
+  const showGoalProgress = GOAL_FLOW.includes(name);
+  document.getElementById('goalProgress').classList.toggle('is-visible', showGoalProgress);
+  if (showGoalProgress) updateGoalProgress(name);
+  if (showProgress) {
+    const dot = (name === 'reader' || name.startsWith('explore')) ? 'explore'
+              : name.startsWith('dig')     ? 'dig'
+              : name.startsWith('gather')  ? 'gather'
+              : name.startsWith('embrace') ? 'embrace'
+              : name;
+    updateProgress(dot);
+  }
 
   // Per-screen mounting
-  if (name === 'home')         renderHome();
-  if (name === 'pickPassage')  renderPresets();
-  if (name === 'reader')       fetchPassageForReader();
-  if (name === 'explore')      mountExplore();
-  if (name === 'dig')          mountDig();
-  if (name === 'gather')       mountGather();
-  if (name === 'embrace')      mountEmbrace();
-  if (name === 'done')         renderDone();
-  if (name === 'wordStudy')    mountWordStudy();
-  if (name === 'readBible')    mountReadBible();
+  if (name === 'home')           renderHome();
+  if (name === 'pickPassage')    renderPresets();
+  if (name === 'reader')         fetchPassageForReader();
+  if (name === 'exploreExamine') mountExploreExamine();
+  if (name === 'exploreAnalyze') mountExploreAnalyze();
+  if (name === 'exploreDefine')  mountExploreDefine();
+  if (name === 'digDetails')     mountDigDetails();
+  if (name === 'digInvestigate') mountDigInvestigate();
+  if (name === 'digGrasp')       mountDigGrasp();
+  if (name === 'gatherK')        mountEdgePage('gatherKPassage', 'gatherKey', 'gatherKHint', 'gather');
+  if (name === 'gatherN')        mountEdgePage('gatherNPassage', 'gatherGod');
+  if (name === 'gatherO')        mountEdgePage('gatherOPassage', 'gatherOutcome');
+  if (name === 'gatherW')        mountEdgePage('gatherWPassage', 'gatherPeople');
+  if (name === 'embraceA')       mountEdgePage('embraceAPassage', 'embraceApply', 'embraceAHint', 'embrace');
+  if (name === 'embraceC')       mountEdgePage('embraceCPassage', 'embraceCommit');
+  if (name === 'embraceT')       mountEdgePage('embraceTPassage', 'embraceAction');
+  if (name === 'done')           renderDone();
+  if (name === 'quickRead')      mountQuickRead();
+  if (name === 'quickG')         mountQuickPage('quickGPassage', 'quickGod');
+  if (name === 'quickO')         mountQuickPage('quickOPassage', 'quickPeople');
+  if (name === 'quickA')         mountQuickPage('quickAPassage', 'quickMe');
+  if (name === 'quickL')         mountQuickPage('quickLPassage', 'quickRespond');
+  if (name === 'quickDone')      renderQuickDone();
+  if (name === 'wordStudy')      mountWordStudy();
+  if (name === 'readBible')      mountReadBible();
 
   window.scrollTo(0, 0);
 }
@@ -1893,12 +2745,30 @@ function updateProgress(currentStep) {
   });
 }
 
+function updateGoalProgress(currentScreen) {
+  const order = ['quickG', 'quickO', 'quickA', 'quickL'];
+  const idx = order.indexOf(currentScreen);
+  document.querySelectorAll('#goalProgress .progress-step').forEach((el, i) => {
+    el.classList.remove('is-active', 'is-done');
+    if (i < idx)  el.classList.add('is-done');
+    if (i === idx) el.classList.add('is-active');
+  });
+}
+
 function captureCurrentInputs() {
   const map = {
-    explore:  ['exploreInput'],
-    dig:      ['digWho', 'digContext', 'digParaphrase'],
-    gather:   ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'],
-    embrace:  ['embraceApply', 'embraceCommit', 'embraceAction']
+    exploreAnalyze: ['exploreInput'],
+    exploreDefine:  ['exploreDefine'],
+    digDetails:     ['digWho'],
+    digInvestigate: ['digContext'],
+    digGrasp:       ['digParaphrase'],
+    gatherK:        ['gatherKey'],
+    gatherN:        ['gatherGod'],
+    gatherO:        ['gatherOutcome'],
+    gatherW:        ['gatherPeople'],
+    embraceA:       ['embraceApply'],
+    embraceC:       ['embraceCommit'],
+    embraceT:       ['embraceAction']
   };
   const ids = map[state.screen];
   if (!ids) return;
@@ -1975,18 +2845,8 @@ function onPassageSubmit() {
 }
 
 /* ============================================================
-   PASSAGE FETCH — static JSON files per translation
+   PASSAGE FETCH — BSB static JSON files
    ============================================================ */
-
-/* Translation registry — maps a translation id to its /data/ folder,
-   its display label/badge, and whether it carries per-word Strong's
-   tagging (only BSB does today; NET and Interlinear render as plain
-   verse text). Add future translations here. */
-const TRANSLATIONS = {
-  bsb:         { folder: 'bsb',         label: 'BSB',         hasStrongs: true  },
-  net:         { folder: 'net',         label: '(NET)',       hasStrongs: false, linkUrl: 'https://netbible.com' },
-  interlinear: { folder: 'interlinear', label: 'Interlinear',  hasStrongs: false }
-};
 
 /* NT book name → file code mapping */
 const BOOK_CODES = {
@@ -2253,6 +3113,8 @@ function commitRefPick(book, chapter) {
     onPassageSubmit();
   } else if (targetInputId === 'readBibleInput') {
     onReadBibleSubmit();
+  } else if (targetInputId === 'quickInput') {
+    onQuickSubmit();
   }
 }
 
@@ -2288,54 +3150,27 @@ function parseRef(ref) {
   return { bookCode, chapter, startVerse, endVerse };
 }
 
-/* NET is shipped as ONE bundled file (/data/net/net_bible.json, keyed by
-   book code -> chapters -> verses) rather than one file per chapter, purely
-   so it's a single drag-and-drop upload to GitHub. Fetched once and cached
-   in memory; every later NET lookup just reads from this object. */
-let NET_BIBLE_DATA = null;
-let NET_BIBLE_LOADING = null;
-async function loadNetBibleData() {
-  if (NET_BIBLE_DATA) return NET_BIBLE_DATA;
-  if (!NET_BIBLE_LOADING) {
-    NET_BIBLE_LOADING = fetch('/data/net/net_bible.json')
-      .then(res => {
-        if (!res.ok) throw new Error('net_bible.json not found');
-        return res.json();
-      })
-      .then(json => { NET_BIBLE_DATA = json; return json; });
-  }
-  return NET_BIBLE_LOADING;
-}
+/* Translation registry — add future translations (e.g. MSB) as one line here. */
+const TRANSLATIONS = {
+  bsb:         { label: 'BSB',         toggle: 'BSB',   folder: 'bsb',         scope: 'all' },
+  blb:         { label: 'BLB',         toggle: 'BLB',   folder: 'blb',         scope: 'all' },
+  interlinear: { label: 'Interlinear', toggle: 'Greek', folder: 'interlinear', scope: 'nt'  }
+};
 
-async function fetchPassage(ref) {
+async function fetchPassage(ref, translation) {
   const parsed = parseRef(ref);
   if (!parsed) throw new Error(`Couldn't understand "${ref}". Try "John 3:16-21" or "Romans 8:28-39".`);
 
-  const translationKey = state.study.translation || 'bsb';
-  const trans = TRANSLATIONS[translationKey] || TRANSLATIONS.bsb;
-  const isInterlinear = (translationKey === 'interlinear');
-
-  let chapter;
-  if (translationKey === 'net') {
-    let bible;
-    try {
-      bible = await loadNetBibleData();
-    } catch (e) {
-      throw new Error(`Couldn't load the NET Bible text. Check your connection and try again.`);
-    }
-    const book = bible[parsed.bookCode];
-    const ch = book && book.chapters && book.chapters[String(parsed.chapter)];
-    if (!ch) throw new Error(`Chapter not found. Check the reference and try again.`);
-    chapter = ch;
-  } else {
-    const url = `/data/${trans.folder}/${parsed.bookCode}_${parsed.chapter}.json`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      if (isInterlinear) throw new Error(`Interlinear is New Testament only. This passage isn't available in interlinear yet.`);
-      throw new Error(`Chapter not found. Check the reference and try again.`);
-    }
-    chapter = await res.json();
+  const t = TRANSLATIONS[(translation || state.study.translation || 'bsb')] || TRANSLATIONS.bsb;
+  const isInterlinear = (t === TRANSLATIONS.interlinear);
+  const url = `/data/${t.folder}/${parsed.bookCode}_${parsed.chapter}.json`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    if (t.scope === 'nt') throw new Error(`${t.label} covers the New Testament only. This passage isn't available in it yet.`);
+    throw new Error(`Chapter not found. Check the reference and try again.`);
   }
+
+  const chapter = await res.json();
 
   // Filter to requested verse range
   const verses = [];
@@ -2349,13 +3184,10 @@ async function fetchPassage(ref) {
 
   return {
     reference: ref,
-    translation: translationKey,
-    translation_id: trans.label,
-    hasStrongs: !!trans.hasStrongs,
+    translation_id: t.label,
     isInterlinear,
     verses,
-    // Plain text for study flow text areas (interlinear uses gloss; everything
-    // else — BSB, NET — stores full word/verse text in `.w`)
+    // Plain text for study flow text areas (interlinear uses gloss; BSB uses w)
     plainVerses: verses.map(v => ({
       verse: v.verse,
       text: isInterlinear
@@ -2365,24 +3197,13 @@ async function fetchPassage(ref) {
   };
 }
 
-function translationBadgeHtml(data) {
-  const trans = TRANSLATIONS[data.translation] || TRANSLATIONS.bsb;
-  const infoBtn = `<button class="info-btn" onclick="showTextInfo('${escapeAttr(data.translation || 'bsb')}')" aria-label="About this text" title="About this text">ⓘ</button>`;
-  if (trans.linkUrl) {
-    return `<a class="translation-badge" href="${escapeAttr(trans.linkUrl)}" target="_blank" rel="noopener">${escapeHtml(trans.label)}</a>${infoBtn}`;
-  }
-  return `<span class="translation-badge">${escapeHtml(trans.label)}</span>${infoBtn}`;
-}
-
-function renderPassageInto(elementId, data, tappable = false) {
-  const el = document.getElementById(elementId);
-  if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
-  const transBadge = translationBadgeHtml(data);
-
-  let versesHtml;
+/* Shared verse renderer — used by both the Reader and the Explore step
+   so interlinear and BSB display identically everywhere. Returns the
+   inner HTML for the verses (no wrapper, no ref line). */
+function buildVersesHtml(data, tappable = false) {
   if (data.isInterlinear) {
     // Interlinear: each word shows Greek over English gloss, both tap to lexicon
-    versesHtml = data.verses.map(v => {
+    return data.verses.map(v => {
       const wHtml = v.words.map(w => {
         if (!w.grk) return '';
         const strong = escapeAttr(w.strong || '');
@@ -2400,36 +3221,42 @@ function renderPassageInto(elementId, data, tappable = false) {
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
     }).join('');
-    el.innerHTML = `
-      <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-      <div class="passage-text interlinear-text">${versesHtml}</div>
-    `;
-    return;
   }
 
-  if (tappable && data.hasStrongs && data.verses && data.verses[0] && data.verses[0].words) {
-    // Word-level rendering with tappable spans (only for translations with
-    // real per-word Strong's tagging, e.g. BSB — NOT NET, which has no
-    // word-level tagging and falls through to the plain-text branch below)
-    versesHtml = data.verses.map(v => {
+  if (tappable && data.verses && data.verses[0] && data.verses[0].words) {
+    // BSB word-level rendering with tappable spans
+    return data.verses.map(v => {
       const wHtml = v.words.map(w => {
         // Skip display markers (dashes, ellipses) — they're structural not textual
-        if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
+        if (w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || w.w === '. . .' || /^v+[.,;:!?]?$/i.test(w.w)) return '';
+        // Untagged words (e.g. BLB text) render as plain prose, not tappable
+        if (!w.s) return `${escapeHtml(w.w)} `;
         return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
       }).join('');
       return `<span class="verse-num">${v.verse}</span>${wHtml}`;
     }).join('');
-  } else {
-    const src = data.plainVerses || data.verses || [];
-    versesHtml = src.map(v => {
-      const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
-      return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
-    }).join('');
   }
+
+  // Plain text fallback
+  const src = data.plainVerses || data.verses || [];
+  return src.map(v => {
+    const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
+    return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
+  }).join('');
+}
+
+function renderPassageInto(elementId, data, tappable = false) {
+  const el = document.getElementById(elementId);
+  if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
+  const badgeLabel = data.translation_id || (data.isInterlinear ? 'Interlinear' : 'BSB');
+  const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
+
+  const versesHtml = buildVersesHtml(data, tappable);
+  const textClass = data.isInterlinear ? 'passage-text interlinear-text' : 'passage-text';
 
   el.innerHTML = `
     <div class="passage-ref">${escapeHtml(data.reference)}${transBadge}</div>
-    <div class="passage-text">${versesHtml}</div>
+    <div class="${textClass}">${versesHtml}</div>
   `;
 }
 
@@ -2438,10 +3265,11 @@ async function fetchPassageForReader() {
   display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
 
   try {
-    const data = await fetchPassage(state.study.passage);
+    const data = await fetchPassageCached(state.study.passage, state.study.translation);
     state.study.text = data;
     saveStudy();
-    renderPassageInto('readerPassage', data, true); // tappable words enabled (only used for Strong's-tagged translations)
+    renderPassageInto('readerPassage', data, true); // tappable words enabled
+    injectToggleIntoDisplay('readerPassage');
   } catch (err) {
     console.error('Bible fetch error:', err);
     display.innerHTML = `
@@ -2466,65 +3294,304 @@ async function fetchPassageForReader() {
 }
 
 function startEdge() {
-  showScreen('explore');
+  showScreen('exploreExamine');
 }
 
 /* ============================================================
-   EDGE STEP MOUNTING
+   EXPLORE — R·E·A·D sub-steps (Read = the Reader screen above)
    ============================================================ */
-function mountExplore() {
-  if (state.study.text) {
-    const d = state.study.text;
-    document.getElementById('explorePassageRef').textContent = d.reference || '';
-    const passageEl = document.getElementById('explorePassageText');
-    if (d.hasStrongs && d.verses && d.verses[0] && d.verses[0].words) {
-      // Tappable word-level rendering (Strong's-tagged translations only)
-      passageEl.innerHTML = d.verses.map(v => {
-        const wHtml = v.words.map(w => {
-          if (!w.s || w.w === '-' || /^\.\s*\.\s*\./.test(w.w) || /^v+[.,;:!?]?$/i.test(w.w)) return '';
-          return `<span class="bible-word" data-strongs="${escapeAttr(w.s)}" onclick="handleWordTap(this)">${escapeHtml(w.w)}</span> `;
-        }).join('');
-        return `<span class="verse-num">${v.verse}</span>${wHtml}`;
-      }).join('');
-    } else {
-      const verses = d.plainVerses || d.verses || [];
-      passageEl.innerHTML = verses.map(v => {
-        const text = v.text !== undefined ? v.text : (v.words||[]).map(w=>w.w).join(' ');
-        return `<span class="verse-num">${v.verse}</span>${escapeHtml((text||'').trim())} `;
-      }).join('');
-    }
-  }
+function renderExaminePassage() {
+  if (!state.study.text) return;
+  renderPassageInto('examinePassage', state.study.text, true);
+  injectToggleIntoDisplay('examinePassage');
+}
+
+function mountExploreExamine() {
+  renderExaminePassage();
+  // With BLB available for the whole Bible, the second form always exists;
+  // the note now only mentions that the Greek covers the NT.
+  document.getElementById('examineOtNote').style.display =
+    passageIsNT(state.study.passage) ? 'none' : 'block';
+}
+
+function mountExploreAnalyze() {
+  mountPassageAccord('analyzePassage');
   document.getElementById('exploreInput').value = state.study.explore || '';
   attachAutosave('exploreInput', 'explore');
   populateHint('exploreHint', 'explore');
 }
 
-function mountDig() {
-  document.getElementById('digWho').value        = state.study.digWho || '';
-  document.getElementById('digContext').value    = state.study.digContext || '';
-  document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
+function mountExploreDefine() {
+  mountPassageAccord('definePassage');
+  document.getElementById('exploreDefine').value = state.study.exploreDefine || '';
+  attachAutosave('exploreDefine', 'exploreDefine');
+}
+
+/* ============================================================
+   W·O·R·D WIZARD — guided word study inside Explore's Define
+   W: pick the English word · O: see the original · R: range of
+   meanings · D: decide the meaning here. Result is appended to
+   the Define notes field.
+   ============================================================ */
+const wiz = { step: 'W', strongs: null, wordEn: '', entry: null, mounce: null, thayer: null, lastLine: '' };
+
+function wizStripHtml(current) {
+  const steps = ['W', 'O', 'R', 'D'];
+  const labels = { W: 'Word', O: 'Original', R: 'Range', D: 'Decide' };
+  const idx = steps.indexOf(current); // -1 when current === 'done'
+  return `<div class="wiz-steps">` + steps.map((s, i) => {
+    const cls = (current === 'done') ? 'is-done' : (i === idx ? 'is-on' : (i < idx ? 'is-done' : ''));
+    return `<div class="wiz-step ${cls}"><span class="wiz-letter">${s}</span><span class="wiz-label">${labels[s]}</span></div>`;
+  }).join('<div class="wiz-line"></div>') + `</div>`;
+}
+
+function wizFrame(current, title, bodyHtml) {
+  return `<div class="full-card">
+    <div class="full-header">
+      <button class="full-close" onclick="closeWordWizard()" aria-label="Close">×</button>
+      <div class="gloss" style="padding-right:40px;">${title}</div>
+      ${wizStripHtml(current)}
+    </div>
+    <div class="full-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function openWordWizard() {
+  if (!state.study.text) return;
+  wiz.step = 'W'; wiz.strongs = null; wiz.wordEn = '';
+  wiz.entry = null; wiz.mounce = null; wiz.thayer = null; wiz.lastLine = '';
+  document.getElementById('wizBackdrop').classList.add('is-open');
+  document.getElementById('wizBackdrop').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  wizShowW();
+}
+
+function closeWordWizard() {
+  const backdrop = document.getElementById('wizBackdrop');
+  backdrop.classList.remove('is-open');
+  backdrop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function wizShowW() {
+  wiz.step = 'W';
+  const d = state.study.text;
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('W', 'Find the word to study', `
+    <p class="lead" style="margin-bottom:14px;">Tap the word you want to understand better.</p>
+    <div style="border:1px solid var(--rule);border-radius:10px;padding:16px 18px;max-height:45vh;overflow-y:auto;">
+      <div class="passage-text passage-compact ${d.isInterlinear ? 'interlinear-text' : ''}" id="wizPassage"></div>
+    </div>
+  `);
+  const el = document.getElementById('wizPassage');
+  el.innerHTML = buildVersesHtml(d, true);
+  // Route word taps to the wizard instead of the lexicon popup
+  el.querySelectorAll('[data-strongs]').forEach(w => { w.onclick = () => wizSelectWord(w); });
+  content.scrollTop = 0;
+}
+
+function wizSelectWord(w) {
+  const strongs = w.dataset.strongs;
+  if (!strongs) return;
+  wiz.strongs = strongs;
+  wiz.wordEn = (w.querySelector('.il-gloss')?.textContent || w.textContent || '').trim();
+  if (!wiz.wordEn) wiz.wordEn = (w.querySelector('.il-grk')?.textContent || '').trim();
+  wizShowO();
+}
+
+async function wizShowO() {
+  wiz.step = 'O';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('O', 'The original word',
+    '<div style="padding:30px;text-align:center;color:var(--muted);">Loading…</div>');
+  const lang = wiz.strongs.startsWith('H') ? 'H' : 'G';
+  try {
+    const lexicon = await loadLexiconData(lang);
+    wiz.entry = lexicon[wiz.strongs] || null;
+    if (lang === 'G') {
+      const mData = await loadMounceData();
+      wiz.mounce = mData[wiz.strongs] || null;
+      const tData = await loadThayerData();
+      wiz.thayer = tData[wiz.strongs] || null;
+    } else {
+      wiz.mounce = null; wiz.thayer = null;
+    }
+  } catch (err) {
+    console.error('Wizard lexicon error:', err);
+  }
+  const lemma    = (wiz.mounce && wiz.mounce.lemma)    || (wiz.entry && wiz.entry.lemma)    || '—';
+  const translit = (wiz.mounce && wiz.mounce.translit) || (wiz.entry && wiz.entry.translit) || '';
+  const id       = (wiz.entry && wiz.entry.id) || wiz.strongs;
+  const freq     = wiz.mounce && wiz.mounce.freq ? ` · appears ${wiz.mounce.freq}× in the NT` : '';
+  const pos      = wiz.entry ? formatPos(wiz.entry.pos) : '';
+  content.innerHTML = wizFrame('O', 'The original word', `
+    <p class="lead">Behind “<strong>${escapeHtml(wiz.wordEn)}</strong>” is the ${lang === 'H' ? 'Hebrew' : 'Greek'} word the author actually wrote:</p>
+    <div class="wiz-word-big">${escapeHtml(lemma)}<span class="translit">${translit ? '(' + escapeHtml(translit) + ')' : ''}</span></div>
+    <div class="wiz-meta">${escapeHtml(pos)}${pos ? ' · ' : ''}Strong's ${escapeHtml(id)}${freq}</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowW()">← Pick another word</button>
+      <button class="btn btn-primary" onclick="wizShowR()">See its meanings →</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+function wizRangeBody() {
+  const entry = wiz.entry, mounce = wiz.mounce, thayer = wiz.thayer;
+  const parsed = entry ? parseTbesg(entry.raw) : { sections: [], synonyms: '', attribution: '' };
+  const etym   = parsed.sections.find(s => s.type === 'etymology');
+  const brief  = parsed.sections.find(s => s.type === 'paragraph');
+  const senses = parsed.sections.filter(s => s.type === 'sense' || s.type === 'subsense');
+  const sensesHtml = senses.length
+    ? `<ul class="sense-list">${senses.map(s => `
+         <li class="sense ${s.type === 'subsense' ? 'subsense' : ''}">
+           <span class="marker">${escapeHtml(s.marker)}</span>
+           <span class="content">${s.content}</span>
+         </li>`).join('')}</ul>` : '';
+  let primary, extras = '';
+  if (mounce) {
+    primary = `<p class="brief-gloss">${escapeHtml(mounce.def)}</p>`;
+    if (entry) {
+      extras += `<details class="accord"><summary>Abbott-Smith (detailed)</summary><div class="accord-body">
+        ${etym ? `<p class="etymology">${etym.content}</p>` : ''}
+        ${brief ? `<p class="brief-gloss">${brief.content}</p>` : ''}
+        ${sensesHtml || '<span class="placeholder">No detailed entry.</span>'}
+      </div></details>`;
+    }
+  } else {
+    primary = (etym ? `<p class="etymology">${etym.content}</p>` : '')
+            + (brief ? `<p class="brief-gloss">${brief.content}</p>` : '')
+            + sensesHtml;
+    if (!primary) primary = '<p class="brief-gloss" style="color:var(--muted);font-style:italic;">No lexicon entry found for this word.</p>';
+  }
+  if (thayer) {
+    extras = `<details class="accord"><summary>Thayer's</summary><div class="accord-body thayer-body">${thayer}</div></details>` + extras;
+  }
+  return primary + extras;
+}
+
+function wizShowR() {
+  wiz.step = 'R';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('R', 'The range of meanings', `
+    <p class="lead">One word can carry several senses. Read through the range — which sense fits your passage?</p>
+    <div class="tap-note" style="margin-bottom:16px;">
+      ⚠️ <strong>A word does not mean all of these at once.</strong> This is the list of what it <em>can</em> mean. The next step is deciding what it means <em>here</em>.
+    </div>
+    ${wizRangeBody()}
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowO()">← Back</button>
+      <button class="btn btn-primary" onclick="wizShowD()">Decide →</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+function wizShowD() {
+  wiz.step = 'D';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('D', 'Decide the meaning here', `
+    <p class="lead">Context determines meaning. Based on the context of <strong>this</strong> passage, decide what this word means here — and say it in your own words.</p>
+    <textarea id="wizDecision" rows="4" placeholder="e.g., Here it means God's favor we didn't earn…"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowR()">← Back to meanings</button>
+      <button class="btn btn-primary" onclick="wizFinish()">Add to my notes →</button>
+    </div>
+  `);
+  document.getElementById('wizDecision').focus();
+  content.scrollTop = 0;
+}
+
+function wizFinish() {
+  const ta = document.getElementById('wizDecision');
+  const decision = (ta.value || '').trim();
+  if (!decision) { ta.focus(); return; }
+  const lemma = (wiz.mounce && wiz.mounce.lemma) || (wiz.entry && wiz.entry.lemma) || '';
+  const id    = (wiz.entry && wiz.entry.id) || wiz.strongs;
+  wiz.lastLine = `“${wiz.wordEn}” — ${lemma} (${id}): ${decision}`;
+  state.study.exploreDefine = (state.study.exploreDefine ? state.study.exploreDefine + '\n' : '') + wiz.lastLine;
+  saveStudy();
+  const defineField = document.getElementById('exploreDefine');
+  if (defineField) defineField.value = state.study.exploreDefine;
+  wizShowDone();
+}
+
+function wizShowDone() {
+  wiz.step = 'done';
+  const content = document.getElementById('wizContent');
+  content.innerHTML = wizFrame('done', 'Added to your notes ✓', `
+    <p class="lead">Saved to your Define notes:</p>
+    <div class="hint-box" style="margin-bottom:20px;">${escapeHtml(wiz.lastLine)}</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="wizShowW()">Study another word</button>
+      <button class="btn btn-primary" onclick="closeWordWizard()">Done for now</button>
+    </div>
+  `);
+  content.scrollTop = 0;
+}
+
+/* ============================================================
+   EDGE STEP MOUNTING
+   ============================================================ */
+/* Passage accordion — collapsible Scripture on study steps.
+   Remembers open/closed across steps for the current session. */
+let passageAccordOpen = false;
+
+function mountPassageAccord(accordId, data) {
+  const det = document.getElementById(accordId);
+  if (!det) return;
+  // No explicit data = full-study passage, which gets the translation toggle.
+  const withToggle = (data === undefined);
+  const d = data || state.study.text;
+  if (!d) { det.style.display = 'none'; return; }
+  det.style.display = '';
+  det.querySelector('.pa-ref').textContent = d.reference || 'Passage';
+  const body = det.querySelector('.passage-accord-body');
+  const oldToggle = body.querySelector('.pa-toggle');
+  if (oldToggle) oldToggle.remove();
+  const tHtml = withToggle ? passageToggleHtml() : '';
+  if (tHtml) body.insertAdjacentHTML('afterbegin', `<div class="pa-toggle">${tHtml}</div>`);
+  const textEl = det.querySelector('.passage-text');
+  textEl.innerHTML = buildVersesHtml(d, true);
+  textEl.classList.toggle('interlinear-text', !!d.isInterlinear);
+  det.open = passageAccordOpen;
+  if (!det._toggleWired) {
+    det._toggleWired = true;
+    det.addEventListener('toggle', () => { passageAccordOpen = det.open; });
+  }
+}
+
+function mountDigDetails() {
+  mountPassageAccord('digDetailsPassage');
+  document.getElementById('digWho').value = state.study.digWho || '';
   attachAutosave('digWho', 'digWho');
+  // Preset dig hints are contextual, so they live on the Investigate page.
+  document.getElementById('digDetailsHint').style.display = 'none';
+}
+
+function mountDigInvestigate() {
+  mountPassageAccord('digInvestigatePassage');
+  document.getElementById('digContext').value = state.study.digContext || '';
   attachAutosave('digContext', 'digContext');
+  populateHint('digInvestigateHint', 'dig');
+}
+
+function mountDigGrasp() {
+  mountPassageAccord('digGraspPassage');
+  document.getElementById('digParaphrase').value = state.study.digParaphrase || '';
   attachAutosave('digParaphrase', 'digParaphrase');
-  populateHint('digHint', 'dig');
+  document.getElementById('digGraspHint').style.display = 'none';
 }
 
-function mountGather() {
-  document.getElementById('gatherKey').value    = state.study.gatherKey || '';
-  document.getElementById('gatherGod').value    = state.study.gatherGod || '';
-  document.getElementById('gatherPeople').value = state.study.gatherPeople || '';
-  document.getElementById('gatherMe').value     = state.study.gatherMe || '';
-  ['gatherKey', 'gatherGod', 'gatherPeople', 'gatherMe'].forEach(id => attachAutosave(id, id));
-  populateHint('gatherHint', 'gather');
+/* Shared mount for single-practice EDGE pages */
+function mountEdgePage(accordId, fieldId, hintBoxId, hintKey) {
+  mountPassageAccord(accordId);
+  document.getElementById(fieldId).value = state.study[fieldId] || '';
+  attachAutosave(fieldId, fieldId);
+  if (hintBoxId) populateHint(hintBoxId, hintKey);
 }
 
-function mountEmbrace() {
-  document.getElementById('embraceApply').value   = state.study.embraceApply || '';
-  document.getElementById('embraceCommit').value  = state.study.embraceCommit || '';
-  document.getElementById('embraceAction').value  = state.study.embraceAction || '';
-  ['embraceApply', 'embraceCommit', 'embraceAction'].forEach(id => attachAutosave(id, id));
-  populateHint('embraceHint', 'embrace');
-}
+
 
 function attachAutosave(id, key) {
   const el = document.getElementById(id);
@@ -2554,10 +3621,19 @@ function toggleHint(boxId) {
   content.classList.toggle('is-open');
 }
 
-function advanceFromExplore() { captureCurrentInputs(); showScreen('dig'); }
-function advanceFromDig()      { captureCurrentInputs(); showScreen('gather'); }
-function advanceFromGather()   { captureCurrentInputs(); showScreen('embrace'); }
-function advanceFromEmbrace()  { captureCurrentInputs(); showScreen('done'); }
+function advanceFromExamine()        { showScreen('exploreAnalyze'); }
+function advanceFromAnalyze()        { captureCurrentInputs(); showScreen('exploreDefine'); }
+function advanceFromDefine()         { captureCurrentInputs(); showScreen('digDetails'); }
+function advanceFromDigDetails()     { captureCurrentInputs(); showScreen('digInvestigate'); }
+function advanceFromDigInvestigate() { captureCurrentInputs(); showScreen('digGrasp'); }
+function advanceFromDigGrasp()       { captureCurrentInputs(); showScreen('gatherK'); }
+function advanceFromGatherK()        { captureCurrentInputs(); showScreen('gatherN'); }
+function advanceFromGatherN()        { captureCurrentInputs(); showScreen('gatherO'); }
+function advanceFromGatherO()        { captureCurrentInputs(); showScreen('gatherW'); }
+function advanceFromGatherW()        { captureCurrentInputs(); showScreen('embraceA'); }
+function advanceFromEmbraceA()       { captureCurrentInputs(); showScreen('embraceC'); }
+function advanceFromEmbraceC()       { captureCurrentInputs(); showScreen('embraceT'); }
+function advanceFromEmbraceT()       { captureCurrentInputs(); showScreen('done'); }
 
 /* ============================================================
    DONE
@@ -2568,17 +3644,18 @@ function renderDone() {
   document.getElementById('donePassageRef').textContent = state.study.passage || '—';
 
   const items = [
-    { step: 'explore', label: 'Explore', q: 'What did you notice?',                a: state.study.explore },
-    { step: 'dig',     label: 'Dig',     q: 'Who is speaking, and to whom?',       a: state.study.digWho },
-    { step: 'dig',     label: 'Dig',     q: 'What\'s happening before this?',      a: state.study.digContext },
-    { step: 'dig',     label: 'Dig',     q: 'In your own words.',                  a: state.study.digParaphrase },
-    { step: 'gather',  label: 'Gather',  q: 'What\'s the main message?',           a: state.study.gatherKey },
-    { step: 'gather',  label: 'Gather',  q: 'What does this say about God?',      a: state.study.gatherGod },
-    { step: 'gather',  label: 'Gather',  q: 'What does this say about people?',   a: state.study.gatherPeople },
-    { step: 'gather',  label: 'Gather',  q: 'What does this mean for me?',        a: state.study.gatherMe },
-    { step: 'embrace', label: 'Embrace', q: 'Where in my life does this apply?',  a: state.study.embraceApply },
-    { step: 'embrace', label: 'Embrace', q: 'What will I commit to today?',      a: state.study.embraceCommit },
-    { step: 'embrace', label: 'Embrace', q: 'One specific thing I\'ll do.',       a: state.study.embraceAction }
+    { step: 'explore', label: 'Explore · Analyze', q: 'What did you notice?',                       a: state.study.explore },
+    { step: 'explore', label: 'Explore · Define',  q: 'Words I looked up, and what they mean here.', a: state.study.exploreDefine },
+    { step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?', a: state.study.digWho },
+    { step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.',     a: state.study.digContext },
+    { step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.',                a: state.study.digParaphrase },
+    { step: 'gather',  label: 'Gather · Key',           q: 'The primary message.',                  a: state.study.gatherKey },
+    { step: 'gather',  label: 'Gather · Nature of God', q: 'What does this say about God?',         a: state.study.gatherGod },
+    { step: 'gather',  label: 'Gather · Outcome',       q: 'What does it mean for faith & beliefs?', a: state.study.gatherOutcome },
+    { step: 'gather',  label: 'Gather · Wisdom',        q: 'About people, and to people.',          a: state.study.gatherPeople },
+    { step: 'embrace', label: 'Embrace · Apply',       q: 'What is it saying to me?',           a: state.study.embraceApply },
+    { step: 'embrace', label: 'Embrace · Commit',      q: 'What will I do about it?',           a: state.study.embraceCommit },
+    { step: 'embrace', label: 'Embrace · Take action', q: 'How exactly will I practice this?',  a: state.study.embraceAction }
   ];
 
   document.getElementById('doneSummary').innerHTML = items.map(i => `
@@ -2595,6 +3672,167 @@ function newStudy() {
   clearStudy();
   state.history = [];
   showScreen('pickPassage', { skipHistory: true });
+}
+
+/* ============================================================
+   TRANSLATION TOGGLE (BSB ⇄ Greek interlinear)
+   Available on Full-study passage displays. NT passages only,
+   since the interlinear covers the Greek NT. Quick Study is
+   deliberately BSB-only and never shows the toggle.
+   ============================================================ */
+const PASSAGE_CACHE = {};
+
+async function fetchPassageCached(ref, translation) {
+  const key = (translation || 'bsb') + '|' + ref;
+  if (PASSAGE_CACHE[key]) return PASSAGE_CACHE[key];
+  const data = await fetchPassage(ref, translation);
+  PASSAGE_CACHE[key] = data;
+  return data;
+}
+
+const NT_BOOK_CODES = new Set([
+  'MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL',
+  '1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV'
+]);
+
+function passageIsNT(ref) {
+  const p = parseRef(ref || '');
+  return p ? NT_BOOK_CODES.has(p.bookCode) : false;
+}
+
+function passageToggleHtml() {
+  const v = state.study.translation || 'bsb';
+  const nt = passageIsNT(state.study.passage);
+  const btns = Object.entries(TRANSLATIONS)
+    .filter(([key, t]) => t.scope === 'all' || nt)
+    .map(([key, t]) =>
+      `<button type="button" class="trans-toggle-btn ${v === key ? 'is-on' : ''}" onclick="setStudyTranslation('${key}')">${t.toggle}</button>`)
+    .join('');
+  return `<span class="trans-toggle" role="group" aria-label="Translation view">${btns}</span>`;
+}
+
+async function setStudyTranslation(t) {
+  if ((state.study.translation || 'bsb') === t) return;
+  state.study.translation = t;
+  saveStudy();
+  try {
+    const data = await fetchPassageCached(state.study.passage, t);
+    state.study.text = data;
+    saveStudy();
+  } catch (err) {
+    console.error('Translation toggle fetch error:', err);
+    return;
+  }
+  refreshVisiblePassages();
+}
+
+function refreshVisiblePassages() {
+  if (state.screen === 'reader') {
+    renderPassageInto('readerPassage', state.study.text, true);
+    injectToggleIntoDisplay('readerPassage');
+  }
+  if (state.screen === 'exploreExamine') renderExaminePassage();
+  // Refill any passage accordions on the active screen
+  const screenEl = document.getElementById('screen-' + state.screen);
+  if (screenEl) {
+    screenEl.querySelectorAll('.passage-accord').forEach(det => mountPassageAccord(det.id));
+  }
+}
+
+function injectToggleIntoDisplay(elId) {
+  const refEl = document.querySelector('#' + elId + ' .passage-ref');
+  const t = passageToggleHtml();
+  if (refEl && t) refEl.insertAdjacentHTML('beforeend', t);
+}
+
+/* ============================================================
+   QUICK STUDY — four questions, BSB only, own draft storage
+   ============================================================ */
+function onQuickSubmit() {
+  const v = document.getElementById('quickInput').value.trim();
+  if (!v) { openRefPicker('quickInput', 'quickPickerBtn'); return; }
+  state.quick = { ...emptyQuick(), passage: v };
+  saveQuick();
+  showScreen('quickRead');
+}
+
+async function mountQuickRead() {
+  const display = document.getElementById('quickReadPassage');
+  display.innerHTML = '<div class="passage-loading">Loading passage…</div>';
+  try {
+    const data = await fetchPassage(state.quick.passage, 'bsb');
+    state.quick.text = data;
+    saveQuick();
+    renderPassageInto('quickReadPassage', data, true);
+  } catch (err) {
+    console.error('Bible fetch error:', err);
+    display.innerHTML = `
+      <div class="passage-error">
+        Couldn't load "${escapeHtml(state.quick.passage)}". ${escapeHtml(err.message || 'Check the reference and try again.')}
+      </div>
+      <div style="text-align:center; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="showScreen('quickPick', { skipHistory: true })">← Edit reference</button>
+      </div>
+    `;
+  }
+}
+
+function attachQuickAutosave(id) {
+  const el = document.getElementById(id);
+  if (!el || el._autosaveAttached) return;
+  el._autosaveAttached = true;
+  el.addEventListener('input', () => {
+    state.quick[id] = el.value;
+    saveQuick();
+  });
+}
+
+function mountQuickPage(accordId, fieldId) {
+  mountPassageAccord(accordId, state.quick.text);
+  document.getElementById(fieldId).value = state.quick[fieldId] || '';
+  attachQuickAutosave(fieldId);
+}
+
+function captureQuickInputs() {
+  ['quickGod', 'quickPeople', 'quickMe', 'quickRespond'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state.quick[id] = el.value;
+  });
+  saveQuick();
+}
+
+function advanceFromQuickRead() { showScreen('quickG'); }
+function advanceFromQuickG()    { captureQuickInputs(); showScreen('quickO'); }
+function advanceFromQuickO()    { captureQuickInputs(); showScreen('quickA'); }
+function advanceFromQuickA()    { captureQuickInputs(); showScreen('quickL'); }
+function advanceFromQuickL()    { captureQuickInputs(); showScreen('quickDone'); }
+
+function renderQuickDone() {
+  const name = state.user.name ? state.user.name : 'Friend';
+  document.getElementById('quickDoneHeading').textContent = `You did it, ${name}.`;
+  document.getElementById('quickDoneRef').textContent = state.quick.passage || '—';
+
+  const items = [
+    { step: 'gather',  label: 'G · God',         q: 'What does this teach about God?',          a: state.quick.quickGod },
+    { step: 'explore', label: 'O · Others',      q: 'What does this teach about others?',       a: state.quick.quickPeople },
+    { step: 'dig',     label: 'A · Align',       q: 'Where do I need to align with this truth?', a: state.quick.quickMe },
+    { step: 'embrace', label: 'L · Live it out', q: 'How will I live out this truth?',          a: state.quick.quickRespond }
+  ];
+
+  document.getElementById('quickDoneSummary').innerHTML = items.map(i => `
+    <div class="item">
+      <div class="item-h ${i.step}">${i.label}</div>
+      <div class="item-q">${i.q}</div>
+      <div class="item-a ${(i.a || '').trim() ? '' : 'empty'}">${escapeHtml((i.a || '').trim()) || '(skipped)'}</div>
+    </div>
+  `).join('');
+}
+
+function newQuickStudy() {
+  state.quick = emptyQuick();
+  clearQuick();
+  state.history = [];
+  showScreen('quickPick', { skipHistory: true });
 }
 
 /* ============================================================
@@ -2876,100 +4114,46 @@ function openLexicon(strongsId) {
 }
 
 /* ============================================================
-   TEXT INFO MODAL  (ⓘ button beside the translation badge)
+   TEXT INFO MODAL  (ⓘ button beside BSB badge)
    ============================================================ */
-function showTextInfo(translationKey) {
+function showTextInfo() {
   const backdrop = document.getElementById('modalBackdrop');
   const content  = document.getElementById('modalContent');
-  const key = translationKey || state.study.translation || 'bsb';
-
-  if (key === 'net') {
-    content.innerHTML = `
-      <div class="full-card">
-        <div class="full-header">
-          <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
-          <div class="gloss" style="padding-right:40px;">About this text</div>
-          <div class="grammar">NET Bible® 2.1 · Scripture text only, used by permission</div>
+  content.innerHTML = `
+    <div class="full-card">
+      <div class="full-header">
+        <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
+        <div class="gloss" style="padding-right:40px;">About this text</div>
+        <div class="grammar">Berean Standard Bible · Public Domain</div>
+      </div>
+      <div class="full-body">
+        <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
+          The BSB marks editorial additions so you can see exactly what comes from the original
+          language and what English grammar requires.
+        </p>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--heading);margin-bottom:6px;font-family:var(--serif);">{curly braces}</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tense or aspect built into the original Hebrew or Greek verb — made explicit in English.
+          Hebrew and Greek pack tense, person, and aspect directly into the verb form.
+          English often needs a helper word like <em>will</em> or <em>was</em> to convey the same idea.</div>
         </div>
-        <div class="full-body">
-          <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
-            The NET Bible is a modern, readable translation produced by more than
-            25 biblical scholars. EDGE shows the NET Scripture text only — the NET's
-            extensive translator notes are a separately licensed work and are not
-            included here.
-          </p>
-          <div style="border-top:1px solid var(--rule);padding:16px 0;">
-            <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">
-              Scripture quoted by permission. Quotations designated (NET) are from the
-              NET Bible® copyright ©1996, 2019 by Biblical Studies Press, L.L.C.
-              <a href="http://netbible.com" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">netbible.com</a>.
-              All rights reserved.
-            </div>
-          </div>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--heading);margin-bottom:6px;font-family:var(--serif);">[square brackets]</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Words implied by context in the original but not explicitly stated —
+          added so the English reads naturally and completely.</div>
         </div>
-        <div class="full-footer">
-          <span>NET Bible® · netbible.com · Used by permission</span>
-          <a href="https://netbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
+        <div style="border-top:1px solid var(--rule);padding:16px 0;">
+          <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px;">Blue words</div>
+          <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tap any blue word to look up its underlying Hebrew or Greek —
+          definition, grammar, and meaning from the STEPBible lexicon.</div>
         </div>
       </div>
-    `;
-  } else if (key === 'interlinear') {
-    content.innerHTML = `
-      <div class="full-card">
-        <div class="full-header">
-          <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
-          <div class="gloss" style="padding-right:40px;">About this text</div>
-          <div class="grammar">Berean Interlinear · Greek (NT) · Public Domain</div>
-        </div>
-        <div class="full-body">
-          <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
-            Each Greek word is shown with its English gloss underneath. Tap any word
-            to look up its underlying meaning, grammar, and Strong's number.
-          </p>
-        </div>
-        <div class="full-footer">
-          <span>Berean Interlinear · bereanbible.com · Public Domain</span>
-          <a href="https://bereanbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
-        </div>
+      <div class="full-footer">
+        <span>Berean Standard Bible · bereanbible.com · Public Domain</span>
+        <a href="https://bereanbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
       </div>
-    `;
-  } else {
-    content.innerHTML = `
-      <div class="full-card">
-        <div class="full-header">
-          <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
-          <div class="gloss" style="padding-right:40px;">About this text</div>
-          <div class="grammar">Berean Standard Bible · Public Domain</div>
-        </div>
-        <div class="full-body">
-          <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
-            The BSB marks editorial additions so you can see exactly what comes from the original
-            language and what English grammar requires.
-          </p>
-          <div style="border-top:1px solid var(--rule);padding:16px 0;">
-            <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;font-family:var(--serif);">{curly braces}</div>
-            <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tense or aspect built into the original Hebrew or Greek verb — made explicit in English.
-            Hebrew and Greek pack tense, person, and aspect directly into the verb form.
-            English often needs a helper word like <em>will</em> or <em>was</em> to convey the same idea.</div>
-          </div>
-          <div style="border-top:1px solid var(--rule);padding:16px 0;">
-            <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;font-family:var(--serif);">[square brackets]</div>
-            <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Words implied by context in the original but not explicitly stated —
-            added so the English reads naturally and completely.</div>
-          </div>
-          <div style="border-top:1px solid var(--rule);padding:16px 0;">
-            <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px;">Blue words</div>
-            <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">Tap any blue word to look up its underlying Hebrew or Greek —
-            definition, grammar, and meaning from the STEPBible lexicon.</div>
-          </div>
-        </div>
-        <div class="full-footer">
-          <span>Berean Standard Bible · bereanbible.com · Public Domain</span>
-          <a href="https://bereanbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
-        </div>
-      </div>
-    `;
-  }
+    </div>
+  `;
   backdrop.classList.add('is-open');
   backdrop.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
@@ -2985,9 +4169,15 @@ function closeModal() {
 document.getElementById('modalBackdrop').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
+document.getElementById('wizBackdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeWordWizard();
+});
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('modalBackdrop').classList.contains('is-open')) {
     closeModal();
+  }
+  if (e.key === 'Escape' && document.getElementById('wizBackdrop').classList.contains('is-open')) {
+    closeWordWizard();
   }
 });
 
@@ -3098,6 +4288,76 @@ function mountReadBible() {
   }
 }
 
+/* ─── Chapter navigation: prev/next across the whole Bible ── */
+function fileCodeOf(book) { return BOOK_CODES[book.name.toLowerCase()]; }
+
+function getChapterNav(ref) {
+  const parsed = parseRef(ref || '');
+  if (!parsed) return null;
+  const idx = BIBLE_BOOKS.findIndex(b => fileCodeOf(b) === parsed.bookCode);
+  if (idx === -1) return null;
+  const book = BIBLE_BOOKS[idx];
+  let prev = null, next = null;
+  if (parsed.chapter > 1) {
+    prev = `${book.name} ${parsed.chapter - 1}`;
+  } else if (idx > 0) {
+    const pb = BIBLE_BOOKS[idx - 1];
+    prev = `${pb.name} ${pb.ch}`;
+  }
+  if (parsed.chapter < book.ch) {
+    next = `${book.name} ${parsed.chapter + 1}`;
+  } else if (idx < BIBLE_BOOKS.length - 1) {
+    next = `${BIBLE_BOOKS[idx + 1].name} 1`;
+  }
+  return { prev, next };
+}
+
+function goToChapter(ref) {
+  if (!ref) return;
+  const input = document.getElementById('readBibleInput');
+  const label = document.getElementById('readBiblePickerLabel');
+  const btn   = document.getElementById('readBiblePickerBtn');
+  if (input) input.value = ref;
+  if (label) label.textContent = ref;
+  if (btn)   btn.classList.remove('is-empty');
+  onReadBibleSubmit();
+}
+
+function renderChapterNav(ref) {
+  const nav = getChapterNav(ref);
+  const display = document.getElementById('readBibleDisplay');
+  if (!nav || !display) return;
+  const prevBtn = nav.prev
+    ? `<button type="button" onclick="goToChapter('${escapeAttr(nav.prev)}')" aria-label="Previous chapter">‹ ${escapeHtml(nav.prev)}</button>`
+    : '<span class="nav-spacer"></span>';
+  const nextBtn = nav.next
+    ? `<button type="button" onclick="goToChapter('${escapeAttr(nav.next)}')" aria-label="Next chapter">${escapeHtml(nav.next)} ›</button>`
+    : '<span class="nav-spacer"></span>';
+  display.insertAdjacentHTML('beforeend', `<div class="chapter-nav">${prevBtn}${nextBtn}</div>`);
+}
+
+/* Swipe left/right on the passage to change chapters (touch screens) */
+function wireReadBibleSwipe() {
+  const display = document.getElementById('readBibleDisplay');
+  if (!display || display._swipeWired) return;
+  display._swipeWired = true;
+  let sx = 0, sy = 0;
+  display.addEventListener('touchstart', e => {
+    sx = e.changedTouches[0].clientX;
+    sy = e.changedTouches[0].clientY;
+  }, { passive: true });
+  display.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // not a clear horizontal swipe
+    const ref = document.getElementById('readBibleInput').value.trim();
+    const nav = getChapterNav(ref);
+    if (!nav) return;
+    if (dx < 0 && nav.next) goToChapter(nav.next);   // swipe left → next
+    if (dx > 0 && nav.prev) goToChapter(nav.prev);   // swipe right → previous
+  }, { passive: true });
+}
+
 async function onReadBibleSubmit() {
   const ref = document.getElementById('readBibleInput').value.trim();
   const display = document.getElementById('readBibleDisplay');
@@ -3113,6 +4373,9 @@ async function onReadBibleSubmit() {
     display.dataset.populated = '1';
     display.innerHTML = '<div class="passage-display" id="readBiblePassage"></div>';
     renderPassageInto('readBiblePassage', data, true);
+    renderChapterNav(ref);
+    wireReadBibleSwipe();
+    window.scrollTo(0, 0);
   } catch (err) {
     console.error('Bible fetch error:', err);
     display.innerHTML = `
@@ -3136,6 +4399,116 @@ function escapeAttr(s) {
 }
 
 /* ============================================================
+   DISPLAY — theme + text size
+   Saved on this device only, same as your name and study notes.
+   ============================================================ */
+const STORAGE_KEY_THEME = 'edge.display.theme';
+const STORAGE_KEY_SIZE  = 'edge.display.textSize';
+
+const SIZE_STEPS = [17, 19, 21, 24];
+const DEFAULT_SIZE = 19;
+
+const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
+
+function loadThemePref() {
+  try { return localStorage.getItem(STORAGE_KEY_THEME) || 'auto'; }
+  catch { return 'auto'; }
+}
+function saveThemePref(v) {
+  try { localStorage.setItem(STORAGE_KEY_THEME, v); } catch {}
+}
+function loadSizePref() {
+  try {
+    const v = parseInt(localStorage.getItem(STORAGE_KEY_SIZE), 10);
+    return SIZE_STEPS.includes(v) ? v : DEFAULT_SIZE;
+  } catch { return DEFAULT_SIZE; }
+}
+function saveSizePref(v) {
+  try { localStorage.setItem(STORAGE_KEY_SIZE, String(v)); } catch {}
+}
+
+function resolveTheme(pref) {
+  return pref === 'auto' ? (darkMedia.matches ? 'dark' : 'light') : pref;
+}
+
+function applyTheme() {
+  const pref = loadThemePref();
+  const resolved = resolveTheme(pref);
+  document.documentElement.setAttribute('data-theme', resolved);
+
+  const meta = document.getElementById('themeColorMeta');
+  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#16233B' : '#0E2A52');
+
+  document.querySelectorAll('#themeRow .picker-tab').forEach(b => {
+    b.classList.toggle('is-active', b.dataset.themePick === pref);
+  });
+
+  const note = document.getElementById('themeNote');
+  if (note) {
+    note.textContent = pref === 'auto'
+      ? 'Following your device — currently ' + resolved + '.'
+      : 'Auto follows your device, dimming when your phone does.';
+  }
+}
+
+function applySize() {
+  const size = loadSizePref();
+  const lh = size >= 22 ? 1.75 : size >= 20 ? 1.7 : 1.65;
+  document.documentElement.style.setProperty('--reading-size', size + 'px');
+  document.documentElement.style.setProperty('--reading-lh', lh);
+  document.querySelectorAll('#sizeRow .size-btn').forEach(b => {
+    b.classList.toggle('is-active', parseInt(b.dataset.size, 10) === size);
+  });
+}
+
+function openDisplaySheet() {
+  const bd = document.getElementById('displayBackdrop');
+  bd.classList.add('is-open');
+  bd.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  applyTheme();
+  applySize();
+}
+
+function closeDisplaySheet() {
+  const bd = document.getElementById('displayBackdrop');
+  bd.classList.remove('is-open');
+  bd.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function wireDisplaySheet() {
+  const themeRow = document.getElementById('themeRow');
+  if (themeRow) themeRow.addEventListener('click', e => {
+    const btn = e.target.closest('[data-theme-pick]');
+    if (!btn) return;
+    saveThemePref(btn.dataset.themePick);
+    applyTheme();
+  });
+
+  const sizeRow = document.getElementById('sizeRow');
+  if (sizeRow) sizeRow.addEventListener('click', e => {
+    const btn = e.target.closest('[data-size]');
+    if (!btn) return;
+    saveSizePref(parseInt(btn.dataset.size, 10));
+    applySize();
+  });
+
+  darkMedia.addEventListener('change', () => {
+    if (loadThemePref() === 'auto') applyTheme();
+  });
+
+  const bd = document.getElementById('displayBackdrop');
+  if (bd) bd.addEventListener('click', e => {
+    if (e.target === bd) closeDisplaySheet();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && bd && bd.classList.contains('is-open')) closeDisplaySheet();
+  });
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 function init() {
@@ -3147,8 +4520,17 @@ function init() {
   const savedStudy = loadStudy();
   if (savedStudy) state.study = { ...emptyStudy(), ...savedStudy };
 
+  // Load any in-progress quick study
+  const savedQuick = loadQuick();
+  if (savedQuick) state.quick = { ...emptyQuick(), ...savedQuick };
+
   // Wire reference picker (book/chapter modal)
   wireRefPicker();
+
+  // Display settings (theme + text size)
+  wireDisplaySheet();
+  applyTheme();
+  applySize();
 
   // Restore picker labels if a passage is already saved
   if (state.study && state.study.passage) {
