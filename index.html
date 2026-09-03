@@ -809,6 +809,8 @@ select.translation-select {
   margin-left: 8px;
   vertical-align: middle;
 }
+a.translation-badge { text-decoration: none; cursor: pointer; }
+a.translation-badge:hover { color: var(--accent); }
 
 /* ─── Lookup link (Explore: "Define a difficult word") ──── */
 .lookup-link {
@@ -1803,6 +1805,7 @@ select.translation-select {
         <select id="translationSelect" class="translation-select" onchange="onTranslationChange()">
           <option value="bsb">BSB · Berean Standard Bible</option>
           <option value="blb">BLB · Berean Literal Bible</option>
+          <option value="net">NET · New English Translation</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -2411,6 +2414,7 @@ select.translation-select {
         <select id="readBibleTranslation" class="translation-select">
           <option value="bsb">BSB · Berean Standard Bible</option>
           <option value="blb">BLB · Berean Literal Bible</option>
+          <option value="net">NET · New English Translation</option>
           <option value="interlinear">Berean Interlinear · Greek (NT)</option>
         </select>
       </div>
@@ -2502,7 +2506,8 @@ select.translation-select {
 <footer class="app-footer">
   <a href="https://bibleworms.org" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn the GOAL and EDGE methods at BibleWorms.org →</a><br><br>
   <strong>EDGE · Bible Study</strong> · Lexicons: Mounce Concise Greek-English Dictionary © 1993 (teknia.com/greek-dictionary), STEPBible / Tyndale House Cambridge CC BY 4.0<br>
-  Bible text: Berean Standard Bible &amp; Berean Literal Bible (draft) · Public Domain · Your notes stay on your device.
+  Bible text: Berean Standard Bible &amp; Berean Literal Bible (draft) · Public Domain · Your notes stay on your device.<br>
+  Scripture quoted by permission. Quotations designated (NET) are from the NET Bible® copyright ©1996, 2019 by Biblical Studies Press, L.L.C. <a href="http://netbible.com" target="_blank" rel="noopener" style="color:inherit;">netbible.com</a>. All rights reserved.
 </footer>
 
 <script>
@@ -3154,6 +3159,8 @@ function parseRef(ref) {
 const TRANSLATIONS = {
   bsb:         { label: 'BSB',         toggle: 'BSB',   folder: 'bsb',         scope: 'all' },
   blb:         { label: 'BLB',         toggle: 'BLB',   folder: 'blb',         scope: 'all' },
+  net:         { label: '(NET)',       toggle: 'NET',   folder: 'net',         scope: 'all',
+                 linkUrl: 'https://netbible.com' },
   interlinear: { label: 'Interlinear', toggle: 'Greek', folder: 'interlinear', scope: 'nt'  }
 };
 
@@ -3184,6 +3191,7 @@ async function fetchPassage(ref, translation) {
 
   return {
     reference: ref,
+    translation: (translation || state.study.translation || 'bsb'),
     translation_id: t.label,
     isInterlinear,
     verses,
@@ -3249,7 +3257,13 @@ function renderPassageInto(elementId, data, tappable = false) {
   const el = document.getElementById(elementId);
   if (!data) { el.innerHTML = '<div class="passage-loading">No passage loaded.</div>'; return; }
   const badgeLabel = data.translation_id || (data.isInterlinear ? 'Interlinear' : 'BSB');
-  const transBadge = `<span class="translation-badge">${badgeLabel}</span><button class="info-btn" onclick="showTextInfo()" aria-label="About this text" title="About this text">ⓘ</button>`;
+  const transKey = data.translation || 'bsb';
+  const transMeta = TRANSLATIONS[transKey] || TRANSLATIONS.bsb;
+  // NET's license asks that the (NET) designation link back to netbible.com
+  const badgeEl = transMeta.linkUrl
+    ? `<a class="translation-badge" href="${escapeAttr(transMeta.linkUrl)}" target="_blank" rel="noopener">${escapeHtml(badgeLabel)}</a>`
+    : `<span class="translation-badge">${badgeLabel}</span>`;
+  const transBadge = `${badgeEl}<button class="info-btn" onclick="showTextInfo('${escapeAttr(transKey)}')" aria-label="About this text" title="About this text">ⓘ</button>`;
 
   const versesHtml = buildVersesHtml(data, tappable);
   const textClass = data.isInterlinear ? 'passage-text interlinear-text' : 'passage-text';
@@ -4116,9 +4130,46 @@ function openLexicon(strongsId) {
 /* ============================================================
    TEXT INFO MODAL  (ⓘ button beside BSB badge)
    ============================================================ */
-function showTextInfo() {
+function showTextInfo(translationKey) {
   const backdrop = document.getElementById('modalBackdrop');
   const content  = document.getElementById('modalContent');
+
+  if (translationKey === 'net') {
+    content.innerHTML = `
+      <div class="full-card">
+        <div class="full-header">
+          <button class="full-close" onclick="closeModal()" aria-label="Close">×</button>
+          <div class="gloss" style="padding-right:40px;">About this text</div>
+          <div class="grammar">NET Bible® 2.1 · Scripture text only, used by permission</div>
+        </div>
+        <div class="full-body">
+          <p style="font-size:16px;line-height:1.6;margin-bottom:4px;color:var(--ink-soft);">
+            The NET Bible is a modern, readable translation produced by more than
+            25 biblical scholars. EDGE shows the NET Scripture text only — the NET's
+            extensive translator notes are a separately licensed work and are not
+            included here.
+          </p>
+          <div style="border-top:1px solid var(--rule);padding:16px 0;">
+            <div style="font-size:16px;color:var(--ink-soft);line-height:1.55;">
+              Scripture quoted by permission. Quotations designated (NET) are from the
+              NET Bible® copyright ©1996, 2019 by Biblical Studies Press, L.L.C.
+              <a href="http://netbible.com" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700;">netbible.com</a>.
+              All rights reserved.
+            </div>
+          </div>
+        </div>
+        <div class="full-footer">
+          <span>NET Bible® · netbible.com · Used by permission</span>
+          <a href="https://netbible.com" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;">Learn more</a>
+        </div>
+      </div>
+    `;
+    backdrop.classList.add('is-open');
+    backdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
   content.innerHTML = `
     <div class="full-card">
       <div class="full-header">
