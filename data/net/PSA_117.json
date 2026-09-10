@@ -1,18 +1,1 @@
-{
- "book": "Psalms",
- "book_code": "PSA",
- "chapter": 117,
- "translation_id": "NET",
- "verses": {
-  "1": [
-   {
-    "w": "Praise the Lord, all you nations. Applaud him, all you foreigners."
-   }
-  ],
-  "2": [
-   {
-    "w": "For his loyal love towers over us, and the Lord’s faithfulness endures. Praise the Lord."
-   }
-  ]
- }
-}
+{"ref": "Psalms 117", "verses": {"1": [{"w": "Praise", "s": "H1984"}, {"w": "the"}, {"w": "Lord,", "s": "H3068"}, {"w": "all", "s": "H3605"}, {"w": "you"}, {"w": "nations.", "s": "H1471"}, {"w": "Applaud", "s": "H7623"}, {"w": "him,"}, {"w": "all", "s": "H3605"}, {"w": "you"}, {"w": "foreigners.", "s": "H0523"}], "2": [{"w": "For", "s": "H3588"}, {"w": "his"}, {"w": "loyal love", "s": "H2617"}, {"w": "towers", "s": "H1396"}, {"w": "over", "s": "H5921"}, {"w": "us,"}, {"w": "and"}, {"w": "the"}, {"w": "Lord’s", "s": "H3068"}, {"w": "faithfulness", "s": "H0571"}, {"w": "endures.", "s": "H5769"}, {"w": "Praise", "s": "H1984"}, {"w": "the"}, {"w": "Lord.", "s": "H3050"}]}}
