@@ -1,0 +1,41 @@
+name: Deploy tagged NET data
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - NET-TAGGED-2026-09-09.zip
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    if: github.event.head_commit.message == 'Stage verified tagged NET bundle'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and install tagged NET data
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p staged
+          unzip -q NET-TAGGED-2026-09-09.zip -d staged
+          test "$(find staged/data/net -maxdepth 1 -type f -name '*.json' | wc -l)" -eq 1189
+          find staged/data/net -maxdepth 1 -type f -name '*.json' -print0 |
+            xargs -0 -n 1 jq -e . >/dev/null
+          test "$(find staged/data/net -maxdepth 1 -type f -name '*.json' -print0 |
+            xargs -0 jq '.verses | length' |
+            awk '{ total += $1 } END { print total }')" -eq 31087
+          test "$(find staged/data/net -maxdepth 1 -type f -name '*.json' -print0 |
+            xargs -0 jq '[.verses[] | map(select(.s != null)) | length] | add' |
+            awk '{ total += $1 } END { print total }')" -eq 382653
+          rm -rf data/net
+          mv staged/data/net data/net
+          git rm -f NET-TAGGED-2026-09-09.zip .github/workflows/deploy-tagged-net.yml
+          git add data/net
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Deploy Strong's-tagged NET Bible data"
+          git push
