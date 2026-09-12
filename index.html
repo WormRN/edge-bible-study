@@ -1101,6 +1101,33 @@ a.translation-badge:hover { color: var(--accent); }
   color: var(--ink-soft);
   padding: 8px 0 4px;
 }
+.rename-link {
+  display: inline-block;
+  margin: 2px 0 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-soft);
+  line-height: 1.6;
+}
+.rename-link:hover { border-bottom-color: var(--accent); }
+#studyViewRenameRow input {
+  width: 100%;
+  font-family: var(--serif);
+  font-size: 20px;
+}
+.rename-hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 8px;
+}
 .backup-note {
   font-size: 14px;
   line-height: 1.55;
@@ -2637,8 +2664,25 @@ a.translation-badge:hover { color: var(--accent); }
   <section class="screen" id="screen-studyView">
     <div class="card">
       <div class="h-step gather" id="studyViewKind">YOUR STUDY</div>
-      <h2 class="h-question" id="studyViewRef">—</h2>
-      <p class="lead" id="studyViewDate"></p>
+
+      <div id="studyViewTitleRow">
+        <h2 class="h-question" id="studyViewRef">—</h2>
+        <p class="lead" id="studyViewDate"></p>
+        <button type="button" class="rename-link" onclick="startRename()">
+          <span id="renameLabel">Give this study a name</span>
+        </button>
+      </div>
+
+      <div id="studyViewRenameRow" style="display:none;">
+        <label class="field-label" for="studyTitleInput" style="margin-top:0;">Name this study</label>
+        <input type="text" id="studyTitleInput" maxlength="60" autocomplete="off"
+               placeholder="e.g. Nick at night">
+        <p class="rename-hint">Something you'll recognize later — a phrase, a question, whatever it was about. Leave it blank to go back to the passage name.</p>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-secondary" onclick="cancelRename()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveStudyTitle()">Save name</button>
+        </div>
+      </div>
 
       <div class="done-summary" id="studyViewSummary"></div>
 
@@ -2868,6 +2912,8 @@ function archiveCurrent(kind, opts = {}) {
     id: src.id,
     kind: kind,
     passage: src.passage,
+    // A name the reader gave this study, if any. Never invented for them.
+    title: (prev && prev.title) || '',
     translation: src.translation || 'bsb',
     started: (prev && prev.started) || now,
     updated: now,
@@ -2887,6 +2933,16 @@ function archiveCurrent(kind, opts = {}) {
 function deleteArchived(id) {
   const list = loadArchive().filter(e => e.id !== id);
   writeArchive(list);
+}
+
+const TITLE_MAX = 60;
+
+function setArchivedTitle(id, title) {
+  const list = loadArchive();
+  const e = list.find(x => x.id === id);
+  if (!e) return false;
+  e.title = String(title || '').replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX);
+  return writeArchive(list);
 }
 
 /* ============================================================
@@ -4204,7 +4260,7 @@ function friendlyDate(iso) {
   if (isNaN(d)) return '';
   const today = new Date();
   const sameDay = d.toDateString() === today.toDateString();
-  if (sameDay) return 'Today, ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  if (sameDay) return 'Today ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   const yest = new Date(today); yest.setDate(today.getDate() - 1);
   if (d.toDateString() === yest.toDateString()) return 'Yesterday';
   const opts = { month: 'short', day: 'numeric' };
@@ -4255,11 +4311,19 @@ function renderMyStudies() {
       ? '<span class="study-tag">Finished</span>'
       : `<span class="study-tag unfinished">${done} of ${total} answered</span>`;
     const preview = studyPreview(e);
+    const title   = String(e.title || '').trim();
+    // A named study leads with its name; the passage moves down to the
+    // meta line so it's never lost.
+    const heading = title || (e.passage || '—');
+    // Separators are bound to their neighbours with non-breaking spaces so a
+    // wrapped meta line can never end on a stray "·".
+    const bits = [title ? e.passage : '', kind, friendlyDate(e.updated)].filter(Boolean);
+    const metaText = bits.join(' · ');
     return `
       <button class="study-item" onclick="openArchivedStudy('${escapeAttr(e.id)}')">
-        <div class="ref">${escapeHtml(e.passage || '—')}</div>
+        <div class="ref">${escapeHtml(heading)}</div>
         ${preview ? `<div class="preview">${escapeHtml(preview)}</div>` : ''}
-        <div class="meta">${tag}<span>${escapeHtml(kind)}</span><span>·</span><span>${escapeHtml(friendlyDate(e.updated))}</span></div>
+        <div class="meta">${tag}<span>${escapeHtml(metaText)}</span></div>
       </button>`;
   }).join('');
 }
@@ -4276,12 +4340,56 @@ function renderStudyView() {
   if (!entry) { showScreen('myStudies', { skipHistory: true }); return; }
 
   const isGoal = entry.kind === 'goal';
+  const title  = String(entry.title || '').trim();
+
   document.getElementById('studyViewKind').textContent = isGoal ? 'YOUR GOAL STUDY' : 'YOUR EDGE STUDY';
-  document.getElementById('studyViewRef').textContent  = entry.passage || '—';
+  document.getElementById('studyViewRef').textContent  = title || entry.passage || '—';
+
+  // When the reader has named it, the passage still has to be visible —
+  // it's the fact of the matter, the name is their label for it.
+  const when = (entry.completed ? 'Finished ' : 'Last worked on ') + friendlyDate(entry.updated) + '.';
   document.getElementById('studyViewDate').textContent =
-    (entry.completed ? 'Finished ' : 'Last worked on ') + friendlyDate(entry.updated) + '.';
+    title ? `${entry.passage} · ${when}` : when;
+
+  document.getElementById('renameLabel').textContent =
+    title ? 'Change this name' : 'Give this study a name';
+
   document.getElementById('studyViewSummary').innerHTML =
     summaryHtml(isGoal ? GOAL_SUMMARY : EDGE_SUMMARY, entry.data || {});
+
+  cancelRename();   // always open in the read state
+}
+
+function startRename() {
+  const entry = loadArchive().find(e => e.id === VIEWED_STUDY_ID);
+  if (!entry) return;
+  const input = document.getElementById('studyTitleInput');
+  input.value = String(entry.title || '');
+  if (!input._renameWired) {
+    input._renameWired = true;
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter')  { ev.preventDefault(); saveStudyTitle(); }
+      if (ev.key === 'Escape') { ev.preventDefault(); cancelRename(); }
+    });
+  }
+  document.getElementById('studyViewTitleRow').style.display = 'none';
+  document.getElementById('studyViewRenameRow').style.display = '';
+  input.focus();
+  input.select();
+}
+
+function cancelRename() {
+  const row = document.getElementById('studyViewRenameRow');
+  if (!row) return;
+  row.style.display = 'none';
+  document.getElementById('studyViewTitleRow').style.display = '';
+}
+
+function saveStudyTitle() {
+  const input = document.getElementById('studyTitleInput');
+  setArchivedTitle(VIEWED_STUDY_ID, input.value);
+  cancelRename();
+  renderStudyView();
 }
 
 /* Load an archived study back into the live draft and drop the reader at
@@ -4400,6 +4508,7 @@ function importStudies(input) {
         id: String(raw.id),
         kind: kind,
         passage: String(raw.passage),
+        title: String(raw.title || '').slice(0, TITLE_MAX),
         translation: String(raw.translation || 'bsb'),
         started: String(raw.started || raw.updated || new Date().toISOString()),
         updated: String(raw.updated || new Date().toISOString()),
@@ -4414,6 +4523,8 @@ function importStudies(input) {
         // if either side was.
         entry.completed = entry.completed || existing.completed;
         entry.started   = existing.started || entry.started;
+        // Don't let an older unnamed copy wipe a name given on this device.
+        if (!entry.title) entry.title = existing.title || '';
         list[list.indexOf(existing)] = entry;
         byId.set(entry.id, entry);
         updated++;
