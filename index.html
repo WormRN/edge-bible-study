@@ -1436,6 +1436,56 @@ a.translation-badge:hover { color: var(--accent); }
 }
 .full-body { padding: 22px 24px; }
 
+/* ─── "This form in the text" panel (interlinear word tap) ─────── */
+.word-form {
+  background: var(--canvas);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.word-form .wf-label {
+  display: block;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.word-form .wf-word {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--heading);
+}
+.word-form .wf-translit {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+.word-form .wf-parse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 11px;
+}
+.word-form .wf-chip {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .pastoral-note {
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--accent-pale) 100%);
   border-left: 3px solid var(--accent);
@@ -3222,7 +3272,9 @@ function buildVersesHtml(data, tappable = false) {
         if (/^v+[.,;:!?]?$/i.test(gloss) || gloss === '-' || gloss === '. . .' || /^\.\s*\.\s*\.$/.test(gloss)) {
           gloss = '';
         }
-        return `<span class="il-word" data-strongs="${strong}" data-parse="${parse}" onclick="handleWordTap(this)">`
+        return `<span class="il-word" data-strongs="${strong}" data-parse="${parse}"`
+             + ` data-grk="${escapeAttr(w.grk || '')}" data-translit="${escapeAttr(w.translit || '')}"`
+             + ` onclick="handleWordTap(this)">`
              + `<span class="il-grk">${escapeHtml(w.grk)}</span>`
              + `<span class="il-gloss">${escapeHtml(gloss)}</span>`
              + `</span>`;
@@ -3902,10 +3954,42 @@ async function loadLexiconData(lang) {
 /* Called when user taps a blue word in the passage */
 function handleWordTap(el) {
   const strongs = el.dataset.strongs;
-  if (strongs) openLexiconFromStrongs(strongs);
+  if (!strongs) return;
+  // Interlinear words carry the inflected form and its parsing; BSB/NET words
+  // don't. Pass them through so the lexicon can show "this form" alongside the
+  // dictionary entry.
+  const form = {
+    grk:      el.dataset.grk || '',
+    translit: el.dataset.translit || '',
+    parse:    el.dataset.parse || ''
+  };
+  openLexiconFromStrongs(strongs, (form.grk || form.parse) ? form : null);
 }
 
-async function openLexiconFromStrongs(strongs) {
+/* Renders the "this form" panel shown when a word is tapped in the interlinear.
+   Parse strings arrive as "Verb - Present Indicative Active - 1st Person Singular";
+   splitting on the dashes makes the grammatical categories scannable. */
+function wordFormHtml(form) {
+  if (!form || (!form.grk && !form.parse)) return '';
+  const word = form.grk
+    ? `<span class="wf-word">${escapeHtml(form.grk)}</span>` : '';
+  const translit = form.translit
+    ? `<span class="wf-translit">${escapeHtml(form.translit)}</span>` : '';
+  const chips = (form.parse || '')
+    .split(/\s+-\s+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => `<span class="wf-chip">${escapeHtml(s)}</span>`)
+    .join('');
+  const parseRow = chips ? `<div class="wf-parse">${chips}</div>` : '';
+  return `<div class="word-form">
+      <span class="wf-label">This form in the text</span>
+      <div>${word}${translit}</div>
+      ${parseRow}
+    </div>`;
+}
+
+async function openLexiconFromStrongs(strongs, form) {
   if (!strongs) return;
   const lang = strongs.startsWith('H') ? 'H' : 'G';
   const backdrop = document.getElementById('modalBackdrop');
@@ -3927,11 +4011,14 @@ async function openLexiconFromStrongs(strongs) {
       thayer = tData[strongs] || null;
     }
     if (entry || mounce || thayer) {
-      content.innerHTML = renderFull(entry, mounce, strongs, thayer);
+      content.innerHTML = renderFull(entry, mounce, strongs, thayer, form);
     } else {
-      content.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:var(--sans);">
-        <p style="margin-bottom:16px;">No entry found for ${escapeHtml(strongs)}.</p>
-        <button onclick="closeModal()" style="padding:10px 20px;border:1px solid var(--rule);border-radius:8px;cursor:pointer;font-family:var(--sans);">Close</button>
+      // No dictionary entry — but if we have the parsing, that's still worth showing
+      // rather than a bare dead end.
+      content.innerHTML = `<div style="padding:28px 24px;font-family:var(--sans);">
+        ${wordFormHtml(form)}
+        <p style="margin-bottom:16px;color:var(--muted);text-align:center;">No dictionary entry found for ${escapeHtml(strongs)}.</p>
+        <div style="text-align:center;"><button onclick="closeModal()" style="padding:10px 20px;border:1px solid var(--rule);border-radius:8px;cursor:pointer;font-family:var(--sans);background:var(--paper);color:var(--ink);">Close</button></div>
       </div>`;
     }
   } catch (err) {
@@ -3998,7 +4085,7 @@ function parseTbesg(raw) {
   return { sections, synonyms, attribution };
 }
 
-function renderFull(entry, mounce, strongsId, thayer) {
+function renderFull(entry, mounce, strongsId, thayer, form) {
   // entry = TBESG/TBESH (Abbott-Smith); mounce = Mounce Concise (Greek only, may be null)
   const parsed = entry ? parseTbesg(entry.raw) : { sections: [], synonyms: '', attribution: '' };
   const etymology  = parsed.sections.find(s => s.type === 'etymology');
@@ -4093,6 +4180,7 @@ function renderFull(entry, mounce, strongsId, thayer) {
         <div><span class="strongs">${escapeHtml(id)}</span></div>
       </div>
       <div class="full-body">
+        ${wordFormHtml(form)}
         ${pastoralHtml}
         ${primaryHtml}
         ${thayerHtml}
