@@ -1436,6 +1436,17 @@ a.translation-badge:hover { color: var(--accent); }
 }
 .full-body { padding: 22px 24px; }
 
+/* ─── Source label above the primary definition ────────────────── */
+.src-label {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
 /* ─── "This form in the text" panel (interlinear word tap) ─────── */
 .word-form {
   background: var(--canvas);
@@ -3966,6 +3977,26 @@ function handleWordTap(el) {
   openLexiconFromStrongs(strongs, (form.grk || form.parse) ? form : null);
 }
 
+/* Opens a prefilled message about a specific word. The address is assembled at
+   runtime rather than written into the markup, so address-harvesting crawlers
+   reading the page source don't find it.
+   Note this reports problems with the APP — a wrong or missing entry, something
+   rendering badly. The definitions themselves belong to Mounce, Thayer's and
+   Abbott-Smith and aren't ours to change. */
+function reportWord(el) {
+  const sid   = (el && el.dataset.sid)   || '';
+  const lemma = (el && el.dataset.lemma) || '';
+  const to = ['edge', 'formedformore.org'].join('@');
+  const subject = `EDGE — ${sid}${lemma ? ' ' + lemma : ''}`;
+  const body =
+    'What looks wrong?\n\n\n' +
+    '——————————————\n' +
+    `Word: ${lemma} ${sid ? '(' + sid + ')' : ''}\n` +
+    `Page: ${location.href}`;
+  window.location.href =
+    `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 /* Renders the "this form" panel shown when a word is tapped in the interlinear.
    Parse strings arrive as "Verb - Present Indicative Active - 1st Person Singular";
    splitting on the dashes makes the grammatical categories scannable. */
@@ -4170,6 +4201,13 @@ function renderFull(entry, mounce, strongsId, thayer, form) {
     footerSrc = `STEPBible · CC BY 4.0 · src: ${parsed.attribution || 'Abbott-Smith'}`;
   }
 
+  // Name the source of the primary definition where it appears. Thayer's and
+  // Abbott-Smith are labelled by their accordions; without this the top
+  // definition was the only unattributed one on the card.
+  const primaryLabel = mounce
+    ? 'Mounce Concise'
+    : ((id || '').startsWith('H') ? 'STEPBible Hebrew lexicon' : 'Abbott-Smith');
+
   return `
     <div class="full-card">
       <div class="full-header">
@@ -4180,15 +4218,17 @@ function renderFull(entry, mounce, strongsId, thayer, form) {
         <div><span class="strongs">${escapeHtml(id)}</span></div>
       </div>
       <div class="full-body">
-        ${wordFormHtml(form)}
         ${pastoralHtml}
+        <div class="src-label">${escapeHtml(primaryLabel)}</div>
         ${primaryHtml}
+        ${wordFormHtml(form)}
         ${thayerHtml}
         ${abbottAccordionHtml}
       </div>
       <div class="full-footer">
         <span>${footerSrc}</span>
-        <a href="#" onclick="event.preventDefault();">Report lexicon issue</a>
+        <a href="#" class="report-link" data-sid="${escapeAttr(id)}" data-lemma="${escapeAttr(lemma)}"
+           onclick="event.preventDefault(); reportWord(this);">Something look wrong?</a>
       </div>
     </div>`;
 }
