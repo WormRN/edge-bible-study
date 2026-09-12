@@ -1437,14 +1437,15 @@ a.translation-badge:hover { color: var(--accent); }
 .full-body { padding: 22px 24px; }
 
 /* ─── Source label above the primary definition ────────────────── */
+/* Type treatment matches .accord summary, so "Mounce Concise" carries the same
+   weight on the page as "Thayer's" and "Abbott-Smith". No box or chevron —
+   this source is always open, not a disclosure. */
 .src-label {
   font-family: var(--sans);
-  font-size: 11px;
-  letter-spacing: 1.2px;
+  font-size: 15px;
   font-weight: 700;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
+  color: var(--heading);
+  margin-bottom: 8px;
 }
 
 /* ─── "This form in the text" panel (interlinear word tap) ─────── */
@@ -1531,7 +1532,11 @@ a.translation-badge:hover { color: var(--accent); }
 }
 .etymology { font-size: 14px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
 .etymology em { font-style: italic; }
-.brief-gloss { font-size: 17px; margin-bottom: 18px; line-height: 1.55; }
+/* Matches .accord-body exactly, so the Mounce definition and the Thayer's /
+   Abbott-Smith entries read as the same kind of text. (Also fixes a latent
+   mismatch: .brief-gloss is used inside the Abbott-Smith accordion too, where
+   it was running 2px larger than the prose around it.) */
+.brief-gloss { font-size: 15px; margin-bottom: 18px; line-height: 1.6; }
 .brief-gloss strong { color: var(--heading); font-weight: 700; }
 .brief-gloss em     { font-style: italic; }
 .brief-gloss .ref, .sense .content .ref, .accord-body .ref {
