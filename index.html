@@ -1065,10 +1065,17 @@ a.translation-badge:hover { color: var(--accent); }
   font-weight: 600;
   color: var(--heading);
 }
+.study-item .preview {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  margin-top: 5px;
+}
 .study-item .meta {
   font-size: 13px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 9px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -4210,6 +4217,18 @@ function countAnswered(entry) {
   return fields.filter(f => String((entry.data || {})[f] || '').trim()).length;
 }
 
+/* The reader's own first words, shown under the reference. Two studies of
+   the same chapter carry the same title and often the same date, so this
+   is what actually tells them apart — and it's their words, not ours. */
+function studyPreview(entry) {
+  const fields = fieldsFor(entry.kind);
+  for (const f of fields) {
+    const v = String((entry.data || {})[f] || '').replace(/\s+/g, ' ').trim();
+    if (v) return v.length > 96 ? v.slice(0, 95).replace(/[\s,;:.—-]+$/, '') + '…' : v;
+  }
+  return '';
+}
+
 function renderMyStudies() {
   // Fold in whatever is open right now, so the list is never behind the reader.
   archiveCurrent('edge');
@@ -4235,9 +4254,11 @@ function renderMyStudies() {
     const tag   = e.completed
       ? '<span class="study-tag">Finished</span>'
       : `<span class="study-tag unfinished">${done} of ${total} answered</span>`;
+    const preview = studyPreview(e);
     return `
       <button class="study-item" onclick="openArchivedStudy('${escapeAttr(e.id)}')">
         <div class="ref">${escapeHtml(e.passage || '—')}</div>
+        ${preview ? `<div class="preview">${escapeHtml(preview)}</div>` : ''}
         <div class="meta">${tag}<span>${escapeHtml(kind)}</span><span>·</span><span>${escapeHtml(friendlyDate(e.updated))}</span></div>
       </button>`;
   }).join('');
