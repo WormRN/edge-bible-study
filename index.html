@@ -566,7 +566,8 @@ select.translation-select {
 #screen-home .home-tile:nth-of-type(1)::after,
 #screen-home .home-tile:nth-of-type(2)::after,
 #screen-home .home-tile:nth-of-type(3)::after,
-#screen-home .home-tile:nth-of-type(4)::after {
+#screen-home .home-tile:nth-of-type(4)::after,
+#screen-home .home-tile:nth-of-type(5)::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -576,6 +577,8 @@ select.translation-select {
 #screen-home .home-tile:nth-of-type(1)::after { background: var(--heading); }
 /* Word study — accent blue: echoes the lexicon / tap-a-word color */
 #screen-home .home-tile:nth-of-type(4)::after { background: var(--accent); }
+/* My studies — quiet grey: a place to keep things, not a method */
+#screen-home .home-tile:nth-of-type(5)::after { background: var(--muted); }
 #screen-home .home-tile:nth-of-type(2)::after {
   background: linear-gradient(90deg,
     var(--edge-gather)  0%, var(--edge-gather)  25%,
@@ -1039,6 +1042,86 @@ a.translation-badge:hover { color: var(--accent); }
   font-size: 16px; color: var(--ink-soft);
   max-width: 380px; margin: 0 auto;
 }
+
+/* ─── My studies (archive) ───────────────────────────────── */
+.study-list { margin-top: 6px; }
+.study-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  font-family: var(--sans);
+  transition: all 0.15s ease;
+}
+.study-item:hover { border-color: var(--accent); background: var(--accent-pale); }
+.study-item .ref {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--heading);
+}
+.study-item .meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.study-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.study-tag.unfinished {
+  background: var(--rule);
+  color: var(--ink-soft);
+}
+.study-empty {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  padding: 8px 0 4px;
+}
+.backup-note {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+.backup-status {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 12px;
+  color: var(--ink-soft);
+  min-height: 1px;
+}
+.backup-status.ok  { color: var(--edge-explore); font-weight: 600; }
+.backup-status.bad { color: #B3261E; font-weight: 600; }
+.danger-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: var(--sans);
+}
+.danger-link:hover { color: #B3261E; }
 
 /* ─── Word Study (lexicon search) ────────────────────────── */
 .search-box {
@@ -1853,6 +1936,12 @@ a.translation-badge:hover { color: var(--accent); }
       <div class="home-tile-d">Look up a Greek word by Strong's number, transliteration, or meaning.</div>
     </button>
 
+    <button class="home-tile" id="homeStudiesTile" onclick="showScreen('myStudies')">
+      <span class="home-tile-arrow">→</span>
+      <div class="home-tile-h">My studies</div>
+      <div class="home-tile-d" id="homeStudiesDesc">Read back the studies you've done, and save a copy you can keep.</div>
+    </button>
+
     <div class="privacy" style="margin-top: 24px;">
       <strong>Your notes stay here.</strong> EDGE saves your study answers in your browser.
       No accounts, no servers, no sharing.
@@ -2502,6 +2591,59 @@ a.translation-badge:hover { color: var(--accent); }
     <div id="readBibleDisplay"></div>
   </section>
 
+  <!-- ─── MY STUDIES (archive + backup) ────────────────────── -->
+  <section class="screen" id="screen-myStudies">
+    <div class="card">
+      <div class="h-step gather">MY STUDIES</div>
+      <h2 class="h-question">Everything you've studied</h2>
+      <p class="lead">Your studies are saved on this device as you go. Tap one to read it again.</p>
+
+      <div class="study-list" id="studyList"></div>
+    </div>
+
+    <div class="card">
+      <div class="h-step embrace">KEEP A COPY</div>
+      <h2 class="h-question">Save a backup</h2>
+      <p class="backup-note">
+        EDGE keeps your notes in this browser and nowhere else — which means if you clear your
+        browsing data, switch phones, or lose this device, they're gone. Saving a backup file
+        puts a copy somewhere you control. Restoring adds those studies back without
+        replacing anything already here.
+      </p>
+
+      <div class="btn-row" style="margin-top: 4px;">
+        <button class="btn btn-primary" onclick="exportStudies()">Save a backup file</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Restore from a file</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importStudies(this)">
+
+      <div class="backup-status" id="backupStatus" role="status" aria-live="polite"></div>
+
+      <div class="privacy" style="margin-top: 18px;">
+        <strong>Nothing is uploaded.</strong> The backup file is written straight to your device.
+        It never leaves your hands unless you send it somewhere yourself.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ONE ARCHIVED STUDY (read-only) ───────────────────── -->
+  <section class="screen" id="screen-studyView">
+    <div class="card">
+      <div class="h-step gather" id="studyViewKind">YOUR STUDY</div>
+      <h2 class="h-question" id="studyViewRef">—</h2>
+      <p class="lead" id="studyViewDate"></p>
+
+      <div class="done-summary" id="studyViewSummary"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <button class="btn btn-primary" onclick="reopenStudy()">Continue this study →</button>
+      </div>
+
+      <button type="button" class="danger-link" onclick="deleteViewedStudy()">Delete this study</button>
+    </div>
+  </section>
+
 </main>
 
 <!-- ─── REFERENCE PICKER (Book → Chapter) ────────────────── -->
@@ -2591,6 +2733,7 @@ const state = {
 
 function emptyStudy() {
   return {
+    id: null,
     passage: null,
     translation: 'bsb',
     text: null,
@@ -2601,12 +2744,13 @@ function emptyStudy() {
   };
 }
 
-const STORAGE_KEY_NAME  = 'edge.user.name';
-const STORAGE_KEY_STUDY = 'edge.study.draft';
-const STORAGE_KEY_QUICK = 'edge.quick.draft';
+const STORAGE_KEY_NAME    = 'edge.user.name';
+const STORAGE_KEY_STUDY   = 'edge.study.draft';
+const STORAGE_KEY_QUICK   = 'edge.quick.draft';
+const STORAGE_KEY_ARCHIVE = 'edge.studies.archive';
 
 function emptyQuick() {
-  return { passage: null, text: null, quickGod: '', quickPeople: '', quickMe: '', quickRespond: '' };
+  return { id: null, passage: null, text: null, quickGod: '', quickPeople: '', quickMe: '', quickRespond: '' };
 }
 state.quick = emptyQuick();
 
@@ -2644,6 +2788,98 @@ function saveStudy() {
 }
 function clearStudy() {
   try { localStorage.removeItem(STORAGE_KEY_STUDY); } catch {}
+}
+
+/* ============================================================
+   ARCHIVE — every study the reader has worked on, kept
+   Before this existed, finishing a study and starting another
+   silently deleted the first. Answers are copied here (never the
+   fetched passage text, which is large and re-fetchable) and each
+   study carries a stable id so re-saving updates in place instead
+   of piling up duplicates.
+   ============================================================ */
+const ARCHIVE_LIMIT = 300;
+
+const EDGE_FIELDS = ['explore', 'exploreDefine',
+                     'digWho', 'digContext', 'digParaphrase',
+                     'gatherKey', 'gatherGod', 'gatherOutcome', 'gatherPeople',
+                     'embraceApply', 'embraceCommit', 'embraceAction'];
+const GOAL_FIELDS = ['quickGod', 'quickPeople', 'quickMe', 'quickRespond'];
+
+function fieldsFor(kind) { return kind === 'goal' ? GOAL_FIELDS : EDGE_FIELDS; }
+
+function loadArchive() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ARCHIVE);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter(e => e && e.id) : [];
+  } catch { return []; }
+}
+
+function writeArchive(list) {
+  try {
+    localStorage.setItem(STORAGE_KEY_ARCHIVE, JSON.stringify(list));
+    return true;
+  } catch {
+    // Storage full. Shed the oldest half rather than losing everything,
+    // and keep the newest studies — the ones most likely still wanted.
+    try {
+      const trimmed = list.slice(0, Math.max(1, Math.floor(list.length / 2)));
+      localStorage.setItem(STORAGE_KEY_ARCHIVE, JSON.stringify(trimmed));
+    } catch {}
+    return false;
+  }
+}
+
+function newStudyId() {
+  return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function hasAnyAnswer(src, fields) {
+  return fields.some(f => String(src[f] || '').trim() !== '');
+}
+
+/* Copy the current draft into the archive. Called when a study is
+   finished, and again whenever a draft is about to be replaced, so
+   half-done work survives too. Silent and idempotent. */
+function archiveCurrent(kind, opts = {}) {
+  const src    = kind === 'goal' ? state.quick : state.study;
+  const fields = fieldsFor(kind);
+  if (!src || !src.passage) return;
+  if (!opts.completed && !hasAnyAnswer(src, fields)) return;
+
+  if (!src.id) src.id = newStudyId();
+  const now  = new Date().toISOString();
+  const data = {};
+  fields.forEach(f => { data[f] = String(src[f] || ''); });
+
+  const list = loadArchive();
+  const i    = list.findIndex(e => e.id === src.id);
+  const prev = i >= 0 ? list[i] : null;
+
+  const entry = {
+    id: src.id,
+    kind: kind,
+    passage: src.passage,
+    translation: src.translation || 'bsb',
+    started: (prev && prev.started) || now,
+    updated: now,
+    completed: !!opts.completed || !!(prev && prev.completed),
+    data: data
+  };
+
+  if (i >= 0) list[i] = entry; else list.push(entry);
+  list.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
+  if (list.length > ARCHIVE_LIMIT) list.length = ARCHIVE_LIMIT;
+  writeArchive(list);
+
+  // Persist the id onto the live draft so later saves find the same entry.
+  if (kind === 'goal') saveQuick(); else saveStudy();
+}
+
+function deleteArchived(id) {
+  const list = loadArchive().filter(e => e.id !== id);
+  writeArchive(list);
 }
 
 /* ============================================================
@@ -2784,6 +3020,8 @@ function showScreen(name, opts = {}) {
   if (name === 'quickDone')      renderQuickDone();
   if (name === 'wordStudy')      mountWordStudy();
   if (name === 'readBible')      mountReadBible();
+  if (name === 'myStudies')      renderMyStudies();
+  if (name === 'studyView')      renderStudyView();
 
   window.scrollTo(0, 0);
 }
@@ -2875,6 +3113,21 @@ function renderHome() {
   document.getElementById('greetingSalute').textContent = getTimeGreeting();
   const name = state.user.name || 'Friend';
   document.getElementById('greetingName').textContent = name + '.';
+
+  // Fold in anything open so a study in progress is counted too.
+  archiveCurrent('edge');
+  archiveCurrent('goal');
+
+  // "My studies" only shows once there's something to look back on.
+  const n    = loadArchive().length;
+  const tile = document.getElementById('homeStudiesTile');
+  const desc = document.getElementById('homeStudiesDesc');
+  if (tile) tile.style.display = n ? '' : 'none';
+  if (desc && n) {
+    desc.textContent = n === 1
+      ? 'One study saved. Read it again, or save a backup copy.'
+      : `${n} studies saved. Read them again, or save a backup copy.`;
+  }
 }
 
 /* ============================================================
@@ -2898,6 +3151,7 @@ function onTranslationChange() {
 
 function pickPreset(i) {
   const p = PRESETS[i];
+  archiveCurrent('edge');   // don't lose whatever was in progress
   state.study = { ...emptyStudy(), passage: p.ref, translation: state.study.translation || 'bsb' };
   state.study._presetIdx = i;
   saveStudy();
@@ -2910,6 +3164,7 @@ function onPassageSubmit() {
     openRefPicker('passageInput', 'passagePickerBtn');
     return;
   }
+  archiveCurrent('edge');   // don't lose whatever was in progress
   state.study = { ...emptyStudy(), passage: v, translation: state.study.translation || 'bsb' };
   saveStudy();
   showScreen('reader');
@@ -3715,41 +3970,56 @@ function advanceFromGatherO()        { captureCurrentInputs(); showScreen('gathe
 function advanceFromGatherW()        { captureCurrentInputs(); showScreen('embraceA'); }
 function advanceFromEmbraceA()       { captureCurrentInputs(); showScreen('embraceC'); }
 function advanceFromEmbraceC()       { captureCurrentInputs(); showScreen('embraceT'); }
-function advanceFromEmbraceT()       { captureCurrentInputs(); showScreen('done'); }
+function advanceFromEmbraceT()       { captureCurrentInputs(); archiveCurrent('edge', { completed: true }); showScreen('done'); }
 
 /* ============================================================
    DONE
    ============================================================ */
+/* One description of the EDGE summary, used by the Done screen and by
+   the read-back view of an archived study, so the two can't drift. */
+const EDGE_SUMMARY = [
+  { key: 'explore',        step: 'explore', label: 'Explore · Analyze', q: 'What did you notice?' },
+  { key: 'exploreDefine',  step: 'explore', label: 'Explore · Define',  q: 'Words I looked up, and what they mean here.' },
+  { key: 'digWho',         step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?' },
+  { key: 'digContext',     step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.' },
+  { key: 'digParaphrase',  step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.' },
+  { key: 'gatherKey',      step: 'gather',  label: 'Gather · Key',           q: 'The primary message.' },
+  { key: 'gatherGod',      step: 'gather',  label: 'Gather · Nature of God', q: 'What does this say about God?' },
+  { key: 'gatherOutcome',  step: 'gather',  label: 'Gather · Outcome',       q: 'What does it mean for faith & beliefs?' },
+  { key: 'gatherPeople',   step: 'gather',  label: 'Gather · Wisdom',        q: 'About people, and to people.' },
+  { key: 'embraceApply',   step: 'embrace', label: 'Embrace · Apply',       q: 'What is it saying to me?' },
+  { key: 'embraceCommit',  step: 'embrace', label: 'Embrace · Commit',      q: 'What will I do about it?' },
+  { key: 'embraceAction',  step: 'embrace', label: 'Embrace · Take action', q: 'How exactly will I practice this?' }
+];
+
+const GOAL_SUMMARY = [
+  { key: 'quickGod',     step: 'gather',  label: 'G · God',         q: 'What does this teach about God?' },
+  { key: 'quickPeople',  step: 'explore', label: 'O · Others',      q: 'What does this teach about others?' },
+  { key: 'quickMe',      step: 'dig',     label: 'A · Align',       q: 'Where do I need to align with this truth?' },
+  { key: 'quickRespond', step: 'embrace', label: 'L · Live it out', q: 'How will I live out this truth?' }
+];
+
+function summaryHtml(spec, src) {
+  return spec.map(i => {
+    const a = String((src && src[i.key]) || '').trim();
+    return `
+    <div class="item">
+      <div class="item-h ${i.step}">${i.label}</div>
+      <div class="item-q">${i.q}</div>
+      <div class="item-a ${a ? '' : 'empty'}">${escapeHtml(a) || '(skipped)'}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderDone() {
   const name = state.user.name ? state.user.name : 'Friend';
   document.getElementById('doneHeading').textContent = `Well done, ${name}.`;
   document.getElementById('donePassageRef').textContent = state.study.passage || '—';
-
-  const items = [
-    { step: 'explore', label: 'Explore · Analyze', q: 'What did you notice?',                       a: state.study.explore },
-    { step: 'explore', label: 'Explore · Define',  q: 'Words I looked up, and what they mean here.', a: state.study.exploreDefine },
-    { step: 'dig',     label: 'Dig · Details',     q: 'Who, what, when, where, why, how?', a: state.study.digWho },
-    { step: 'dig',     label: 'Dig · Investigate', q: 'Context, characters, culture.',     a: state.study.digContext },
-    { step: 'dig',     label: 'Dig · Grasp',       q: 'In your own words.',                a: state.study.digParaphrase },
-    { step: 'gather',  label: 'Gather · Key',           q: 'The primary message.',                  a: state.study.gatherKey },
-    { step: 'gather',  label: 'Gather · Nature of God', q: 'What does this say about God?',         a: state.study.gatherGod },
-    { step: 'gather',  label: 'Gather · Outcome',       q: 'What does it mean for faith & beliefs?', a: state.study.gatherOutcome },
-    { step: 'gather',  label: 'Gather · Wisdom',        q: 'About people, and to people.',          a: state.study.gatherPeople },
-    { step: 'embrace', label: 'Embrace · Apply',       q: 'What is it saying to me?',           a: state.study.embraceApply },
-    { step: 'embrace', label: 'Embrace · Commit',      q: 'What will I do about it?',           a: state.study.embraceCommit },
-    { step: 'embrace', label: 'Embrace · Take action', q: 'How exactly will I practice this?',  a: state.study.embraceAction }
-  ];
-
-  document.getElementById('doneSummary').innerHTML = items.map(i => `
-    <div class="item">
-      <div class="item-h ${i.step}">${i.label}</div>
-      <div class="item-q">${i.q}</div>
-      <div class="item-a ${(i.a || '').trim() ? '' : 'empty'}">${escapeHtml((i.a || '').trim()) || '(skipped)'}</div>
-    </div>
-  `).join('');
+  document.getElementById('doneSummary').innerHTML = summaryHtml(EDGE_SUMMARY, state.study);
 }
 
 function newStudy() {
+  archiveCurrent('edge', { completed: true });   // keep the one just finished
   state.study = emptyStudy();
   clearStudy();
   state.history = [];
@@ -3833,6 +4103,7 @@ function injectToggleIntoDisplay(elId) {
 function onQuickSubmit() {
   const v = document.getElementById('quickInput').value.trim();
   if (!v) { openRefPicker('quickInput', 'quickPickerBtn'); return; }
+  archiveCurrent('goal');   // don't lose whatever was in progress
   state.quick = { ...emptyQuick(), passage: v };
   saveQuick();
   showScreen('quickRead');
@@ -3875,11 +4146,23 @@ function mountQuickPage(accordId, fieldId) {
   attachQuickAutosave(fieldId);
 }
 
+/* Capture only the field belonging to the screen we're leaving.
+   Sweeping all four used to drag the *previous* study's answers into a
+   new one, because the other textareas still held their old text until
+   their own screen re-mounted. Autosave keeps the rest current anyway. */
+const QUICK_FIELD_BY_SCREEN = {
+  quickG: 'quickGod',
+  quickO: 'quickPeople',
+  quickA: 'quickMe',
+  quickL: 'quickRespond'
+};
+
 function captureQuickInputs() {
-  ['quickGod', 'quickPeople', 'quickMe', 'quickRespond'].forEach(id => {
+  const id = QUICK_FIELD_BY_SCREEN[state.screen];
+  if (id) {
     const el = document.getElementById(id);
     if (el) state.quick[id] = el.value;
-  });
+  }
   saveQuick();
 }
 
@@ -3887,34 +4170,258 @@ function advanceFromQuickRead() { showScreen('quickG'); }
 function advanceFromQuickG()    { captureQuickInputs(); showScreen('quickO'); }
 function advanceFromQuickO()    { captureQuickInputs(); showScreen('quickA'); }
 function advanceFromQuickA()    { captureQuickInputs(); showScreen('quickL'); }
-function advanceFromQuickL()    { captureQuickInputs(); showScreen('quickDone'); }
+function advanceFromQuickL()    { captureQuickInputs(); archiveCurrent('goal', { completed: true }); showScreen('quickDone'); }
 
 function renderQuickDone() {
   const name = state.user.name ? state.user.name : 'Friend';
   document.getElementById('quickDoneHeading').textContent = `You did it, ${name}.`;
   document.getElementById('quickDoneRef').textContent = state.quick.passage || '—';
-
-  const items = [
-    { step: 'gather',  label: 'G · God',         q: 'What does this teach about God?',          a: state.quick.quickGod },
-    { step: 'explore', label: 'O · Others',      q: 'What does this teach about others?',       a: state.quick.quickPeople },
-    { step: 'dig',     label: 'A · Align',       q: 'Where do I need to align with this truth?', a: state.quick.quickMe },
-    { step: 'embrace', label: 'L · Live it out', q: 'How will I live out this truth?',          a: state.quick.quickRespond }
-  ];
-
-  document.getElementById('quickDoneSummary').innerHTML = items.map(i => `
-    <div class="item">
-      <div class="item-h ${i.step}">${i.label}</div>
-      <div class="item-q">${i.q}</div>
-      <div class="item-a ${(i.a || '').trim() ? '' : 'empty'}">${escapeHtml((i.a || '').trim()) || '(skipped)'}</div>
-    </div>
-  `).join('');
+  document.getElementById('quickDoneSummary').innerHTML = summaryHtml(GOAL_SUMMARY, state.quick);
 }
 
 function newQuickStudy() {
+  archiveCurrent('goal', { completed: true });   // keep the one just finished
   state.quick = emptyQuick();
   clearQuick();
   state.history = [];
   showScreen('quickPick', { skipHistory: true });
+}
+
+/* ============================================================
+   MY STUDIES — browse, reread, back up, restore
+   ============================================================ */
+let VIEWED_STUDY_ID = null;
+
+function friendlyDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  if (sameDay) return 'Today, ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const yest = new Date(today); yest.setDate(today.getDate() - 1);
+  if (d.toDateString() === yest.toDateString()) return 'Yesterday';
+  const opts = { month: 'short', day: 'numeric' };
+  if (d.getFullYear() !== today.getFullYear()) opts.year = 'numeric';
+  return d.toLocaleDateString(undefined, opts);
+}
+
+function countAnswered(entry) {
+  const fields = fieldsFor(entry.kind);
+  return fields.filter(f => String((entry.data || {})[f] || '').trim()).length;
+}
+
+function renderMyStudies() {
+  // Fold in whatever is open right now, so the list is never behind the reader.
+  archiveCurrent('edge');
+  archiveCurrent('goal');
+
+  const list = loadArchive();
+  const slot = document.getElementById('studyList');
+  setBackupStatus('');
+
+  if (!list.length) {
+    slot.innerHTML = `<div class="study-empty">
+      You haven't saved a study yet. Start an EDGE or GOAL study and your
+      answers will show up here — saved as you type, so nothing is lost if
+      you stop partway through.
+    </div>`;
+    return;
+  }
+
+  slot.innerHTML = list.map(e => {
+    const total = fieldsFor(e.kind).length;
+    const done  = countAnswered(e);
+    const kind  = e.kind === 'goal' ? 'GOAL study' : 'EDGE study';
+    const tag   = e.completed
+      ? '<span class="study-tag">Finished</span>'
+      : `<span class="study-tag unfinished">${done} of ${total} answered</span>`;
+    return `
+      <button class="study-item" onclick="openArchivedStudy('${escapeAttr(e.id)}')">
+        <div class="ref">${escapeHtml(e.passage || '—')}</div>
+        <div class="meta">${tag}<span>${escapeHtml(kind)}</span><span>·</span><span>${escapeHtml(friendlyDate(e.updated))}</span></div>
+      </button>`;
+  }).join('');
+}
+
+function openArchivedStudy(id) {
+  const entry = loadArchive().find(e => e.id === id);
+  if (!entry) return;
+  VIEWED_STUDY_ID = id;
+  showScreen('studyView');
+}
+
+function renderStudyView() {
+  const entry = loadArchive().find(e => e.id === VIEWED_STUDY_ID);
+  if (!entry) { showScreen('myStudies', { skipHistory: true }); return; }
+
+  const isGoal = entry.kind === 'goal';
+  document.getElementById('studyViewKind').textContent = isGoal ? 'YOUR GOAL STUDY' : 'YOUR EDGE STUDY';
+  document.getElementById('studyViewRef').textContent  = entry.passage || '—';
+  document.getElementById('studyViewDate').textContent =
+    (entry.completed ? 'Finished ' : 'Last worked on ') + friendlyDate(entry.updated) + '.';
+  document.getElementById('studyViewSummary').innerHTML =
+    summaryHtml(isGoal ? GOAL_SUMMARY : EDGE_SUMMARY, entry.data || {});
+}
+
+/* Load an archived study back into the live draft and drop the reader at
+   its first question. The draft it replaces is archived first. */
+function reopenStudy() {
+  const entry = loadArchive().find(e => e.id === VIEWED_STUDY_ID);
+  if (!entry) return;
+
+  if (entry.kind === 'goal') {
+    archiveCurrent('goal');
+    state.quick = { ...emptyQuick(), ...(entry.data || {}), id: entry.id, passage: entry.passage };
+    saveQuick();
+    state.history = ['home', 'myStudies'];
+    showScreen('quickRead', { skipHistory: true });
+  } else {
+    archiveCurrent('edge');
+    state.study = { ...emptyStudy(), ...(entry.data || {}), id: entry.id,
+                    passage: entry.passage, translation: entry.translation || 'bsb' };
+    saveStudy();
+    state.history = ['home', 'myStudies'];
+    showScreen('reader', { skipHistory: true });
+  }
+}
+
+function deleteViewedStudy() {
+  const entry = loadArchive().find(e => e.id === VIEWED_STUDY_ID);
+  if (!entry) return;
+  const ok = window.confirm(
+    `Delete your study of ${entry.passage}?\n\nThis can't be undone unless you have a backup file.`
+  );
+  if (!ok) return;
+  // If it's also the study currently open, clear the live draft too,
+  // otherwise the next autosave would put it straight back.
+  if (state.study && state.study.id === entry.id) { state.study = emptyStudy(); clearStudy(); }
+  if (state.quick && state.quick.id === entry.id) { state.quick = emptyQuick(); clearQuick(); }
+  deleteArchived(entry.id);
+  VIEWED_STUDY_ID = null;
+  showScreen('myStudies', { skipHistory: true });
+}
+
+/* ── Backup file ─────────────────────────────────────────── */
+const BACKUP_FORMAT = 'edge-backup';
+const BACKUP_VERSION = 1;
+
+function setBackupStatus(msg, kind) {
+  const el = document.getElementById('backupStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = 'backup-status' + (kind ? ' ' + kind : '');
+}
+
+function exportStudies() {
+  archiveCurrent('edge');
+  archiveCurrent('goal');
+
+  const payload = {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    name: state.user.name || '',
+    studies: loadArchive()
+  };
+
+  try {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const d    = new Date();
+    const stamp = d.getFullYear() + '-' +
+                  String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(d.getDate()).padStart(2, '0');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `EDGE-studies-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    const n = payload.studies.length;
+    setBackupStatus(
+      `Saved ${n} ${n === 1 ? 'study' : 'studies'} to your downloads as EDGE-studies-${stamp}.json.`,
+      'ok'
+    );
+  } catch (err) {
+    setBackupStatus("Couldn't save the file. Your browser may be blocking downloads.", 'bad');
+  }
+}
+
+function importStudies(input) {
+  const file = input && input.files && input.files[0];
+  input.value = '';               // let the same file be picked again
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onerror = () => setBackupStatus("Couldn't read that file.", 'bad');
+  reader.onload = () => {
+    let payload;
+    try { payload = JSON.parse(String(reader.result)); }
+    catch { setBackupStatus("That doesn't look like an EDGE backup file.", 'bad'); return; }
+
+    if (!payload || payload.format !== BACKUP_FORMAT || !Array.isArray(payload.studies)) {
+      setBackupStatus("That doesn't look like an EDGE backup file.", 'bad');
+      return;
+    }
+
+    const list   = loadArchive();
+    const byId   = new Map(list.map(e => [e.id, e]));
+    let added = 0, updated = 0, skipped = 0;
+
+    payload.studies.forEach(raw => {
+      if (!raw || !raw.id || !raw.passage) { skipped++; return; }
+      const kind = raw.kind === 'goal' ? 'goal' : 'edge';
+      const data = {};
+      fieldsFor(kind).forEach(f => { data[f] = String((raw.data || {})[f] || ''); });
+      const entry = {
+        id: String(raw.id),
+        kind: kind,
+        passage: String(raw.passage),
+        translation: String(raw.translation || 'bsb'),
+        started: String(raw.started || raw.updated || new Date().toISOString()),
+        updated: String(raw.updated || new Date().toISOString()),
+        completed: !!raw.completed,
+        data: data
+      };
+      const existing = byId.get(entry.id);
+      if (!existing) {
+        list.push(entry); byId.set(entry.id, entry); added++;
+      } else if (String(entry.updated) > String(existing.updated || '')) {
+        // Newer copy of a study already here — take it, keep it finished
+        // if either side was.
+        entry.completed = entry.completed || existing.completed;
+        entry.started   = existing.started || entry.started;
+        list[list.indexOf(existing)] = entry;
+        byId.set(entry.id, entry);
+        updated++;
+      } else {
+        skipped++;
+      }
+    });
+
+    list.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
+    if (list.length > ARCHIVE_LIMIT) list.length = ARCHIVE_LIMIT;
+    const wrote = writeArchive(list);
+
+    if (!state.user.name && payload.name) {
+      state.user.name = String(payload.name);
+      saveName(state.user.name);
+    }
+
+    const parts = [];
+    if (added)   parts.push(`${added} added`);
+    if (updated) parts.push(`${updated} updated`);
+    if (skipped) parts.push(`${skipped} already here`);
+    const msg = parts.length ? 'Restored: ' + parts.join(', ') + '.' : 'Nothing new in that file.';
+    renderMyStudies();   // redraw the list first — it clears the status line
+    setBackupStatus(
+      wrote ? msg : msg + " Storage is full, so the oldest studies were dropped — keep your backup file.",
+      wrote ? 'ok' : 'bad'
+    );
+  };
+  reader.readAsText(file);
 }
 
 /* ============================================================
