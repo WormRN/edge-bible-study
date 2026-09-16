@@ -24,7 +24,11 @@
 <title>EDGE · Bible Study</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Two requests on purpose. The Literata one uses variable-axis syntax; if it
+     ever fails, the interface font still arrives and Scripture falls back to
+     Georgia rather than the whole page losing its typography at once. -->
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    EDGE · Bible Study
@@ -54,8 +58,26 @@
   --shadow-elev:  0 4px 24px rgba(15,42,82,0.14);
   --shadow-modal: 0 20px 60px rgba(8,26,53,0.35);
 
-  --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  /* Literata is drawn for screens (Google designed it for Play Books):
+     bigger x-height and sturdier stems than a print Garamond, which is what
+     makes it hold up at phone sizes and at night. Atkinson Hyperlegible stays
+     for the interface — it was drawn by the Braille Institute for low vision,
+     and this app is built for people who find reading hard. */
+  --serif: 'Literata', Georgia, 'Times New Roman', serif;
   --sans:  'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Biblical Greek keeps EB Garamond. Literata's Greek is perfectly good but
+     wider — it cost the interlinear an extra line per verse — and Garamond's
+     polytonic is the face this text has been set in for four centuries.
+     Only the Greek subset downloads, and only on screens that show Greek. */
+  --greek: 'EB Garamond', 'Literata', Georgia, serif;
+
+  /* Reading measure: past ~65 characters the eye loses the line return.
+     On a phone the column is already narrower than this; it does its work
+     on a laptop, where an unconstrained line would run the full width. */
+  --reading-measure: 62ch;
+  /* Light text on a dark ground optically thickens. Literata is variable,
+     so dark mode can ask for slightly less weight and land in the same place. */
+  --reading-weight: 400;
 
   /* --navy did two jobs: dark backgrounds AND heading text on paper.
      In dark mode those must move in opposite directions, so they split. */
@@ -95,6 +117,8 @@
   --shadow:       0 1px 3px rgba(0,0,0,0.40), 0 8px 24px rgba(0,0,0,0.30);
   --shadow-elev:  0 4px 24px rgba(0,0,0,0.45);
   --shadow-modal: 0 20px 60px rgba(0,0,0,0.60);
+
+  --reading-weight: 370;   /* see the note beside the light-mode value */
 }
 
 html { transition: background 0.2s ease; }
@@ -282,12 +306,13 @@ main {
 }
 
 /* ─── Common UI ──────────────────────────────────────────── */
+/* Cards are flat. On a study screen the only lifted thing is the passage,
+   so the eye lands on Scripture before it lands on the question about it. */
 .card {
   background: var(--paper);
   border: 1px solid var(--rule);
   border-radius: 18px;
   padding: 22px;
-  box-shadow: var(--shadow);
   margin-bottom: 16px;
 }
 .card.tinted-explore { border-top: 5px solid var(--edge-explore); }
@@ -298,7 +323,7 @@ main {
 .h-display {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 32px;
+  font-size: 29px;
   line-height: 1.2;
   color: var(--heading);
   margin-bottom: 8px;
@@ -319,7 +344,7 @@ main {
 
 .h-question {
   font-family: var(--serif);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 500;
   color: var(--heading);
   margin-bottom: 8px;
@@ -492,7 +517,7 @@ select.translation-select {
   font-family: var(--serif);
   color: white;
   font-weight: 600;
-  font-size: 56px;
+  font-size: 52px;
   line-height: 1;
 }
 .welcome-hero .logo-large::after {
@@ -539,7 +564,7 @@ select.translation-select {
 }
 .greeting h2 {
   font-family: var(--serif);
-  font-size: 32px;
+  font-size: 29px;
   font-weight: 500;
   color: var(--heading);
   line-height: 1.2;
@@ -599,7 +624,7 @@ select.translation-select {
 }
 .home-tile-h {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--heading);
   margin-bottom: 4px;
@@ -674,7 +699,7 @@ select.translation-select {
 .preset:hover { border-color: var(--accent); background: var(--accent-pale); }
 .preset .ref {
   font-family: var(--serif);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--heading);
 }
@@ -685,12 +710,14 @@ select.translation-select {
 }
 
 /* ─── Reader / passage display ───────────────────────────── */
+/* The one lifted surface in the app. Cards around it are flat, so on any
+   study screen the eye finds the passage before the question about it. */
 .passage-display {
   background: var(--paper);
   border: 1px solid var(--rule);
   border-radius: 18px;
-  padding: 24px 22px;
-  box-shadow: var(--shadow);
+  padding: 26px 22px;
+  box-shadow: var(--shadow-elev);
   margin-bottom: 16px;
 }
 .passage-ref {
@@ -702,10 +729,15 @@ select.translation-select {
   font-weight: 700;
   margin-bottom: 12px;
 }
+/* Scripture was set in Inter — a UI sans. It's the one text in the app
+   people read for minutes at a time, so it gets the reading face. */
 .passage-text {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: var(--reading-weight);
   font-size: var(--reading-size);
   line-height: var(--reading-lh);
+  max-width: var(--reading-measure);
   color: var(--ink);
   transition: font-size 0.15s ease;
 }
@@ -736,7 +768,7 @@ select.translation-select {
 .il-word:hover, .il-word:active { background: var(--accent-soft); }
 .il-grk {
   display: block;
-  font-family: var(--serif, Georgia, serif);
+  font-family: var(--greek);
   font-size: var(--reading-size);
   color: var(--accent);
   line-height: 1.2;
@@ -948,7 +980,7 @@ a.translation-badge:hover { color: var(--accent); }
   .wiz-label { display: none; }
 }
 .wiz-word-big {
-  font-family: var(--serif);
+  font-family: var(--greek);
   font-size: 34px;
   font-weight: 500;
   color: var(--heading);
@@ -998,18 +1030,26 @@ a.translation-badge:hover { color: var(--accent); }
 .done-summary .item-h.dig     { color: var(--edge-dig); }
 .done-summary .item-h.gather  { color: var(--edge-gather); }
 .done-summary .item-h.embrace { color: var(--edge-embrace); }
+/* The prompt is scaffolding; the answer is the reader's. Let the prompt
+   sit back so the eye goes to what they wrote. */
 .done-summary .item-q {
   font-family: var(--serif);
-  font-size: 18px;
-  color: var(--heading);
-  margin-bottom: 6px;
-  font-weight: 500;
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 7px;
+  font-weight: 400;
 }
+/* The reader's own answers, read back. Same rule as Scripture: text you
+   read gets the reading face; text you operate gets the interface face. */
 .done-summary .item-a {
-  font-size: calc(var(--reading-size) - 3px);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: var(--reading-weight);
+  font-size: calc(var(--reading-size) - 2px);
+  max-width: var(--reading-measure);
   color: var(--ink);
   white-space: pre-wrap;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .done-summary .item-a.empty {
   color: var(--muted);
@@ -1032,7 +1072,7 @@ a.translation-badge:hover { color: var(--accent); }
 }
 .done-celebrate h2 {
   font-family: var(--serif);
-  font-size: 30px;
+  font-size: 27px;
   color: var(--heading);
   margin-bottom: 8px;
   font-weight: 500;
@@ -1061,7 +1101,7 @@ a.translation-badge:hover { color: var(--accent); }
 .study-item:hover { border-color: var(--accent); background: var(--accent-pale); }
 .study-item .ref {
   font-family: var(--serif);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--heading);
 }
@@ -1120,7 +1160,7 @@ a.translation-badge:hover { color: var(--accent); }
 #studyViewRenameRow input {
   width: 100%;
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: 19px;
 }
 .rename-hint {
   font-size: 13px;
@@ -1182,7 +1222,7 @@ a.translation-badge:hover { color: var(--accent); }
 }
 .lex-result:hover { border-color: var(--accent); background: var(--accent-pale); }
 .lex-result .lr-greek {
-  font-family: var(--serif);
+  font-family: var(--greek);
   font-size: 22px;
   font-weight: 500;
   color: var(--heading);
@@ -1449,7 +1489,7 @@ a.translation-badge:hover { color: var(--accent); }
 
 .chapter-context {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--ink);
   padding: 6px 8px 14px;
@@ -1527,7 +1567,7 @@ a.translation-badge:hover { color: var(--accent); }
 .full-close:hover { background: rgba(255,255,255,0.22); }
 
 .full-header .lemma {
-  font-family: var(--serif);
+  font-family: var(--greek);
   font-size: 32px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -1584,7 +1624,7 @@ a.translation-badge:hover { color: var(--accent); }
   margin-bottom: 8px;
 }
 .word-form .wf-word {
-  font-family: var(--serif);
+  font-family: var(--greek);
   font-size: 26px;
   font-weight: 500;
   line-height: 1.25;
@@ -1815,8 +1855,8 @@ a.translation-badge:hover { color: var(--accent); }
   border-radius: 10px;
   color: var(--muted);
   cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
